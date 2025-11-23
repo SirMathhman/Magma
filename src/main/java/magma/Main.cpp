@@ -14,7 +14,7 @@ struct Head {
 };
 template <typename T>
 struct ListTable {
-	Stream<T> (*iter)(void*);
+	Iter<T> (*iter)(void*);
 	int (*isEmpty)(void*);
 	List<T> (*addLast)(void*, T);
 	int (*contains)(void*, T);
@@ -26,6 +26,7 @@ struct ListTable {
 	List<T> (*clear)(void*);
 	List<T> (*removeLast)(void*);
 	List<T> (*mapLast)(void*, Function<T, T>);
+	Iter<T> (*iterReversed)(void*);
 };
 template <typename T>
 struct List {
@@ -196,6 +197,7 @@ enum JTypeVariant {
 	JFunctionalTypeVariant,
 	JGenericTypeVariant,
 	JPrimitiveTypeVariant,
+	JStructureTypeVariant,
 	PlaceholderVariant
 };
 union JTypeData {
@@ -204,6 +206,7 @@ union JTypeData {
 	JFunctionalType JFunctionalType;
 	JGenericType JGenericType;
 	JPrimitiveType JPrimitiveType;
+	JStructureType JStructureType;
 	Placeholder Placeholder;
 };
 struct JType {
@@ -244,7 +247,7 @@ struct StringBuilder {
 	List<char> list;
 };
 template <typename T>
-struct Stream {
+struct Iter {
 	Head<T> head;
 };
 struct RangeHead {
@@ -341,8 +344,8 @@ struct SingleHead {
 template <typename T, typename R>
 struct FlatMapHead {
 	Head<T> head;
-	F1R<T, Stream<R>> mapper;
-	Option<Stream<R>> maybeCurrent;
+	F1R<T, Iter<R>> mapper;
+	Option<Iter<R>> maybeCurrent;
 };
 template <typename T>
 struct EmptyHead {
@@ -407,7 +410,12 @@ struct JFunctionalType {
 struct Environment {/*private List<Frame> frames = new JavaList<Frame>*/
 };
 struct Frame {
+	Option<char*> maybeName;
 	List<JDeclaration> definitions;
+};
+struct JStructureType {
+	char* name;
+	List<JDeclaration> members;
 };
 struct Main {/*private interface CExpression extends CAssignable {}*/
 	List<char*> functionDeclarations;
@@ -425,7 +433,7 @@ char* toBaseName_CPrimitiveType(void* _ref);
 template <typename T>
 Option<T> next_Head(void* _ref);
 template <typename T>
-Stream<T> iter_List(void* _ref);
+Iter<T> iter_List(void* _ref);
 template <typename T>
 int isEmpty_List(void* _ref);
 template <typename T>
@@ -448,6 +456,8 @@ template <typename T>
 List<T> removeLast_List(void* _ref);
 template <typename T>
 List<T> mapLast_List(void* _ref, Function<T, T> mapper);
+template <typename T>
+Iter<T> iterReversed_List(void* _ref);
 Path resolveSibling_Path(void* _ref, char* sibling);
 Option<IOError> writeString_Path(void* _ref, char* output);
 Result<char*, IOError> readString_Path(void* _ref);
@@ -462,7 +472,7 @@ Option<R> flatMap_Option(void* _ref, F1R<T, Option<R>> mapper);
 template <typename T>
 T orElseGet_Option(void* _ref, FR<T> other);
 template <typename T>
-Stream<T> iter_Option(void* _ref);
+Iter<T> iter_Option(void* _ref);
 template <typename T>
 Option<T> or_Option(void* _ref, FR<Option<T>> other);
 template <typename T>
@@ -494,23 +504,23 @@ StringBuilder clear_StringBuilder(void* _ref);
 StringBuilder appendString_StringBuilder(void* _ref, char* chars);
 char* toString_StringBuilder(void* _ref);
 template <typename T, typename T>
-Stream<T> of_Stream(void* _ref, T value);
+Iter<T> of_Iter(void* _ref, T value);
 template <typename T, typename T>
-Stream<T> empty_Stream(void* _ref);
+Iter<T> empty_Iter(void* _ref);
 template <typename R, typename T>
-Stream<R> map_Stream(void* _ref, F1R<T, R> mapper);
+Iter<R> map_Iter(void* _ref, F1R<T, R> mapper);
 template <typename R, typename T>
-R fold_Stream(void* _ref, R initial, F2R<R, T, R> folder);
+R fold_Iter(void* _ref, R initial, F2R<R, T, R> folder);
 template <typename C, typename T>
-C collect_Stream(void* _ref, Collector<T, C> collector);
+C collect_Iter(void* _ref, Collector<T, C> collector);
 template <typename T>
-List<T> toList_Stream(void* _ref);
+List<T> toList_Iter(void* _ref);
 template <typename T>
-Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate);
+Iter<T> filter_Iter(void* _ref, F1R<T, int> predicate);
 template <typename R, typename T>
-Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);
+Iter<R> flatMap_Iter(void* _ref, F1R<T, Iter<R>> mapper);
 template <typename T>
-Option<T> next_Stream(void* _ref);
+Option<T> next_Iter(void* _ref);
 RangeHead<> new_RangeHead(int length);
 Option<int> next_RangeHead(void* _ref);
 template <typename T>
@@ -529,7 +539,7 @@ Option<char> pop_State(void* _ref);
 State advance_State(void* _ref);
 State enter_State(void* _ref);
 State exit_State(void* _ref);
-Stream<char*> stream_State(void* _ref);
+Iter<char*> stream_State(void* _ref);
 Option<Tuple<State, char>> popAndAppendToTuple_State(void* _ref);
 Option<State> popAndAppendToOption_State(void* _ref);
 Option<char> peek_State(void* _ref);
@@ -565,7 +575,7 @@ Option<R> flatMap_Some(void* _ref, F1R<T, Option<R>> mapper);
 template <typename T>
 T orElseGet_Some(void* _ref, FR<T> other);
 template <typename T>
-Stream<T> iter_Some(void* _ref);
+Iter<T> iter_Some(void* _ref);
 template <typename T>
 Option<T> or_Some(void* _ref, FR<Option<T>> other);
 template <typename T>
@@ -579,7 +589,7 @@ Option<R> flatMap_None(void* _ref, F1R<T, Option<R>> mapper);
 template <typename T>
 T orElseGet_None(void* _ref, FR<T> other);
 template <typename T>
-Stream<T> iter_None(void* _ref);
+Iter<T> iter_None(void* _ref);
 template <typename T>
 Option<T> or_None(void* _ref, FR<Option<T>> other);
 template <typename T>
@@ -587,8 +597,8 @@ Tuple<int, T> toTuple_None(void* _ref, FR<T> other);
 State apply_ConditionEndLocator(void* _ref, State state, char c);
 char* generate_CField(void* _ref);
 template <typename T>
-Stream<T> fromObjArray_Streams(void* _ref, T* elements);
-Stream<char> fromCharArray_Streams(void* _ref, char* array);
+Iter<T> fromObjArray_Streams(void* _ref, T* elements);
+Iter<char> fromCharArray_Streams(void* _ref, char* array);
 template <typename T, typename R>
 Option<R> next_MapHead(void* _ref);
 template <typename T>
@@ -596,7 +606,7 @@ SingleHead<T> new_SingleHead(T value);
 template <typename T>
 Option<T> next_SingleHead(void* _ref);
 template <typename T, typename R>
-FlatMapHead<T, R> new_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper);
+FlatMapHead<T, R> new_FlatMapHead(Head<T> head, F1R<T, Iter<R>> mapper);
 template <typename T, typename R>
 Option<R> next_FlatMapHead(void* _ref);
 template <typename T>
@@ -636,11 +646,15 @@ Environment defineAll_Environment(void* _ref, List<JDeclaration> declarations);
 template <typename T>
 Tuple<Environment, T> within_Environment(void* _ref, Supplier<T> supplier);
 Environment define_Environment(void* _ref, JDeclaration declaration);
-Frame<> new_Frame(List<JDeclaration> defined);
+Option<JStructureType> resolveCurrent_Environment(void* _ref);
+Environment withName_Environment(void* _ref, char* name);
+Frame<> new_Frame(Option<char*> maybeName, List<JDeclaration> defined);
 Frame<> new_Frame();
 Frame defineAll_Frame(void* _ref, List<JDeclaration> declarations);
 Option<JDeclaration> resolve_Frame(void* _ref, char* identifier);
 Frame define_Frame(void* _ref, JDeclaration declaration);
+Option<JStructureType> toStructureType_Frame(void* _ref);
+Frame withName_Frame(void* _ref, char* name);
 new Environment_Main(void* _ref);
 Main<> new_Main();
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);
@@ -655,7 +669,7 @@ char* compile_Main(void* _ref, char* input);
 char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures);
 char* compileStatements_Main(void* _ref, char* input, F1R<char*, char*> mapper);
 char* compileAll_Main(void* _ref, char* input, F1R<char*, char*> mapper, Folder folder);
-Stream<char*> divide_Main(void* _ref, char* input, Folder folder);
+Iter<char*> divide_Main(void* _ref, char* input, Folder folder);
 State foldStatement_Main(void* _ref, State current, char next);
 char* compileRootSegment_Main(void* _ref, char* input);
 Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripped);
@@ -730,7 +744,7 @@ Option<T> next_Head(void* _ref){
 	return _this->table.next(_this->data);
 }
 template <typename T>
-Stream<T> iter_List(void* _ref){
+Iter<T> iter_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
 	return _this->table.iter(_this->data);
 }
@@ -788,6 +802,11 @@ template <typename T>
 List<T> mapLast_List(void* _ref, Function<T, T> mapper){
 	List<T>* _this = (List<T>*) _ref;
 	return _this->table.mapLast(_this->data, mapper);
+}
+template <typename T>
+Iter<T> iterReversed_List(void* _ref){
+	List<T>* _this = (List<T>*) _ref;
+	return _this->table.iterReversed(_this->data);
 }
 Path resolveSibling_Path(void* _ref, char* sibling){
 	Path* _this = (Path*) _ref;
@@ -863,9 +882,9 @@ T orElseGet_Option(void* _ref, FR<T> other){
 	return _ret;
 }
 template <typename T>
-Stream<T> iter_Option(void* _ref){
+Iter<T> iter_Option(void* _ref){
 	Option<T>* _this = (Option<T>*) _ref;
-	Stream<T> _ret;
+	Iter<T> _ret;
 	switch (_this->variant) {
 		case NoneVariant:
 			_ret = iter_None(&(_this->data.None));
@@ -1066,19 +1085,19 @@ char* toString_StringBuilder(void* _ref){
 	return _this->list.iter((*_this)).map(F? { alloc((*_this)), F?Table { valueOf }}).collect(new_Joiner((*_this)));
 }
 template <typename T, typename T>
-Stream<T> of_Stream(void* _ref, T value){
-	Stream<T>* _this = (Stream<T>*) _ref;
-	return new_Stream<T>(new_SingleHead<T>((*_this)));
+Iter<T> of_Iter(void* _ref, T value){
+	Iter<T>* _this = (Iter<T>*) _ref;
+	return new_Iter<T>(new_SingleHead<T>((*_this)));
 }
 template <typename T, typename T>
-Stream<T> empty_Stream(void* _ref){
-	Stream<T>* _this = (Stream<T>*) _ref;
-	return new_Stream<T>(new_EmptyHead<T>((*_this)));
+Iter<T> empty_Iter(void* _ref){
+	Iter<T>* _this = (Iter<T>*) _ref;
+	return new_Iter<T>(new_EmptyHead<T>((*_this)));
 }
 template <typename R, typename T>
-Stream<R> map_Stream(void* _ref, F1R<T, R> mapper){
-	Stream<T>* _this = (Stream<T>*) _ref;
-	return new_Stream<R>(new_MapHead<T, R>(_this->head, (*_this)));
+Iter<R> map_Iter(void* _ref, F1R<T, R> mapper){
+	Iter<T>* _this = (Iter<T>*) _ref;
+	return new_Iter<R>(new_MapHead<T, R>(_this->head, (*_this)));
 }
 auto lambda0(void* _ref, auto element){
 	return (*_this).apply((*_this), (*_this));
@@ -1087,45 +1106,45 @@ auto lambda1(void* _ref, auto ()){
 	return (*_this);
 }
 template <typename R, typename T>
-R fold_Stream(void* _ref, R initial, F2R<R, T, R> folder){
-	Stream<T>* _this = (Stream<T>*) _ref;
+R fold_Iter(void* _ref, R initial, F2R<R, T, R> folder){
+	Iter<T>* _this = (Iter<T>*) _ref;
 	R current = (*_this);
 	while ((*_this)) {
 		R finalCurrent = (*_this);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]*/ tuple = _this->head.next((*_this)).map(lambda0).toTuple(lambda1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=Iter, members=magma.Main$JavaList@3796751b]]]]]]]*/ tuple = _this->head.next((*_this)).map(lambda0).toTuple(lambda1);
 		if ((*_this).left) 
 			(*_this) = (*_this).right;
 		return current;
 	}
 }
 template <typename C, typename T>
-C collect_Stream(void* _ref, Collector<T, C> collector){
-	Stream<T>* _this = (Stream<T>*) _ref;
+C collect_Iter(void* _ref, Collector<T, C> collector){
+	Iter<T>* _this = (Iter<T>*) _ref;
 	return _this->fold((*_this).createInitial((*_this)), F? { alloc((*_this)), F?Table { fold }});
 }
 template <typename T>
-List<T> toList_Stream(void* _ref){
-	Stream<T>* _this = (Stream<T>*) _ref;
+List<T> toList_Iter(void* _ref){
+	Iter<T>* _this = (Iter<T>*) _ref;
 	return _this->collect(new_ListCollector<T>((*_this)));
 }
 auto lambda2(void* _ref, auto element){
 	if ((*_this).apply((*_this))) 
-		return new_Stream<T>(new_SingleHead<T>((*_this)));
-	return new_Stream<T>(new_EmptyHead<T>((*_this)));
+		return new_Iter<T>(new_SingleHead<T>((*_this)));
+	return new_Iter<T>(new_EmptyHead<T>((*_this)));
 }
 template <typename T>
-Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate){
-	Stream<T>* _this = (Stream<T>*) _ref;
+Iter<T> filter_Iter(void* _ref, F1R<T, int> predicate){
+	Iter<T>* _this = (Iter<T>*) _ref;
 	return _this->flatMap(lambda2);
 }
 template <typename R, typename T>
-Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper){
-	Stream<T>* _this = (Stream<T>*) _ref;
-	return new_Stream<R>(new_FlatMapHead<T, R>(_this->head, (*_this)));
+Iter<R> flatMap_Iter(void* _ref, F1R<T, Iter<R>> mapper){
+	Iter<T>* _this = (Iter<T>*) _ref;
+	return new_Iter<R>(new_FlatMapHead<T, R>(_this->head, (*_this)));
 }
 template <typename T>
-Option<T> next_Stream(void* _ref){
-	Stream<T>* _this = (Stream<T>*) _ref;
+Option<T> next_Iter(void* _ref){
+	Iter<T>* _this = (Iter<T>*) _ref;
 	return _this->head.next((*_this));
 }
 Head<int> toHead_RangeHead(void* _ref){
@@ -1143,7 +1162,7 @@ RangeHead<> new_RangeHead(int length){
 Option<int> next_RangeHead(void* _ref){
 	RangeHead* _this = (RangeHead*) _ref;
 	if (_this->counter < (*_this).length) {
-		/*Not a valid member access: Placeholder[input=Undefined identifier: this]*/ value = _this->counter;
+		/*Not a valid member access: JStructureType[name=RangeHead, members=magma.Main$JavaList@7f690630]*/ value = _this->counter;
 		_this->counter++;
 		return new_Some<int>((*_this));
 	}
@@ -1203,7 +1222,7 @@ State append_State(void* _ref, char next){
 Option<char> pop_State(void* _ref){
 	State* _this = (State*) _ref;
 	if (_this->index < (*_this).input.length((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]*/ value = _this->input.charAt(_this->index);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=State, members=magma.Main$JavaList@566776ad]]]*/ value = _this->input.charAt(_this->index);
 		_this->index++;
 		return new_Some<char>((*_this));
 	}
@@ -1225,12 +1244,12 @@ State exit_State(void* _ref){
 	_this->depth = _this->depth - 1;
 	return (*_this);
 }
-Stream<char*> stream_State(void* _ref){
+Iter<char*> stream_State(void* _ref){
 	State* _this = (State*) _ref;
 	return _this->segments.iter((*_this));
 }
 auto lambda3(void* _ref, auto popped){
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ appended = _this->append((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=State, members=magma.Main$JavaList@566776ad]]*/ appended = _this->append((*_this));
 	return new_Tuple<State, char>((*_this), (*_this));
 }
 Option<Tuple<State, char>> popAndAppendToTuple_State(void* _ref){
@@ -1272,7 +1291,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref){
 	CTemplateType* _this = (CTemplateType*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]*/ typeArguments = _this->list.iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=CTemplateType, members=magma.Main$JavaList@1554909b]]]]]]]*/ typeArguments = _this->list.iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
 	return _this->base + " < " + (*_this) + ">";
 }
 char* toBaseName_CTemplateType(void* _ref){
@@ -1542,7 +1561,7 @@ T orElseGet_Some(void* _ref, FR<T> other){
 	return _this->value;
 }
 template <typename T>
-Stream<T> iter_Some(void* _ref){
+Iter<T> iter_Some(void* _ref){
 	Some<T>* _this = (Some<T>*) _ref;
 	return (*_this).of(_this->value);
 }
@@ -1584,7 +1603,7 @@ T orElseGet_None(void* _ref, FR<T> other){
 	return (*_this).apply((*_this));
 }
 template <typename T>
-Stream<T> iter_None(void* _ref){
+Iter<T> iter_None(void* _ref){
 	None<T>* _this = (None<T>*) _ref;
 	return (*_this).empty((*_this));
 }
@@ -1630,16 +1649,16 @@ auto lambda6(void* _ref, auto index){
 	return /*elements[index]*/;
 }
 template <typename T>
-Stream<T> fromObjArray_Streams(void* _ref, T* elements){
+Iter<T> fromObjArray_Streams(void* _ref, T* elements){
 	Streams* _this = (Streams*) _ref;
-	return new_Stream<int>(new_RangeHead((*_this).length)).map(lambda6);
+	return new_Iter<int>(new_RangeHead((*_this).length)).map(lambda6);
 }
 auto lambda7(void* _ref, auto index){
 	return /*array[index]*/;
 }
-Stream<char> fromCharArray_Streams(void* _ref, char* array){
+Iter<char> fromCharArray_Streams(void* _ref, char* array){
 	Streams* _this = (Streams*) _ref;
-	return new_Stream<int>(new_RangeHead((*_this).length)).map(lambda7);
+	return new_Iter<int>(new_RangeHead((*_this).length)).map(lambda7);
 }
 template <typename T, typename R>
 Head<R> toHead_MapHead(void* _ref){
@@ -1683,11 +1702,11 @@ Head<R> toHead_FlatMapHead(void* _ref){
 	return { FlatMapHeadVariant, data };
 }
 template <typename T, typename R>
-FlatMapHead<T, R> new_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper){
+FlatMapHead<T, R> new_FlatMapHead(Head<T> head, F1R<T, Iter<R>> mapper){
 	FlatMapHead _this;
 	_this->head = (*_this);
 	_this->mapper = (*_this);
-	_this->maybeCurrent = new_None<Stream<R>>((*_this));
+	_this->maybeCurrent = new_None<Iter<R>>((*_this));
 	return _this;
 }
 template <typename T, typename R>
@@ -1699,7 +1718,7 @@ Option<R> next_FlatMapHead(void* _ref){
 			if ((*_this).variant = ?.SomeVariant) 
 				return (*_this);
 		}
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]*/ maybeNext = _this->head.next((*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=FlatMapHead, members=magma.Main$JavaList@1a407d53]]]*/ maybeNext = _this->head.next((*_this));
 		if ((*_this).variant = ?.NoneVariant) 
 			return new_None<R>((*_this));
 		_this->maybeCurrent = (*_this).map(_this->mapper);
@@ -1850,7 +1869,7 @@ JType toJType_JGenericType(void* _ref){
 }
 CType toCType_JGenericType(void* _ref){
 	JGenericType* _this = (JGenericType*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]*/ newTypeArguments = _this->typeArguments.iter((*_this)).map(F? { alloc((*_this)), F?Table { transformType }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=JGenericType, members=magma.Main$JavaList@3d8c7aca]]]]]]]*/ newTypeArguments = _this->typeArguments.iter((*_this)).map(F? { alloc((*_this)), F?Table { transformType }}).toList((*_this));
 	return new_CTemplateType(_this->base, (*_this));
 }
 CExpression toCExpression_CPointerAccess(void* _ref){
@@ -1881,7 +1900,7 @@ JExpression toJExpression_JMemberAccess(void* _ref){
 }
 CExpression toExpression_JMemberAccess(void* _ref){
 	JMemberAccess* _this = (JMemberAccess*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]*/ cExpression = _this->instance.toExpression((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=JMemberAccess, members=magma.Main$JavaList@5ebec15]]]*/ cExpression = _this->instance.toExpression((*_this));
 	if (_this->instance.variant = ?.Identifier(var value) && value.equals("this")Variant) 
 		return new_CPointerAccess(new_Identifier("_this"), _this->memberName);
 	/*else return new CFieldAccess(cExpression, this.memberName)*/;
@@ -1904,7 +1923,7 @@ CExpression toCExpression_CInvocation(void* _ref){
 }
 char* generate_CInvocation(void* _ref){
 	CInvocation* _this = (CInvocation*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]*/ joinedArguments = _this->cArguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=CInvocation, members=magma.Main$JavaList@21bcffb5]]]]]]]]*/ joinedArguments = _this->cArguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
 	return _this->expression((*_this)).generate((*_this)) + "(" + joinedArguments + ")";
 }
 JExpression toJExpression_JInvokable(void* _ref){
@@ -1915,8 +1934,8 @@ JExpression toJExpression_JInvokable(void* _ref){
 }
 CExpression toExpression_JInvokable(void* _ref){
 	JInvokable* _this = (JInvokable*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]*/ cArguments = _this->arguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { toExpression }}).toList((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]*/ expression = _this->caller((*_this)).toExpression((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=JInvokable, members=magma.Main$JavaList@380fb434]]]]]]]]*/ cArguments = _this->arguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { toExpression }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=JInvokable, members=magma.Main$JavaList@380fb434]]]]*/ expression = _this->caller((*_this)).toExpression((*_this));
 	return new_CInvocation((*_this), (*_this));
 }
 JType toJType_JFunctionalType(void* _ref){
@@ -1938,7 +1957,7 @@ template <typename T>
 Tuple<Environment, T> withinScoped_Environment(void* _ref, F1R<Environment, Tuple<Environment, T>> supplier){
 	Environment* _this = (Environment*) _ref;
 	_this->frames = _this->frames.addLast(new_Frame((*_this)));
-	/*Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=F1R, typeArguments=magma.Main$JavaList@7e774085]]*/ result = (*_this).apply((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=F1R, typeArguments=magma.Main$JavaList@668bc3d5]]*/ result = (*_this).apply((*_this));
 	_this->frames = _this->frames.removeLast((*_this));
 	return (*_this);
 }
@@ -1954,7 +1973,7 @@ template <typename T>
 Tuple<Environment, T> within_Environment(void* _ref, Supplier<T> supplier){
 	Environment* _this = (Environment*) _ref;
 	_this->frames = _this->frames.addLast(new_Frame((*_this)));
-	/*Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=Supplier, typeArguments=magma.Main$JavaList@3f8f9dd6]]*/ result = (*_this).get((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=Supplier, typeArguments=magma.Main$JavaList@3cda1055]]*/ result = (*_this).get((*_this));
 	_this->frames = _this->frames.removeLast((*_this));
 	return new_Tuple<Environment, T>((*_this), (*_this));
 }
@@ -1966,31 +1985,61 @@ Environment define_Environment(void* _ref, JDeclaration declaration){
 	_this->frames = _this->frames.mapLast(lambda10);
 	return (*_this);
 }
-Frame<> new_Frame(List<JDeclaration> defined){
+Option<JStructureType> resolveCurrent_Environment(void* _ref){
+	Environment* _this = (Environment*) _ref;
+	return _this->frames.iterReversed((*_this)).map(F? { alloc((*_this)), F?Table { toStructureType }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).next((*_this));
+}
+auto lambda11(void* _ref, auto last){
+	return (*_this).withName((*_this));
+}
+Environment withName_Environment(void* _ref, char* name){
+	Environment* _this = (Environment*) _ref;
+	_this->frames = _this->frames.mapLast(lambda11);
+	return (*_this);
+}
+Frame<> new_Frame(Option<char*> maybeName, List<JDeclaration> defined){
 	Frame _this;
+	_this->maybeName = (*_this);
 	_this->definitions = (*_this);
 	return _this;
 }
 Frame<> new_Frame(){
 	Frame _this;
-	(*_this)(new_JavaList<JDeclaration>((*_this)));
+	(*_this)(new_None<char*>((*_this)), new_JavaList<JDeclaration>((*_this)));
 	return _this;
 }
 Frame defineAll_Frame(void* _ref, List<JDeclaration> declarations){
 	Frame* _this = (Frame*) _ref;
-	return new_Frame(_this->definitions.addAll((*_this)));
+	return new_Frame(_this->maybeName, _this->definitions.addAll((*_this)));
 }
-auto lambda11(void* _ref, auto define){
+auto lambda12(void* _ref, auto define){
 	return (*_this).name.equals((*_this));
 }
 Option<JDeclaration> resolve_Frame(void* _ref, char* identifier){
 	Frame* _this = (Frame*) _ref;
-	return _this->definitions.iter((*_this)).filter(lambda11).next((*_this));
+	return _this->definitions.iter((*_this)).filter(lambda12).next((*_this));
 }
 Frame define_Frame(void* _ref, JDeclaration declaration){
 	Frame* _this = (Frame*) _ref;
 	_this->definitions = _this->definitions.addLast((*_this));
 	return (*_this);
+}
+auto lambda13(void* _ref, auto name){
+	return new_JStructureType((*_this), _this->definitions);
+}
+Option<JStructureType> toStructureType_Frame(void* _ref){
+	Frame* _this = (Frame*) _ref;
+	return _this->maybeName.map(lambda13);
+}
+Frame withName_Frame(void* _ref, char* name){
+	Frame* _this = (Frame*) _ref;
+	return new_Frame(new_Some<char*>((*_this)), _this->definitions);
+}
+JType toJType_JStructureType(void* _ref){
+	JStructureType _this = *((JStructureType*) _ref);
+	JTypeData data;
+	data.JStructureType = _this;
+	return { JStructureTypeVariant, data };
 }
 new Environment_Main(void* _ref){
 	Main* _this = (Main*) _ref;
@@ -2005,7 +2054,7 @@ Main<> new_Main(){
 	_this->counter = 0;
 	return _this;
 }
-auto lambda12(void* _ref, auto typeParam){
+auto lambda14(void* _ref, auto typeParam){
 	return "typename " + (*_this);
 }
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters){
@@ -2014,7 +2063,7 @@ char* generateTemplateString_Main(void* _ref, List<char*> typeParameters){
 	if ((*_this).isEmpty((*_this))) 
 		(*_this) = "";
 	else {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@aec6354]]]]]]*/ typeNames = (*_this).iter((*_this)).map(lambda12).collect(new_Joiner(", "));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@7a5d012c]]]]]]*/ typeNames = (*_this).iter((*_this)).map(lambda14).collect(new_Joiner(", "));
 		(*_this) = "template <" + (*_this) + ">" + (*_this).lineSeparator((*_this));
 	}
 	return (*_this);
@@ -2054,11 +2103,11 @@ Option<IOError> run_Main(void* _ref){
 }
 char* compile_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ all = _this->compileStatements((*_this), F? { alloc((*_this)), F?Table { compileRootSegment }});
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ joinedStructures = _this->joinStrings("", _this->structures);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ joinedGlobals = _this->joinStrings("", _this->globals);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ joinedFunctionDeclarations = _this->joinStrings("", _this->functionDeclarations);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ joinedFunctions = _this->joinStrings("", _this->functions);
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ all = _this->compileStatements((*_this), F? { alloc((*_this)), F?Table { compileRootSegment }});
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ joinedStructures = _this->joinStrings("", _this->structures);
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ joinedGlobals = _this->joinStrings("", _this->globals);
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ joinedFunctionDeclarations = _this->joinStrings("", _this->functionDeclarations);
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ joinedFunctions = _this->joinStrings("", _this->functions);
 	return (*_this) + (*_this) + (*_this) + (*_this) + (*_this);
 }
 char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures){
@@ -2073,7 +2122,7 @@ char* compileAll_Main(void* _ref, char* input, F1R<char*, char*> mapper, Folder 
 	Main* _this = (Main*) _ref;
 	return _this->divide((*_this), (*_this)).map((*_this)).collect(new_Joiner(""));
 }
-Stream<char*> divide_Main(void* _ref, char* input, Folder folder){
+Iter<char*> divide_Main(void* _ref, char* input, Folder folder){
 	Main* _this = (Main*) _ref;
 	State current = new_State((*_this));
 	while ((*_this)) {
@@ -2120,7 +2169,7 @@ State foldStatement_Main(void* _ref, State current, char next){
 		return (*_this).exit((*_this));
 	return (*_this);
 }
-auto lambda13(void* _ref, auto ()){
+auto lambda15(void* _ref, auto ()){
 	return (*_this)((*_this));
 }
 char* compileRootSegment_Main(void* _ref, char* input){
@@ -2130,36 +2179,39 @@ char* compileRootSegment_Main(void* _ref, char* input){
 		return "";
 	if ((*_this).startsWith("package ") || (*_this).startsWith("import ")) 
 		return "";
-	return _this->compileStructure("class", (*_this)).map(F? { alloc((*_this)), F?Table { generate }}).orElseGet(lambda13);
+	return _this->compileStructure("class", (*_this)).map(F? { alloc((*_this)), F?Table { generate }}).orElseGet(lambda15);
 }
-auto lambda14(void* _ref, auto (state, character)){
+auto lambda16(void* _ref, auto (state, character)){
 	return new_ValueFolder((*_this)).apply((*_this), (*_this));
 }
-auto lambda15(void* _ref, auto slice){
+auto lambda17(void* _ref, auto slice){
 	return !(*_this).isEmpty((*_this));
 }
-auto lambda16(void* _ref, auto input){
+auto lambda18(void* _ref, auto input){
 	return (*_this)(_this->parseType((*_this)));
 }
-auto lambda17(void* _ref, auto (state, character)){
+auto lambda19(void* _ref, auto (state, character)){
 	return new_ValueFolder((*_this)).apply((*_this), (*_this));
 }
-auto lambda18(void* _ref, auto slice){
+auto lambda20(void* _ref, auto slice){
 	return !(*_this).isEmpty((*_this));
 }
-auto lambda19(void* _ref, auto implementee){
+auto lambda21(void* _ref, auto implementee){
 	return _this->getString((*_this), (*_this), (*_this), (*_this));
 }
-auto lambda20(void* _ref, auto slice){
-	return _this->compileClassSegment((*_this), (*_this), (*_this), (*_this));
+auto lambda22(void* _ref, auto (env)){
+	return /*{
+			final var withName = env.withName(name);
+
+			// Note that withName is not used by members here*/;
 }
-auto lambda21(void* _ref, auto variant){
+auto lambda23(void* _ref, auto variant){
 	return (*_this).lineSeparator((*_this)) + "\t" + (*_this) + "Variant";
 }
-auto lambda22(void* _ref, auto variant){
+auto lambda24(void* _ref, auto variant){
 	return (*_this).lineSeparator((*_this)) + "\t" + (*_this) + (*_this) + " " + (*_this) + ";";
 }
-auto lambda23(void* _ref, auto member){
+auto lambda25(void* _ref, auto member){
 	return !(*_this)((*_this).variant = ?.F1RDeclarationVariant);
 }
 Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripped){
@@ -2201,7 +2253,7 @@ Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripp
 	if ((*_this) >= 0) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ implementeesString = (*_this).substring((*_this) + "implements ".length((*_this)));
 		(*_this) = (*_this).substring(0, (*_this)).strip((*_this));
-		(*_this) = _this->divide((*_this), lambda14).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda15).map(lambda16).toList((*_this));
+		(*_this) = _this->divide((*_this), lambda16).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda17).map(lambda18).toList((*_this));
 	}
 	List<JDeclaration> recordFields = (*_this).empty((*_this));
 	if ((*_this).endsWith(")")) {
@@ -2209,7 +2261,7 @@ Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripp
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ i3 = (*_this).indexOf("(");
 		if ((*_this) >= 0) {
 			(*_this) = (*_this).substring(0, (*_this));
-			(*_this) = _this->divide((*_this).substring((*_this) + 1), lambda17).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
+			(*_this) = _this->divide((*_this).substring((*_this) + 1), lambda19).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
 		}
 	}
 	List<char*> typeParameters = (*_this).empty((*_this));
@@ -2224,21 +2276,23 @@ Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripp
 	}
 	if (!(*_this).isIdentifier((*_this))) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Streams]]]]]]]]*/ modifiersList = (*_this).fromObjArray((*_this).split((*_this).quote(" "))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda18).toList((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Streams]]]]]]]]*/ modifiersList = (*_this).fromObjArray((*_this).split((*_this).quote(" "))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda20).toList((*_this));
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ name = (*_this).strip((*_this));
 	/*Not a functional type: Placeholder[input=Undefined identifier: generateTemplateString]*/ templateString = (*_this)((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ joinedTypeParameters = _this->joinTypeParameters((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ joinedTypeParameters = _this->joinTypeParameters((*_this));
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: StringBuilders]]*/ fields = (*_this).empty((*_this));
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: StringBuilders]]*/ dependencies = (*_this).empty((*_this));
-	_this->functions = (*_this).iter((*_this)).map(lambda19).fold(_this->functions, F? { alloc((*_this)), F?Table { addLast }});
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@58d25a40]]]]]]]]]]*/ joinedRecordFields = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { toCDeclaration }}).map(F? { alloc((*_this)), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner((*_this)));
+	_this->functions = (*_this).iter((*_this)).map(lambda21).fold(_this->functions, F? { alloc((*_this)), F?Table { addLast }});
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@79698539]]]]]]]]]]*/ joinedRecordFields = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { toCDeclaration }}).map(F? { alloc((*_this)), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner((*_this)));
 	List<char*> finalTypeParameters = (*_this);
 	List<char*> finalVariants = (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]*/ members = _this->divide((*_this), new_EscapedFolder(F? { alloc((*_this)), F?Table { foldStatement }})).map(lambda20).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]*/ within = _this->environment.withinScoped(lambda22);
+	_this->environment = (*_this).left;
+	/*Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]*/ members = (*_this).right;
 	if ((*_this).contains("sealed")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@1b701da1]]]]]]*/ enumFields = (*_this).iter((*_this)).map(lambda21).collect(new_Joiner(","));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@73f792cf]]]]]]*/ enumFields = (*_this).iter((*_this)).map(lambda23).collect(new_Joiner(","));
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: "enum " + (*_this) + "Variant {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]]*/ generatedEnum = "enum " + (*_this) + "Variant {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@1b701da1]]]]]]*/ unionFields = (*_this).iter((*_this)).map(lambda22).collect(new_Joiner((*_this)));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@73f792cf]]]]]]*/ unionFields = (*_this).iter((*_this)).map(lambda24).collect(new_Joiner((*_this)));
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this) + "union " + (*_this) + "Data {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]]*/ generatedUnion = (*_this) + "union " + (*_this) + "Data {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
 		/*Unwrapped expression: (*_this) + "Variant variant"*/ s = (*_this) + "Variant variant";
 		/*Unwrapped expression: (*_this) + "Data" + (*_this) + " data"*/ s1 = (*_this) + "Data" + (*_this) + " data";
@@ -2248,15 +2302,15 @@ Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripp
 	}
 	else 
 	if ((*_this).equals("interface")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ table = _this->generateStatement((*_this) + "Table" + (*_this) + " table");
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ data = _this->generateStatement("void* data");
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]]]]]*/ tableMembers = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""));
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ table = _this->generateStatement((*_this) + "Table" + (*_this) + " table");
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ data = _this->generateStatement("void* data");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]*/ tableMembers = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""));
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this) + "struct " + (*_this) + "Table {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]]*/ vTable = (*_this) + "struct " + (*_this) + "Table {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
 		(*_this) = (*_this).appendString((*_this));
 		(*_this) = (*_this).appendString((*_this)).appendString((*_this));
 	}
 	else {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]]]]]*/ joinedMembers = (*_this).iter((*_this)).filter(lambda23).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner((*_this)));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]*/ joinedMembers = (*_this).iter((*_this)).filter(lambda25).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner((*_this)));
 		(*_this) = (*_this).appendString((*_this));
 	}
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this) + (*_this) + "struct " + (*_this) + " {" + (*_this) + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]]*/ generated = (*_this) + (*_this) + "struct " + (*_this) + " {" + (*_this) + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
@@ -2267,10 +2321,10 @@ char* getString_Main(void* _ref, CType implementee, char* name, char* joinedType
 	Main* _this = (Main*) _ref;
 	/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ identifier = (*_this).toBaseName((*_this));
 	/*Unwrapped expression: (*_this) + (*_this)*/ thisType = (*_this) + (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ s = _this->generateStatement((*_this) + " _this = *((" + thisType + "*) _ref)");
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ s1 = _this->generateStatement((*_this) + "Data" + (*_this) + " data");
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ s2 = _this->generateStatement("data." + (*_this) + " = _this");
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ s3 = _this->generateStatement("return { " + (*_this) + "Variant, data }");
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ s = _this->generateStatement((*_this) + " _this = *((" + thisType + "*) _ref)");
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ s1 = _this->generateStatement((*_this) + "Data" + (*_this) + " data");
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ s2 = _this->generateStatement("data." + (*_this) + " = _this");
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ s3 = _this->generateStatement("return { " + (*_this) + "Variant, data }");
 	/*Unwrapped expression: (*_this) + (*_this) + (*_this) + (*_this)*/ conversionF1RContent = (*_this) + (*_this) + (*_this) + (*_this);
 	return (*_this) + (*_this).generate((*_this)) + " to" + (*_this) + "_" + (*_this) + "(void* _ref){" + (*_this) + (*_this).lineSeparator((*_this)) + "}" + (*_this).lineSeparator((*_this));
 }
@@ -2286,88 +2340,90 @@ char* generateStatement_Main(void* _ref, char* content){
 	Main* _this = (Main*) _ref;
 	return (*_this)(1, (*_this));
 }
-auto lambda24(void* _ref, auto slice){
+auto lambda26(void* _ref, auto slice){
 	return !(*_this).isEmpty((*_this));
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ segments = (*_this).split((*_this).quote(","));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Arrays]]]]]]]]*/ list = (*_this).stream((*_this)).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda24).toList((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Arrays]]]]]]]]*/ list = (*_this).stream((*_this)).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda26).toList((*_this));
 	return new_JavaList<char*>((*_this));
 }
-auto lambda25(void* _ref, auto i){
+auto lambda27(void* _ref, auto i){
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ c = (*_this).charAt((*_this));
 	return (*_this).isLetter((*_this)) || (*_this)((*_this) != 0 && (*_this).isDigit((*_this)));
 }
 int isIdentifier_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
-	return (*_this).range(0, (*_this).length((*_this))).allMatch(lambda25);
+	return (*_this).range(0, (*_this).length((*_this))).allMatch(lambda27);
 }
 Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
 	Main* _this = (Main*) _ref;
 	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
 	if ((*_this).isEmpty((*_this))) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeEnum = _this->compileStructure("enum", (*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeEnum = _this->compileStructure("enum", (*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeInterface = _this->compileStructure("interface", (*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeInterface = _this->compileStructure("interface", (*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeRecord = _this->compileStructure("record", (*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeRecord = _this->compileStructure("record", (*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeClass = _this->compileStructure("class", (*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeClass = _this->compileStructure("class", (*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeEnumValues = _this->compileEnumValues((*_this), (*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeEnumValues = _this->compileEnumValues((*_this), (*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
 	if ((*_this).endsWith(";")) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeDeclaration = _this->parseDeclaration((*_this));
-		if ((*_this).variant = ?.SomeVariant) 
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeDeclaration = _this->parseDeclaration((*_this));
+		if ((*_this).variant = ?.SomeVariant) {
+			_this->environment = _this->environment.define((*_this));
 			return new_Some<CStructMember>(new_CField((*_this).toCDeclaration((*_this))));
+		}
 	}
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeMethod = _this->compileMethod((*_this), (*_this), (*_this), (*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeMethod = _this->compileMethod((*_this), (*_this), (*_this), (*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
 	return new_Some<CStructMember>(new_Placeholder((*_this)));
 }
-auto lambda26(void* _ref, auto slice){
+auto lambda28(void* _ref, auto slice){
 	return !(*_this).isEmpty((*_this));
 }
-auto lambda27(void* _ref, auto name){
+auto lambda29(void* _ref, auto name){
 	return (*_this) + "_" + (*_this);
 }
-auto lambda28(void* _ref){
+auto lambda30(void* _ref){
 	return new_Some<char*>(_this->compileMethodsSegments((*_this), 1));
 }
-auto lambda29(void* _ref, auto env){
-	return (*_this).defineAll((*_this)).within(lambda28);
+auto lambda31(void* _ref, auto env){
+	return (*_this).defineAll((*_this)).within(lambda30);
 }
-auto lambda30(void* _ref, auto parameter){
+auto lambda32(void* _ref, auto parameter){
 	return (*_this).name;
 }
-auto lambda31(void* _ref, auto variant){
+auto lambda33(void* _ref, auto variant){
 	return _this->generateCase((*_this), (*_this));
 }
-auto lambda32(void* _ref){
+auto lambda34(void* _ref){
 	if ((*_this).isEmpty((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ joinedParameters = (*_this).subList(1, (*_this).size((*_this))).iter((*_this)).map(lambda30).toList((*_this)).addFirst("_this->data").iter((*_this)).collect(new_Joiner(", "));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ joinedParameters = (*_this).subList(1, (*_this).size((*_this))).iter((*_this)).map(lambda32).toList((*_this)).addFirst("_this->data").iter((*_this)).collect(new_Joiner(", "));
 		return _this->generateStatement("return _this->table." + (*_this).name + "(" + joinedParameters + ")");
 	}
 	else {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ returnValueDefinition = _this->generateStatement((*_this)((*_this).type).generate((*_this)) + " _ret");
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@442d9b6e]]]]]]*/ cases = (*_this).iter((*_this)).map(lambda31).collect(new_Joiner((*_this)));
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ returnValueDefinition = _this->generateStatement((*_this)((*_this).type).generate((*_this)) + " _ret");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@38082d64]]]]]]*/ cases = (*_this).iter((*_this)).map(lambda33).collect(new_Joiner((*_this)));
 		return (*_this) + (*_this)(1) + "switch (" + "_this->variant" + ") {" + (*_this) + (*_this)(1) + "}" + (*_this).generateStatement("return _ret");
 	}
 }
-auto lambda33(void* _ref, auto typeParameters0){
+auto lambda35(void* _ref, auto typeParameters0){
 	return (*_this).addAll((*_this));
 }
-auto lambda34(void* _ref, auto name){
+auto lambda36(void* _ref, auto name){
 	return (*_this) + "_" + (*_this);
 }
 Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
@@ -2382,44 +2438,44 @@ Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char
 		return new_None<CStructMember>((*_this));
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ parametersString = (*_this).substring(0, (*_this));
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ withBraces = (*_this).substring((*_this) + 1).strip((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]]]]]*/ parameters = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda26).toList((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]]]]]]]]]]]*/ cParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { toCDeclaration }}).toList((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ methodDeclaration = _this->parseMethodDeclaration((*_this), (*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]]]]]*/ parameters = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda28).toList((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]]]]]]]]]]]*/ cParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { toCDeclaration }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ methodDeclaration = _this->parseMethodDeclaration((*_this), (*_this));
 	Option<char*> maybeCompiled = new_None<char*>((*_this));
 	if ((*_this).variant = ?.JDeclaration declaration && declaration.annotations.contains("Actual")Variant) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ compiledParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: declaration]]]]*/ modifiedMethodDeclaration = (*_this).mapName(lambda27).toCDeclaration((*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ compiledParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: declaration]]]]*/ modifiedMethodDeclaration = (*_this).mapName(lambda29).toCDeclaration((*_this));
 		_this->functionDeclarations = _this->functionDeclarations.addLast((*_this).generate((*_this)) + "(" + compiledParameters + ");" + (*_this).lineSeparator((*_this)));
 		return new_Some<CStructMember>(new_EmptyStructMember((*_this)));
 	}
 	if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ inputContent = (*_this).substring(1, (*_this).length((*_this)) - 1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]*/ within = _this->environment.withinScoped(lambda29);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]*/ within = _this->environment.withinScoped(lambda31);
 		_this->environment = (*_this).left;
 		(*_this) = (*_this).right;
 	}
 	char* outputContent;
 	if ((*_this).variant = ?.JConstructorVariant) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=Option, typeArguments=magma.Main$JavaList@726f3b58]]*/ compiled = (*_this).orElse("?");
+		/*Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=Option, typeArguments=magma.Main$JavaList@2ed94a8b]]*/ compiled = (*_this).orElse("?");
 		(*_this) = _this->generateStatement((*_this) + " _this") + (*_this) + (*_this).generateStatement("return " + "_this");
 	}
 	else 
 	if ((*_this).variant = ?.JDeclaration declarationVariant) {
 		(*_this) = (*_this).addFirst(new_CDeclaration(new_CPointerType((*_this).Void), "_ref"));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ joinedTypeParameters = _this->joinTypeParameters((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ thisInitialization = _this->generateStatement((*_this) + (*_this) + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]]]]]]]]]]]*/ finalParameters = (*_this);
-		(*_this) = (*_this) + (*_this).orElseGet(lambda32);
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ joinedTypeParameters = _this->joinTypeParameters((*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ thisInitialization = _this->generateStatement((*_this) + (*_this) + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]]]]]]]]]]]*/ finalParameters = (*_this);
+		(*_this) = (*_this) + (*_this).orElseGet(lambda34);
 	}
 	else outputContent = "?";
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ compiledParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ compiledParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
 	/*Unwrapped expression: _switch*/ modifiedMethodDeclaration = _switch;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: declaration]]]]]]]]*/ mapped = (*_this).mapTypeParameters(lambda33).mapName(lambda34);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: declaration]]]]]]]]*/ mapped = (*_this).mapTypeParameters(lambda35).mapName(lambda36);
 	/*Unwrapped expression: (*_this).generate((*_this)) + "(" + compiledParameters + ")"*/ header = (*_this).generate((*_this)) + "(" + compiledParameters + ")";
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this) + "{" + (*_this) + (*_this).lineSeparator((*_this)) + "}" + (*_this)]]*/ generated = (*_this) + "{" + (*_this) + (*_this).lineSeparator((*_this)) + "}" + (*_this).lineSeparator((*_this));
 	_this->functionDeclarations = _this->functionDeclarations.addLast((*_this) + ";" + (*_this).lineSeparator((*_this)));
 	_this->functions = _this->functions.addLast((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ parameterTypes = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { type }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ parameterTypes = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { type }}).toList((*_this));
 	return _switch;
 }
 CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParameters){
@@ -2429,26 +2485,26 @@ CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParam
 	/*final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList()*/;
 	return new_CTemplateType((*_this), (*_this));
 }
-auto lambda35(void* _ref, auto input){
+auto lambda37(void* _ref, auto input){
 	return _this->compileMethodSegment((*_this), (*_this));
 }
 char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent){
 	Main* _this = (Main*) _ref;
-	return _this->compileStatements((*_this), lambda35);
+	return _this->compileStatements((*_this), lambda37);
 }
 char* generateCase_Main(void* _ref, JDeclaration declaration, char* variant){
 	Main* _this = (Main*) _ref;
 	return (*_this)(2) + "case " + (*_this) + "Variant:" + (*_this)(3, "_ret = " + (*_this).name + "_" + (*_this) + "(&(_this->data." + variant + "))") + (*_this)(3, "break");
 }
-auto lambda36(void* _ref, auto ()){
+auto lambda38(void* _ref, auto ()){
 	return _this->parseDeclaration((*_this)).map(F? { alloc((*_this)), F?Table { toInterface }});
 }
-auto lambda37(void* _ref, auto ()){
+auto lambda39(void* _ref, auto ()){
 	return new_Placeholder((*_this));
 }
 JMethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	return _this->parseConstructor((*_this), (*_this)).or(lambda36).orElseGet(lambda37);
+	return _this->parseConstructor((*_this), (*_this)).or(lambda38).orElseGet(lambda39);
 }
 JMethodDeclaration toInterface_Main(void* _ref, JDeclaration value){
 	Main* _this = (Main*) _ref;
@@ -2467,13 +2523,13 @@ Option<JMethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, 
 	}
 	return new_None<JMethodDeclaration>((*_this));
 }
-auto lambda38(void* _ref, auto (state, character)){
+auto lambda40(void* _ref, auto (state, character)){
 	return new_ValueFolder((*_this)).apply((*_this), (*_this));
 }
-auto lambda39(void* _ref, auto slice){
+auto lambda41(void* _ref, auto slice){
 	return !(*_this).isEmpty((*_this));
 }
-auto lambda40(void* _ref, auto enumValue){
+auto lambda42(void* _ref, auto enumValue){
 	return _this->compileEnumValue((*_this), (*_this));
 }
 Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* structName){
@@ -2481,9 +2537,9 @@ Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* stru
 	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
 	if (!(*_this).endsWith(";")) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]*/ enumValues = _this->divide((*_this).substring(0, (*_this).length((*_this)) - 1), lambda38).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda39).toList((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]*/ enumValues = _this->divide((*_this).substring(0, (*_this).length((*_this)) - 1), lambda40).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda41).toList((*_this));
 	if (!(*_this).isEmpty((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]*/ optionStream = (*_this).iter((*_this)).map(lambda40);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]*/ optionStream = (*_this).iter((*_this)).map(lambda42);
 		/*final var areAnyInvalid =
 					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>))*/;
 		if ((*_this)) 
@@ -2513,10 +2569,10 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
 	if ((*_this).isEmpty((*_this))) 
 		return "";
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeIf = _this->compileConditional("if", (*_this), (*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeIf = _this->compileConditional("if", (*_this), (*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeWhile = _this->compileConditional("while", (*_this), (*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeWhile = _this->compileConditional("while", (*_this), (*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
 	if ((*_this).endsWith(";")) {
@@ -2535,7 +2591,7 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 		return (*_this)((*_this)) + (*_this);
 	return (*_this).lineSeparator((*_this)) + "\t" + (*_this)((*_this));
 }
-auto lambda41(void* _ref, auto slice){
+auto lambda43(void* _ref, auto slice){
 	return !(*_this).isEmpty((*_this));
 }
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input){
@@ -2544,16 +2600,16 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring((*_this).length((*_this))).strip((*_this));
 		if ((*_this).startsWith("(")) {
 			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ afterConditionStart = (*_this).substring(1).strip((*_this));
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]*/ divisions = _this->divide((*_this), new_EscapedFolder(new_ConditionEndLocator((*_this)))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda41).toList((*_this));
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]*/ divisions = _this->divide((*_this), new_EscapedFolder(new_ConditionEndLocator((*_this)))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda43).toList((*_this));
 			if ((*_this).size((*_this)) < 2) 
 				return new_None<char*>((*_this));
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]*/ first = (*_this).getFirst((*_this));
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeWithBraces = _this->joinStrings("", (*_this).subList(1, (*_this).size((*_this))));
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]*/ first = (*_this).getFirst((*_this));
+			/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeWithBraces = _this->joinStrings("", (*_this).subList(1, (*_this).size((*_this))));
 			if (!(*_this).endsWith(")")) 
 				return new_None<char*>((*_this));
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]*/ condition = (*_this).substring(0, (*_this).length((*_this)) - 1);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]*/ condition = (*_this).substring(0, (*_this).length((*_this)) - 1);
 			if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
-				/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]*/ content = (*_this).substring(1, (*_this).length((*_this)) - 1);
+				/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]*/ content = (*_this).substring(1, (*_this).length((*_this)) - 1);
 				return new_Some<char*>((*_this)((*_this)) + (*_this) + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" + _this->compileMethodsSegments((*_this), (*_this) + 1) + (*_this)((*_this)) + "}");
 			}
 			return new_Some<char*>((*_this)((*_this)) + (*_this) + " (" + this.compileExpressionOrPlaceholder(condition) + ") " + (*_this).compileMethodSegment((*_this), (*_this) + 1));
@@ -2568,19 +2624,19 @@ char* compileMethodStatement_Main(void* _ref, char* input){
 		return "break";
 	if ((*_this).startsWith("return ")) 
 		return "return " + (*_this).compileExpressionOrPlaceholder((*_this).substring("return ".length((*_this))));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeAssignment = _this->compileAssignment((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeAssignment = _this->compileAssignment((*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeInvokable = _this->parseInvokable((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeInvokable = _this->parseInvokable((*_this));
 	if ((*_this).variant = ?.Some(var value)Variant) 
 		return (*_this).toExpression((*_this)).generate((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ instance = _this->post((*_this), "++");
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ instance = _this->post((*_this), "++");
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ instance0 = _this->post((*_this), "--");
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ instance0 = _this->post((*_this), "--");
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeDeclaration = _this->parseDeclaration((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeDeclaration = _this->parseDeclaration((*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this).toCDeclaration((*_this)).generate((*_this));
 	return (*_this)((*_this));
@@ -2591,10 +2647,10 @@ Option<char*> compileAssignment_Main(void* _ref, char* stripped){
 	if ((*_this) >= 0) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ destination = (*_this).substring(0, (*_this));
 		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring1 = (*_this).substring((*_this) + 1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ assignable = _this->parseAssignable((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeSource = _this->parseExpression((*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ assignable = _this->parseAssignable((*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeSource = _this->parseExpression((*_this));
 		if ((*_this).variant = ?.SomeVariant) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ cAssignable = _this->transformAssignable((*_this), (*_this));
+			/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ cAssignable = _this->transformAssignable((*_this), (*_this));
 			return new_Some<char*>((*_this).generate((*_this)) + " = " + (*_this).toAssignable((*_this)).generate((*_this)));
 		}
 	}
@@ -2634,36 +2690,36 @@ Option<char*> post_Main(void* _ref, char* stripped, char* slice){
 	}
 	return new_None<char*>((*_this));
 }
-auto lambda42(void* _ref, auto ()){
+auto lambda44(void* _ref, auto ()){
 	return (*_this)((*_this));
 }
 char* compileExpressionOrPlaceholder_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).orElseGet(lambda42);
+	return _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).orElseGet(lambda44);
 }
 Option<CExpression> parseCExpression_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	return _this->parseExpression((*_this)).map(F? { alloc((*_this)), F?Table { toExpression }});
 }
-auto lambda43(void* _ref, auto ()){
+auto lambda45(void* _ref, auto ()){
 	return _this->compileOperator((*_this), " != ");
 }
-auto lambda44(void* _ref, auto ()){
+auto lambda46(void* _ref, auto ()){
 	return _this->compileOperator((*_this), " < ");
 }
-auto lambda45(void* _ref, auto ()){
+auto lambda47(void* _ref, auto ()){
 	return _this->compileOperator((*_this), " + ");
 }
-auto lambda46(void* _ref, auto ()){
+auto lambda48(void* _ref, auto ()){
 	return _this->compileOperator((*_this), " - ");
 }
-auto lambda47(void* _ref, auto ()){
+auto lambda49(void* _ref, auto ()){
 	return _this->compileOperator((*_this), " && ");
 }
-auto lambda48(void* _ref, auto ()){
+auto lambda50(void* _ref, auto ()){
 	return _this->compileOperator((*_this), " || ");
 }
-auto lambda49(void* _ref, auto ()){
+auto lambda51(void* _ref, auto ()){
 	return _this->compileOperator((*_this), " >= ");
 }
 Option<JExpression> parseExpression_Main(void* _ref, char* input){
@@ -2676,21 +2732,21 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring(0, (*_this));
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ name = (*_this).substring((*_this) + 2).strip((*_this));
 		if (_this->isIdentifier((*_this))) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ compiled = _this->compileExpressionOrPlaceholder((*_this));
+			/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ compiled = _this->compileExpressionOrPlaceholder((*_this));
 			/*Unwrapped expression: "F?"*/ functionalInterfaceName = "F?";
 			return new_Some<char*>((*_this) + " { alloc(" + compiled + "), " + (*_this) + "Table { " + (*_this) + " }}").map(F? { alloc((*_this)), F?Table { new }});
 		}
 	}
 	if ((*_this).startsWith("'") && (*_this).endsWith("'")) 
 		return new_Some<char*>((*_this)).map(F? { alloc((*_this)), F?Table { new }});
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeLambda = _this->compileLambda((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeLambda = _this->compileLambda((*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this).map(F? { alloc((*_this)), F?Table { new }});
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ i3 = (*_this).indexOf(".variant = ?."Variant);
 	if ((*_this) >= 0) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring(0, (*_this));
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ substring1 = (*_this).substring((*_this) + ".variant = ?.".length()Variant).strip((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]*/ maybeInstance = _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }});
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]*/ maybeInstance = _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }});
 		if ((*_this).variant = ?.SomeVariant) {
 			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ i4 = (*_this).indexOf(" < ");
 			char* substring2;
@@ -2705,22 +2761,22 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ instanceString = (*_this).substring(0, (*_this));
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ memberName = (*_this).substring((*_this) + 1).strip((*_this));
 		if (_this->isIdentifier((*_this))) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeInstance = _this->parseExpression((*_this));
+			/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeInstance = _this->parseExpression((*_this));
 			if ((*_this).variant = ?.Some(var value)Variant) 
 				return new_Some<JExpression>(new_JMemberAccess((*_this), (*_this)));
 		}
 	}
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeInvokable = _this->parseInvokable((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeInvokable = _this->parseInvokable((*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]]]]]]]]]*/ maybeOperator = _this->compileOperator((*_this), " == ").or(lambda43).or(lambda44).or(lambda45).or(lambda46).or(lambda47).or(lambda48).or(lambda49);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]]]]]]]]]*/ maybeOperator = _this->compileOperator((*_this), " == ").or(lambda45).or(lambda46).or(lambda47).or(lambda48).or(lambda49).or(lambda50).or(lambda51);
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this).map(F? { alloc((*_this)), F?Table { new }});
 	if (_this->isIdentifier((*_this))) 
 		return new_Some<JExpression>(new_Identifier((*_this)));
 	if ((*_this).startsWith("!")) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring(1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]*/ maybeInstance = _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }});
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]*/ maybeInstance = _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }});
 		if ((*_this).variant = ?.SomeVariant) 
 			return new_Some<char*>("!" + (*_this)).map(F? { alloc((*_this)), F?Table { new }});
 	}
@@ -2730,10 +2786,10 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 		return new_Some<char*>((*_this)).map(F? { alloc((*_this)), F?Table { new }});
 	return new_None<JExpression>((*_this));
 }
-auto lambda50(void* _ref, auto slice){
+auto lambda52(void* _ref, auto slice){
 	return !(*_this).isEmpty((*_this));
 }
-auto lambda51(void* _ref, auto param){
+auto lambda53(void* _ref, auto param){
 	return "auto " + (*_this);
 }
 Option<char*> compileLambda_Main(void* _ref, char* input){
@@ -2749,20 +2805,20 @@ Option<char*> compileLambda_Main(void* _ref, char* input){
 	else 
 	if ((*_this).startsWith("(") && beforeContent.endsWith(")")) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ substring = (*_this).substring(1, (*_this).length((*_this)) - 1);
-		(*_this) = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda50).toList((*_this));
+		(*_this) = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda52).toList((*_this));
 	}
 	/*else return new None<String>()*/;
 	if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ content = (*_this).substring(1, (*_this).length((*_this)) - 1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ compiled = _this->compileMethodsSegments((*_this), 1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ generatedName = _this->generateName((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: params]]]]]]]]*/ paramList = (*_this).iter((*_this)).map(lambda51).toList((*_this)).addFirst("void* _ref");
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ joined = _this->joinStrings(", ", (*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ compiled = _this->compileMethodsSegments((*_this), 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ generatedName = _this->generateName((*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: params]]]]]]]]*/ paramList = (*_this).iter((*_this)).map(lambda53).toList((*_this)).addFirst("void* _ref");
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ joined = _this->joinStrings(", ", (*_this));
 		_this->functions = _this->functions.addLast("auto " + (*_this) + "(" + joined + "){" + (*_this) + (*_this).lineSeparator((*_this)) + "}" + (*_this).lineSeparator((*_this)));
 		return new_Some<char*>((*_this));
 	}
 	else {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ generatedName = _this->generateName((*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ generatedName = _this->generateName((*_this));
 		_this->functions = _this->functions.addLast("auto " + (*_this) + "(void* _ref, auto " + beforeContent + ")" + "{" + _this->generateStatement("return " + (*_this).compileExpressionOrPlaceholder((*_this))) + (*_this).lineSeparator((*_this)) + "}" + (*_this).lineSeparator((*_this)));
 		return new_Some<char*>((*_this));
 	}
@@ -2811,15 +2867,15 @@ Option<JExpression> parseInvokable_Main(void* _ref, char* stripped){
 	char* stripped1 = (*_this);
 	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ length = (*_this).length((*_this));
 	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ withoutEnd = (*_this).substring(0, (*_this) - 1);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ callerStart = _this->findCallerStart((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ callerStart = _this->findCallerStart((*_this));
 	if ((*_this) < 0) 
 		return new_None<JExpression>((*_this));
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ callerString = (*_this).substring(0, (*_this));
 	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ argumentsString = (*_this).substring((*_this) + 1);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeCaller = _this->parseCaller((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeCaller = _this->parseCaller((*_this));
 	if (!(*_this)((*_this).variant = ?.Some(var value)Variant)) 
 		return new_None<JExpression>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]]]*/ arguments = _this->divide((*_this), new_EscapedFolder(new_ValueFolder((*_this)))).map(F? { alloc((*_this)), F?Table { parseExpression }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]]]*/ arguments = _this->divide((*_this), new_EscapedFolder(new_ValueFolder((*_this)))).map(F? { alloc((*_this)), F?Table { parseExpression }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
 	return new_Some<JExpression>(new_JInvokable((*_this), (*_this)));
 }
 int findCallerStart_Main(void* _ref, char* withoutEnd){
@@ -2853,12 +2909,12 @@ int allDigits_Main(void* _ref, char* input){
 Option<JCaller> parseCaller_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ maybeExpression = _this->parseExpression((*_this));
+	/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ maybeExpression = _this->parseExpression((*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return new_Some<JCaller>((*_this));
 	if ((*_this).startsWith("new ")) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ type = (*_this).substring("new ".length((*_this)));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ jType = _this->parseType((*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ jType = _this->parseType((*_this));
 		return new_Some<JCaller>(new_JConstruction((*_this)));
 	}
 	return new_None<JCaller>((*_this));
@@ -2870,11 +2926,11 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 	if ((*_this) >= 0) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ beforeName = (*_this).substring(0, (*_this)).strip((*_this));
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ name = (*_this).substring((*_this) + 1).strip((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ typeSeparator = _this->findTypeSeparator((*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ typeSeparator = _this->findTypeSeparator((*_this));
 		if (!(*_this).isIdentifier((*_this))) 
 			return new_None<JDeclaration>((*_this));
 		if ((*_this) < 0) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ type = _this->parseType((*_this));
+			/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ type = _this->parseType((*_this));
 			return new_Some<JDeclaration>(new_JDeclaration((*_this), (*_this)));
 		}
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ beforeType = (*_this).substring(0, (*_this)).strip((*_this));
@@ -2895,22 +2951,22 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 			(*_this) = (*_this).substring((*_this) + 1).strip((*_this));
 		}
 		if (_this->isIdentifier((*_this))) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ type = _this->parseType((*_this).substring((*_this) + 1));
+			/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ type = _this->parseType((*_this).substring((*_this) + 1));
 			JDeclaration jDeclaration = new_JDeclaration((*_this), (*_this), new_Some<char*>((*_this)), (*_this), (*_this));
 			return new_Some<JDeclaration>((*_this));
 		}
 	}
 	return new_None<JDeclaration>((*_this));
 }
-auto lambda52(void* _ref, auto slice){
+auto lambda54(void* _ref, auto slice){
 	return !(*_this).isEmpty((*_this));
 }
-auto lambda53(void* _ref, auto slice){
+auto lambda55(void* _ref, auto slice){
 	return (*_this).substring(1);
 }
 List<char*> collectAnnotations_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return (*_this).fromObjArray((*_this).split((*_this).quote("\n"))).filter(lambda52).map(lambda53).map(F? { alloc((*_this)), F?Table { strip }}).toList((*_this));
+	return (*_this).fromObjArray((*_this).split((*_this).quote("\n"))).filter(lambda54).map(lambda55).map(F? { alloc((*_this)), F?Table { strip }}).toList((*_this));
 }
 int findTypeSeparator_Main(void* _ref, char* beforeName){
 	Main* _this = (Main*) _ref;
@@ -2954,7 +3010,7 @@ JType parseType_Main(void* _ref, char* input){
 		}*/
 	if ((*_this).endsWith("[]")) {
 		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ slice = (*_this).substring(0, (*_this).length((*_this)) - 2);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]*/ type = _this->parseType((*_this));
+		/*Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]*/ type = _this->parseType((*_this));
 		return new_JArrayType((*_this));
 	}
 	if ((*_this).endsWith(">")) {
@@ -2963,7 +3019,7 @@ JType parseType_Main(void* _ref, char* input){
 		if ((*_this) >= 0) {
 			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ base = (*_this).substring(0, (*_this));
 			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ parameters = (*_this).substring((*_this) + 1);
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: this]]]]]]*/ list = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { parseType }}).toList((*_this));
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JStructureType[name=Main, members=magma.Main$JavaList@6b2fad11]]]]]]*/ list = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { parseType }}).toList((*_this));
 			return new_JGenericType((*_this), (*_this));
 		}
 	}

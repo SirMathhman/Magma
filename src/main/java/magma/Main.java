@@ -39,7 +39,7 @@ public class Main {
 	}
 
 	private interface List<T> {
-		Stream<T> iter();
+		Iter<T> iter();
 
 		boolean isEmpty();
 
@@ -62,6 +62,8 @@ public class Main {
 		List<T> removeLast();
 
 		List<T> mapLast(Function<T, T> mapper);
+
+		Iter<T> iterReversed();
 	}
 
 	private interface Path {
@@ -85,7 +87,7 @@ public class Main {
 
 		T orElseGet(FR<T> other);
 
-		Stream<T> iter();
+		Iter<T> iter();
 
 		Option<T> or(FR<Option<T>> other);
 
@@ -149,7 +151,7 @@ public class Main {
 	}
 
 	private sealed interface JType
-			permits Identifier, JArrayType, JFunctionalType, JGenericType, JPrimitiveType, Placeholder {}
+			permits Identifier, JArrayType, JFunctionalType, JGenericType, JPrimitiveType, JStructureType, Placeholder {}
 
 	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
 
@@ -203,17 +205,17 @@ public class Main {
 		}
 	}
 
-	private record Stream<T>(Head<T> head) {
-		public static <T> Stream<T> of(T value) {
-			return new Stream<T>(new SingleHead<T>(value));
+	private record Iter<T>(Head<T> head) {
+		public static <T> Iter<T> of(T value) {
+			return new Iter<T>(new SingleHead<T>(value));
 		}
 
-		public static <T> Stream<T> empty() {
-			return new Stream<T>(new EmptyHead<T>());
+		public static <T> Iter<T> empty() {
+			return new Iter<T>(new EmptyHead<T>());
 		}
 
-		public <R> Stream<R> map(F1R<T, R> mapper) {
-			return new Stream<R>(new MapHead<T, R>(this.head, mapper));
+		public <R> Iter<R> map(F1R<T, R> mapper) {
+			return new Iter<R>(new MapHead<T, R>(this.head, mapper));
 		}
 
 		public <R> R fold(R initial, F2R<R, T, R> folder) {
@@ -235,15 +237,15 @@ public class Main {
 			return this.collect(new ListCollector<T>());
 		}
 
-		public Stream<T> filter(F1R<T, Boolean> predicate) {
+		public Iter<T> filter(F1R<T, Boolean> predicate) {
 			return this.flatMap(element -> {
-				if (predicate.apply(element)) return new Stream<T>(new SingleHead<T>(element));
-				return new Stream<T>(new EmptyHead<T>());
+				if (predicate.apply(element)) return new Iter<T>(new SingleHead<T>(element));
+				return new Iter<T>(new EmptyHead<T>());
 			});
 		}
 
-		private <R> Stream<R> flatMap(F1R<T, Stream<R>> mapper) {
-			return new Stream<R>(new FlatMapHead<T, R>(this.head, mapper));
+		private <R> Iter<R> flatMap(F1R<T, Iter<R>> mapper) {
+			return new Iter<R>(new FlatMapHead<T, R>(this.head, mapper));
 		}
 
 		public Option<T> next() {
@@ -300,8 +302,8 @@ public class Main {
 		}
 
 		@Override
-		public Stream<T> iter() {
-			return new Stream<Integer>(new RangeHead(this.nativeList.size())).map(this.nativeList::get);
+		public Iter<T> iter() {
+			return new Iter<Integer>(new RangeHead(this.nativeList.size())).map(this.nativeList::get);
 		}
 
 		@Override
@@ -360,6 +362,13 @@ public class Main {
 			}
 
 			return this;
+		}
+
+		@Override
+		public Iter<T> iterReversed() {
+			return new Iter<Integer>(new RangeHead(this.nativeList.size()))
+					.map(index -> this.nativeList.size() - index - 1)
+					.map(this.nativeList::get);
 		}
 	}
 
@@ -431,7 +440,7 @@ public class Main {
 			return this;
 		}
 
-		private Stream<String> stream() {
+		private Iter<String> stream() {
 			return this.segments.iter();
 		}
 
@@ -654,8 +663,8 @@ public class Main {
 		}
 
 		@Override
-		public Stream<T> iter() {
-			return Stream.of(this.value);
+		public Iter<T> iter() {
+			return Iter.of(this.value);
 		}
 
 		@Override
@@ -691,8 +700,8 @@ public class Main {
 		}
 
 		@Override
-		public Stream<T> iter() {
-			return Stream.empty();
+		public Iter<T> iter() {
+			return Iter.empty();
 		}
 
 		@Override
@@ -730,12 +739,12 @@ public class Main {
 	}
 
 	private static class Streams {
-		public static <T> Stream<T> fromObjArray(T[] elements) {
-			return new Stream<Integer>(new RangeHead(elements.length)).map(index -> elements[index]);
+		public static <T> Iter<T> fromObjArray(T[] elements) {
+			return new Iter<Integer>(new RangeHead(elements.length)).map(index -> elements[index]);
 		}
 
-		public static Stream<Character> fromCharArray(char[] array) {
-			return new Stream<Integer>(new RangeHead(array.length)).map(index -> array[index]);
+		public static Iter<Character> fromCharArray(char[] array) {
+			return new Iter<Integer>(new RangeHead(array.length)).map(index -> array[index]);
 		}
 	}
 
@@ -765,19 +774,19 @@ public class Main {
 
 	private static final class FlatMapHead<T, R> implements Head<R> {
 		private final Head<T> head;
-		private final F1R<T, Stream<R>> mapper;
-		private Option<Stream<R>> maybeCurrent;
+		private final F1R<T, Iter<R>> mapper;
+		private Option<Iter<R>> maybeCurrent;
 
-		public FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper) {
+		public FlatMapHead(Head<T> head, F1R<T, Iter<R>> mapper) {
 			this.head = head;
 			this.mapper = mapper;
-			this.maybeCurrent = new None<Stream<R>>();
+			this.maybeCurrent = new None<Iter<R>>();
 		}
 
 		@Override
 		public Option<R> next() {
 			while (true) {
-				if (this.maybeCurrent instanceof Some<Stream<R>>(var current)) {
+				if (this.maybeCurrent instanceof Some<Iter<R>>(var current)) {
 					final var next = current.head.next();
 					if (next instanceof Some<R>) return next;
 				}
@@ -1007,19 +1016,32 @@ public class Main {
 			this.frames = this.frames.mapLast(last -> last.define(declaration));
 			return this;
 		}
+
+		public Option<JStructureType> resolveCurrent() {
+			return this.frames.iterReversed().map(Frame::toStructureType).flatMap(Option::iter).next();
+		}
+
+		public Environment withName(String name) {
+			this.frames = this.frames.mapLast(last -> last.withName(name));
+			return this;
+		}
 	}
 
 	private static class Frame {
+		private final Option<String> maybeName;
 		private List<JDeclaration> definitions;
 
-		private Frame(List<JDeclaration> defined) {this.definitions = defined;}
+		private Frame(Option<String> maybeName, List<JDeclaration> defined) {
+			this.maybeName = maybeName;
+			this.definitions = defined;
+		}
 
 		public Frame() {
-			this(new JavaList<JDeclaration>());
+			this(new None<String>(), new JavaList<JDeclaration>());
 		}
 
 		public Frame defineAll(List<JDeclaration> declarations) {
-			return new Frame(this.definitions.addAll(declarations));
+			return new Frame(this.maybeName, this.definitions.addAll(declarations));
 		}
 
 		public Option<JDeclaration> resolve(String identifier) {
@@ -1030,7 +1052,17 @@ public class Main {
 			this.definitions = this.definitions.addLast(declaration);
 			return this;
 		}
+
+		public Option<JStructureType> toStructureType() {
+			return this.maybeName.map(name -> new JStructureType(name, this.definitions));
+		}
+
+		public Frame withName(String name) {
+			return new Frame(new Some<String>(name), this.definitions);
+		}
 	}
+
+	private record JStructureType(String name, List<JDeclaration> members) implements JType {}
 
 	private Environment environment = new Environment();
 	private List<String> functionDeclarations;
@@ -1087,6 +1119,7 @@ public class Main {
 			case JPrimitiveType jPrimitiveType -> transformPrimitiveType(jPrimitiveType);
 			case Placeholder placeholder -> placeholder.toCType();
 			case JFunctionalType jFunctionalType -> new Placeholder(jFunctionalType.toString());
+			case JStructureType jStructureType -> new Identifier(jStructureType.name);
 		};
 	}
 
@@ -1134,7 +1167,7 @@ public class Main {
 		return this.divide(input, folder).map(mapper).collect(new Joiner(""));
 	}
 
-	private Stream<String> divide(String input, Folder folder) {
+	private Iter<String> divide(String input, Folder folder) {
 		var current = new State(input);
 		while (true) {
 			final var maybeNext = current.pop();
@@ -1297,11 +1330,24 @@ public class Main {
 
 		var finalTypeParameters = typeParameters;
 		var finalVariants = variants;
-		final var members = this
-				.divide(inputContent, new EscapedFolder(this::foldStatement))
-				.map(slice -> this.compileClassSegment(slice, name, finalTypeParameters, finalVariants))
-				.flatMap(Option::iter)
-				.toList();
+
+		final var within = this.environment.withinScoped((env) -> {
+			final var withName = env.withName(name);
+
+			// Note that withName is not used by members here, but should be accessible because Environment has a de facto
+			// mutable implementation
+			// But if environment becomes immutable, then we have to pass withName as a parameter here eventually
+			final var members = this
+					.divide(inputContent, new EscapedFolder(this::foldStatement))
+					.map(slice -> this.compileClassSegment(slice, name, finalTypeParameters, finalVariants))
+					.flatMap(Option::iter)
+					.toList();
+
+			return new Tuple<Environment, List<CStructMember>>(withName, members);
+		});
+
+		this.environment = within.left;
+		var members = within.right;
 
 		if (modifiersList.contains("sealed")) {
 			final var enumFields =
@@ -1415,8 +1461,10 @@ public class Main {
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
 			final var maybeDeclaration = this.parseDeclaration(substring);
-			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration))
+			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) {
+				this.environment = this.environment.define(declaration);
 				return new Some<CStructMember>(new CField(declaration.toCDeclaration()));
+			}
 		}
 
 		final var maybeMethod = this.compileMethod(structName, typeParameters, variants, stripped);
@@ -1764,8 +1812,12 @@ public class Main {
 	private JType resolveExpression(JExpression source) {
 		return switch (source) {
 			case Identifier(var value) -> {
-				final var maybeFound = this.environment.resolveExpression(value).map(JDeclaration::type);
+				if (value.equals("this")) yield this.environment
+						.resolveCurrent()
+						.<JType>map(thisType -> thisType)
+						.orElseGet(() -> new Placeholder("Not within a struct"));
 
+				final var maybeFound = this.environment.resolveExpression(value).map(JDeclaration::type);
 				if (maybeFound instanceof Some<JType>(var found)) yield found;
 				yield new Placeholder("Undefined identifier: " + value);
 			}
