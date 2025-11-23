@@ -981,7 +981,7 @@ public class Main {
 			return result;
 		}
 
-		public Environment defineAll(JavaList<JDeclaration> declarations) {
+		public Environment defineAll(List<JDeclaration> declarations) {
 			this.frames = this.frames.mapLast(last -> last.defineAll(declarations));
 			return this;
 		}
@@ -1459,7 +1459,7 @@ public class Main {
 			final var inputContent = withBraces.substring(1, withBraces.length() - 1);
 
 			final var within = this.environment.withinScoped((env) -> {
-				return env.defineAll(new JavaList<JDeclaration>()).within(() -> {
+				return env.defineAll(parameters).within(() -> {
 					return new Some<String>(this.compileMethodsSegments(inputContent, 1));
 				});
 			});
@@ -1735,15 +1735,20 @@ public class Main {
 	private CAssignable transformAssignable(JAssignable assignable, JExpression source) {
 		return switch (assignable) {
 			case JDeclaration local -> {
-				if (local.type.equals(JPrimitiveType.Var)) yield local.withType(this.resolveExpression(source)).toCAssignable();
-
-				this.environment = this.environment.define(local);
-				yield local.toCAssignable();
+				final var newType = this.resolveType(source, local.type);
+				final var jDeclaration = local.withType(newType);
+				this.environment = this.environment.define(jDeclaration);
+				yield jDeclaration.toCAssignable();
 			}
 
 			case JExpression jExpression -> jExpression.toAssignable();
 			case Placeholder placeholder -> placeholder.toCAssignable();
 		};
+	}
+
+	private JType resolveType(JExpression source, JType type) {
+		if (type.equals(JPrimitiveType.Var)) return this.resolveExpression(source);
+		return type;
 	}
 
 	private JType resolveExpression(JExpression source) {
@@ -1809,8 +1814,8 @@ public class Main {
 
 	private Option<JExpression> parseExpression(String input) {
 		final var stripped = input.strip();
-		if (stripped.equals("this")) return new Some<String>("(*_this)").map(JExpressionWrapper::new);
 
+		if (stripped.equals("this")) return new Some<String>("(*_this)").map(JExpressionWrapper::new);
 		if (stripped.startsWith("switch ")) return new Some<String>("_switch").map(JExpressionWrapper::new);
 
 		final var i2 = stripped.lastIndexOf("::");
