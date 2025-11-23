@@ -416,7 +416,7 @@ Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate);
 template <typename R, typename T>
 Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);
 RangeHead new_RangeHead(int length);
-Option<Integer> next_RangeHead(void* _ref);
+Option<int> next_RangeHead(void* _ref);
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper);
 template <typename R, typename T, typename X>
@@ -1027,7 +1027,7 @@ Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper){
 	Stream<T>* _this = (Stream<T>*) _ref;
 	return new_Stream<R>(new_FlatMapHead<T, R>(_this->head, mapper));
 }
-Head<Integer> toHead_RangeHead(void* _ref){
+Head<int> toHead_RangeHead(void* _ref){
 	RangeHead _this = *((RangeHead*) _ref);
 	HeadData data;
 	data.RangeHead = _this;
@@ -1039,15 +1039,15 @@ RangeHead new_RangeHead(int length){
 	_this->counter = 0;
 	return _this;
 }
-Option<Integer> next_RangeHead(void* _ref){
+Option<int> next_RangeHead(void* _ref){
 	RangeHead* _this = (RangeHead*) _ref;
 	if (_this->counter < this.length) {
 		var value = _this->counter;
 		_this->counter++;
-		return new_Some<Integer>(value);
+		return new_Some<int>(value);
 	}
 	else {
-		return new_None<Integer>();
+		return new_None<int>();
 	}
 }
 template <typename T, typename X>
@@ -1466,14 +1466,14 @@ auto lambda6(void* _ref, auto index){
 template <typename T>
 Stream<T> fromObjArray_Streams(void* _ref, T* elements){
 	Streams* _this = (Streams*) _ref;
-	return new_Stream<Integer>(new_RangeHead(elements.length)).map(lambda6);
+	return new_Stream<int>(new_RangeHead(elements.length)).map(lambda6);
 }
 auto lambda7(void* _ref, auto index){
 	return /*array[index]*/;
 }
 Stream<char> fromCharArray_Streams(void* _ref, char* array){
 	Streams* _this = (Streams*) _ref;
-	return new_Stream<Integer>(new_RangeHead(array.length)).map(lambda7);
+	return new_Stream<int>(new_RangeHead(array.length)).map(lambda7);
 }
 template <typename T, typename R>
 Head<R> toHead_MapHead(void* _ref){
@@ -2567,7 +2567,7 @@ char* compileType_Main(void* _ref, char* input){
 Type parseType_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
-	if (stripped.equals("boolean") || stripped.equals("Boolean")) {
+	if (stripped.equals("boolean") || stripped.equals("Boolean") || stripped.equals("Integer")) {
 		return PrimitiveType.Int;
 	}
 	if (stripped.equals("void")) {

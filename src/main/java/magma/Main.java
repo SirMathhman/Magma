@@ -1903,7 +1903,7 @@ public class Main {
 
 	private Type parseType(String input) {
 		final var stripped = input.strip();
-		if (stripped.equals("boolean") || stripped.equals("Boolean")) {
+		if (stripped.equals("boolean") || stripped.equals("Boolean") || stripped.equals("Integer")) {
 			return PrimitiveType.Int;
 		}
 
