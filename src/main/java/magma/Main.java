@@ -544,7 +544,7 @@ public class Main {
 
 	private record JDeclaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
 															JType type, String name) implements JMethodDeclaration, JAssignable {
-		public JDeclaration(JType type, String name) {
+		public JDeclaration(String name, JType type) {
 			this(Lists.empty(), Lists.empty(), new None<String>(), type, name);
 		}
 
@@ -1083,7 +1083,14 @@ public class Main {
 	}
 
 	private static final JType StringType = JRecursiveType.create(StringType -> {
-		final var methods = Lists.of(new JDeclaration(new JFunctionalType(StringType), "strip"));
+		// We don't need parameter types for now, we don't validate them yet
+		final var methods = Lists.of(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)),
+																 new JDeclaration("indexOf", new JFunctionalType(JPrimitiveType.Int)),
+																 new JDeclaration("lastIndexOf", new JFunctionalType(JPrimitiveType.Int)),
+																 new JDeclaration("length", new JFunctionalType(JPrimitiveType.Int)),
+																 new JDeclaration("strip", new JFunctionalType(StringType)),
+																 new JDeclaration("substring", new JFunctionalType(StringType)));
+
 		return new JObjectType("String", methods);
 	});
 
@@ -2144,7 +2151,7 @@ public class Main {
 
 			if (typeSeparator < 0) {
 				final var type = this.parseType(beforeName);
-				return new Some<JDeclaration>(new JDeclaration(type, name));
+				return new Some<JDeclaration>(new JDeclaration(name, type));
 			}
 
 			var beforeType = beforeName.substring(0, typeSeparator).strip();

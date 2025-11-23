@@ -560,7 +560,7 @@ char* generate_Placeholder(void* _ref);
 char* toBaseName_Placeholder(void* _ref);
 CAssignable toCAssignable_Placeholder(void* _ref);
 CType toCType_Placeholder(void* _ref);
-JDeclaration<> new_JDeclaration(JType type, char* name);
+JDeclaration<> new_JDeclaration(char* name, JType type);
 JDeclaration mapName_JDeclaration(void* _ref, F1R<char*, char*> mapper);
 CDeclaration toCDeclaration_JDeclaration(void* _ref);
 CAssignable toCAssignable_JDeclaration(void* _ref);
@@ -663,7 +663,8 @@ Option<JType> resolve_JObjectType(void* _ref, char* name);
 /*private Option<JType> internal = new None<JType>*/();
 JType create_JRecursiveType(void* _ref, F1R<JType, JType> mapper);
 void set_JRecursiveType(void* _ref, JType created);
-/*private static final JType StringType = JRecursiveType.create*/();
+/*private static final JType StringType = JRecursiveType.create*/(/*-> {
+		// We don't need parameter types for*/ now);
 new Environment_Main(void* _ref);
 Main<> new_Main();
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);
@@ -1232,7 +1233,7 @@ State append_State(void* _ref, char next){
 Option<char> pop_State(void* _ref){
 	State* _this = (State*) _ref;
 	if (_this->index < (*_this).input.length((*_this))) {
-		/*Not a functional type: Placeholder[input=Member 'charAt' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ value = _this->input.charAt(_this->index);
+		char value = _this->input.charAt(_this->index);
 		_this->index++;
 		return new_Some<char>((*_this));
 	}
@@ -1259,7 +1260,7 @@ Iter<char*> stream_State(void* _ref){
 	return _this->segments.iter((*_this));
 }
 auto lambda3(void* _ref, auto popped){
-	/*Not a functional type: Placeholder[input=Member 'append' not defined in 'JObjectType[name=State, members=magma.Main$JavaList@4f8e5cde]']*/ appended = _this->append((*_this));
+	/*Not a functional type: Placeholder[input=Member 'append' not defined in 'JObjectType[name=State, members=magma.Main$JavaList@ba8a1dc]']*/ appended = _this->append((*_this));
 	return new_Tuple<State, char>((*_this), (*_this));
 }
 Option<Tuple<State, char>> popAndAppendToTuple_State(void* _ref){
@@ -1301,7 +1302,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref){
 	CTemplateType* _this = (CTemplateType*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Member 'list' not defined in 'JObjectType[name=CTemplateType, members=magma.Main$JavaList@3b764bce]']', not an object.]]', not an object.]]', not an object.]*/ typeArguments = _this->list.iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
+	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Member 'list' not defined in 'JObjectType[name=CTemplateType, members=magma.Main$JavaList@504bae78]']', not an object.]]', not an object.]]', not an object.]*/ typeArguments = _this->list.iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
 	return _this->base + " < " + (*_this) + ">";
 }
 char* toBaseName_CTemplateType(void* _ref){
@@ -1440,7 +1441,7 @@ JAssignable toJAssignable_JDeclaration(void* _ref){
 	data.JDeclaration = _this;
 	return { JDeclarationVariant, data };
 }
-JDeclaration<> new_JDeclaration(JType type, char* name){
+JDeclaration<> new_JDeclaration(char* name, JType type){
 	JDeclaration _this;
 	(*_this)((*_this).empty((*_this)), (*_this).empty((*_this)), new_None<char*>((*_this)), (*_this), (*_this));
 	return _this;
@@ -1724,7 +1725,7 @@ Option<R> next_FlatMapHead(void* _ref){
 			if ((*_this).variant = ?.SomeVariant) 
 				return (*_this);
 		}
-		/*Not a functional type: Placeholder[input=Cannot access member 'next' in 'JGenericType[base=Head, typeArguments=magma.Main$JavaList@6bf2d08e]', not an object.]*/ maybeNext = _this->head.next((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'next' in 'JGenericType[base=Head, typeArguments=magma.Main$JavaList@5fcfe4b2]', not an object.]*/ maybeNext = _this->head.next((*_this));
 		if ((*_this).variant = ?.NoneVariant) 
 			return new_None<R>((*_this));
 		_this->maybeCurrent = (*_this).map(_this->mapper);
@@ -1875,7 +1876,7 @@ JType toJType_JGenericType(void* _ref){
 }
 CType toCType_JGenericType(void* _ref){
 	JGenericType* _this = (JGenericType*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Member 'typeArguments' not defined in 'JObjectType[name=JGenericType, members=magma.Main$JavaList@5eb5c224]']', not an object.]]', not an object.]]', not an object.]*/ newTypeArguments = _this->typeArguments.iter((*_this)).map(F? { alloc((*_this)), F?Table { transformType }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Member 'typeArguments' not defined in 'JObjectType[name=JGenericType, members=magma.Main$JavaList@6bf2d08e]']', not an object.]]', not an object.]]', not an object.]*/ newTypeArguments = _this->typeArguments.iter((*_this)).map(F? { alloc((*_this)), F?Table { transformType }}).toList((*_this));
 	return new_CTemplateType(_this->base, (*_this));
 }
 CExpression toCExpression_CPointerAccess(void* _ref){
@@ -1906,7 +1907,7 @@ JExpression toJExpression_JMemberAccess(void* _ref){
 }
 CExpression toExpression_JMemberAccess(void* _ref){
 	JMemberAccess* _this = (JMemberAccess*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'toExpression' in 'Placeholder[input=Member 'instance' not defined in 'JObjectType[name=JMemberAccess, members=magma.Main$JavaList@53e25b76]']', not an object.]*/ cExpression = _this->instance.toExpression((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toExpression' in 'Placeholder[input=Member 'instance' not defined in 'JObjectType[name=JMemberAccess, members=magma.Main$JavaList@5eb5c224]']', not an object.]*/ cExpression = _this->instance.toExpression((*_this));
 	if (_this->instance.variant = ?.Identifier(var value) && value.equals("this")Variant) 
 		return new_CPointerAccess(new_Identifier("_this"), _this->memberName);
 	/*else return new CFieldAccess(cExpression, this.memberName)*/;
@@ -1929,7 +1930,7 @@ CExpression toCExpression_CInvocation(void* _ref){
 }
 char* generate_CInvocation(void* _ref){
 	CInvocation* _this = (CInvocation*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'cArguments' not defined in 'JObjectType[name=CInvocation, members=magma.Main$JavaList@73a8dfcc]']]', not an object.]]', not an object.]]', not an object.]*/ joinedArguments = _this->cArguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
+	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'cArguments' not defined in 'JObjectType[name=CInvocation, members=magma.Main$JavaList@53e25b76]']]', not an object.]]', not an object.]]', not an object.]*/ joinedArguments = _this->cArguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
 	return _this->expression((*_this)).generate((*_this)) + "(" + joinedArguments + ")";
 }
 JExpression toJExpression_JInvokable(void* _ref){
@@ -1940,8 +1941,8 @@ JExpression toJExpression_JInvokable(void* _ref){
 }
 CExpression toExpression_JInvokable(void* _ref){
 	JInvokable* _this = (JInvokable*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'arguments' not defined in 'JObjectType[name=JInvokable, members=magma.Main$JavaList@ea30797]']]', not an object.]]', not an object.]]', not an object.]*/ cArguments = _this->arguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { toExpression }}).toList((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'toExpression' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'caller' not defined in 'JObjectType[name=JInvokable, members=magma.Main$JavaList@ea30797]']]', not an object.]*/ expression = _this->caller((*_this)).toExpression((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'arguments' not defined in 'JObjectType[name=JInvokable, members=magma.Main$JavaList@73a8dfcc]']]', not an object.]]', not an object.]]', not an object.]*/ cArguments = _this->arguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { toExpression }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toExpression' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'caller' not defined in 'JObjectType[name=JInvokable, members=magma.Main$JavaList@73a8dfcc]']]', not an object.]*/ expression = _this->caller((*_this)).toExpression((*_this));
 	return new_CInvocation((*_this), (*_this));
 }
 JType toJType_JFunctionalType(void* _ref){
@@ -1968,7 +1969,7 @@ template <typename T>
 Tuple<Environment, T> withinScoped_Environment(void* _ref, F1R<Environment, Tuple<Environment, T>> supplier){
 	Environment* _this = (Environment*) _ref;
 	_this->frames = _this->frames.addLast(new_Frame((*_this)));
-	/*Not a functional type: Placeholder[input=Cannot access member 'apply' in 'JGenericType[base=F1R, typeArguments=magma.Main$JavaList@7e774085]', not an object.]*/ result = (*_this).apply((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'apply' in 'JGenericType[base=F1R, typeArguments=magma.Main$JavaList@ea30797]', not an object.]*/ result = (*_this).apply((*_this));
 	_this->frames = _this->frames.removeLast((*_this));
 	return (*_this);
 }
@@ -1984,7 +1985,7 @@ template <typename T>
 Tuple<Environment, T> within_Environment(void* _ref, Supplier<T> supplier){
 	Environment* _this = (Environment*) _ref;
 	_this->frames = _this->frames.addLast(new_Frame((*_this)));
-	/*Not a functional type: Placeholder[input=Cannot access member 'get' in 'JGenericType[base=Supplier, typeArguments=magma.Main$JavaList@3f8f9dd6]', not an object.]*/ result = (*_this).get((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'get' in 'JGenericType[base=Supplier, typeArguments=magma.Main$JavaList@7e774085]', not an object.]*/ result = (*_this).get((*_this));
 	_this->frames = _this->frames.removeLast((*_this));
 	return new_Tuple<Environment, T>((*_this), (*_this));
 }
@@ -2070,7 +2071,7 @@ JType toJType_JRecursiveType(void* _ref){
 JType create_JRecursiveType(void* _ref, F1R<JType, JType> mapper){
 	JRecursiveType* _this = (JRecursiveType*) _ref;
 	JRecursiveType created = new_JRecursiveType((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'apply' in 'JGenericType[base=F1R, typeArguments=magma.Main$JavaList@aec6354]', not an object.]*/ apply = (*_this).apply((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'apply' in 'JGenericType[base=F1R, typeArguments=magma.Main$JavaList@3f8f9dd6]', not an object.]*/ apply = (*_this).apply((*_this));
 	(*_this).set((*_this));
 	return (*_this);
 }
@@ -2078,7 +2079,8 @@ void set_JRecursiveType(void* _ref, JType created){
 	JRecursiveType* _this = (JRecursiveType*) _ref;
 	_this->internal = new_Some<JType>((*_this));
 }
-/*private static final JType StringType = JRecursiveType.create*/(){?
+/*private static final JType StringType = JRecursiveType.create*/(/*-> {
+		// We don't need parameter types for*/ now){?
 }
 new Environment_Main(void* _ref){
 	Main* _this = (Main*) _ref;
@@ -2102,14 +2104,14 @@ char* generateTemplateString_Main(void* _ref, List<char*> typeParameters){
 	if ((*_this).isEmpty((*_this))) 
 		(*_this) = "";
 	else {
-		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'JGenericType[base=List, typeArguments=magma.Main$JavaList@1c655221]', not an object.]]', not an object.]]', not an object.]*/ typeNames = (*_this).iter((*_this)).map(lambda15).collect(new_Joiner(", "));
+		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'JGenericType[base=List, typeArguments=magma.Main$JavaList@aec6354]', not an object.]]', not an object.]]', not an object.]*/ typeNames = (*_this).iter((*_this)).map(lambda15).collect(new_Joiner(", "));
 		(*_this) = "template <" + (*_this) + ">" + (*_this).lineSeparator((*_this));
 	}
 	return (*_this);
 }
 char* wrap_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'replace' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'replace' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ replaced = (*_this).replace("/*", "start").replace("*/", "end");
+	/*Not a functional type: Placeholder[input=Cannot access member 'replace' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'replace' not defined in 'magma.Main$JRecursiveType@1c655221']]', not an object.]*/ replaced = (*_this).replace("/*", "start").replace("*/", "end");
 	return "/*" + (*_this) + "*/";
 }
 void main_Main(void* _ref, char** args){
@@ -2255,68 +2257,68 @@ auto lambda26(void* _ref, auto member){
 }
 Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripped){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'indexOf' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ i = (*_this).indexOf((*_this) + " ");
+	int i = (*_this).indexOf((*_this) + " ");
 	if ((*_this) < 0) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ beforeType = (*_this).substring(0, (*_this)).strip((*_this));
+	char* beforeType = (*_this).substring(0, (*_this)).strip((*_this));
 	char* modifiers;
 	List<char*> annotations = (*_this).empty((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'lastIndexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]*/ i5 = (*_this).lastIndexOf("\n");
+	int i5 = (*_this).lastIndexOf("\n");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]*/ substring = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]*/ substring1 = (*_this).substring((*_this) + 1);
+		char* substring = (*_this).substring(0, (*_this));
+		char* substring1 = (*_this).substring((*_this) + 1);
 		(*_this) = _this->collectAnnotations((*_this));
 		(*_this) = (*_this);
 	}
 	else modifiers = (*_this);
 	if ((*_this).contains("Actual")) 
 		return new_Some<CStructMember>(new_EmptyStructMember((*_this)));
-	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ afterKeyword = (*_this).substring((*_this) + (*_this)((*_this) + " ").length((*_this))).strip((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]*/ i1 = (*_this).indexOf("{");
+	char* afterKeyword = (*_this).substring((*_this) + (*_this)((*_this) + " ").length((*_this))).strip((*_this));
+	int i1 = (*_this).indexOf("{");
 	if ((*_this) < 0) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]*/ beforeContent = (*_this).substring(0, (*_this)).strip((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]*/ withEnd = (*_this).substring((*_this) + 1).strip((*_this));
+	char* beforeContent = (*_this).substring(0, (*_this)).strip((*_this));
+	char* withEnd = (*_this).substring((*_this) + 1).strip((*_this));
 	if (!(*_this).endsWith("}")) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ inputContent = (*_this).substring(0, (*_this).length((*_this)) - 1);
+	char* inputContent = (*_this).substring(0, (*_this).length((*_this)) - 1);
 	List<char*> variants = (*_this).empty((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ i2 = (*_this).indexOf("permits ");
+	int i2 = (*_this).indexOf("permits ");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ substring1 = (*_this).substring((*_this) + "permits ".length((*_this)));
+		char* substring1 = (*_this).substring((*_this) + "permits ".length((*_this)));
 		(*_this) = (*_this).substring(0, (*_this));
 		(*_this) = _this->splitValues((*_this));
 	}
 	List<CType> implementees = (*_this).empty((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ i4 = (*_this).indexOf("implements ");
+	int i4 = (*_this).indexOf("implements ");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ implementeesString = (*_this).substring((*_this) + "implements ".length((*_this)));
+		char* implementeesString = (*_this).substring((*_this) + "implements ".length((*_this)));
 		(*_this) = (*_this).substring(0, (*_this)).strip((*_this));
 		(*_this) = _this->divide((*_this), lambda17).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda18).map(lambda19).toList((*_this));
 	}
 	List<JDeclaration> recordFields = (*_this).empty((*_this));
 	if ((*_this).endsWith(")")) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
-		/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]*/ i3 = (*_this).indexOf("(");
+		char* substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+		int i3 = (*_this).indexOf("(");
 		if ((*_this) >= 0) {
 			(*_this) = (*_this).substring(0, (*_this));
 			(*_this) = _this->divide((*_this).substring((*_this) + 1), lambda20).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
 		}
 	}
 	List<char*> typeParameters = (*_this).empty((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ i3 = (*_this).indexOf(" < ");
+	int i3 = (*_this).indexOf(" < ");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ substring1 = (*_this).substring((*_this) + 1).strip((*_this));
+		char* substring1 = (*_this).substring((*_this) + 1).strip((*_this));
 		if ((*_this).endsWith(">")) {
 			(*_this) = (*_this).substring(0, (*_this));
-			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+			char* substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
 			(*_this) = _this->splitValues((*_this));
 		}
 	}
 	if (!(*_this).isIdentifier((*_this))) 
 		return new_None<CStructMember>((*_this));
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'fromObjArray' in 'Placeholder[input=Undefined identifier: Streams]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ modifiersList = (*_this).fromObjArray((*_this).split((*_this).quote(" "))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda21).toList((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ name = (*_this).strip((*_this));
+	char* name = (*_this).strip((*_this));
 	/*Not a functional type: Placeholder[input=Undefined identifier: generateTemplateString]*/ templateString = (*_this)((*_this));
 	/*Not a functional type: Placeholder[input=Member 'joinTypeParameters' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ joinedTypeParameters = _this->joinTypeParameters((*_this));
 	/*Not a functional type: Placeholder[input=Cannot access member 'empty' in 'Placeholder[input=Undefined identifier: StringBuilders]', not an object.]*/ fields = (*_this).empty((*_this));
@@ -2384,12 +2386,12 @@ auto lambda27(void* _ref, auto slice){
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ segments = (*_this).split((*_this).quote(","));
+	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@1c655221']*/ segments = (*_this).split((*_this).quote(","));
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ list = (*_this).stream((*_this)).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda27).toList((*_this));
 	return new_JavaList<char*>((*_this));
 }
 auto lambda28(void* _ref, auto i){
-	/*Not a functional type: Placeholder[input=Member 'charAt' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ c = (*_this).charAt((*_this));
+	char c = (*_this).charAt((*_this));
 	return (*_this).isLetter((*_this)) || (*_this)((*_this) != 0 && (*_this).isDigit((*_this)));
 }
 int isIdentifier_Main(void* _ref, char* input){
@@ -2418,7 +2420,7 @@ Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* st
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
 	if ((*_this).endsWith(";")) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+		char* substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
 		/*Not a functional type: Placeholder[input=Member 'parseDeclaration' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ maybeDeclaration = _this->parseDeclaration((*_this));
 		if ((*_this).variant = ?.SomeVariant) {
 			_this->environment = _this->environment.define((*_this));
@@ -2467,16 +2469,16 @@ auto lambda37(void* _ref, auto name){
 }
 Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'indexOf' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ i = (*_this).indexOf("(");
+	int i = (*_this).indexOf("(");
 	if ((*_this) < 0) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ declarationString = (*_this).substring(0, (*_this));
-	/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ substring1 = (*_this).substring((*_this) + 1);
-	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ i1 = (*_this).indexOf(")");
+	char* declarationString = (*_this).substring(0, (*_this));
+	char* substring1 = (*_this).substring((*_this) + 1);
+	int i1 = (*_this).indexOf(")");
 	if ((*_this) < 0) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ parametersString = (*_this).substring(0, (*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]*/ withBraces = (*_this).substring((*_this) + 1).strip((*_this));
+	char* parametersString = (*_this).substring(0, (*_this));
+	char* withBraces = (*_this).substring((*_this) + 1).strip((*_this));
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ parameters = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda29).toList((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ cParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { toCDeclaration }}).toList((*_this));
 	/*Not a functional type: Placeholder[input=Member 'parseMethodDeclaration' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ methodDeclaration = _this->parseMethodDeclaration((*_this), (*_this));
@@ -2488,7 +2490,7 @@ Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char
 		return new_Some<CStructMember>(new_EmptyStructMember((*_this)));
 	}
 	if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]*/ inputContent = (*_this).substring(1, (*_this).length((*_this)) - 1);
+		char* inputContent = (*_this).substring(1, (*_this).length((*_this)) - 1);
 		/*Not a functional type: Placeholder[input=Cannot access member 'withinScoped' in 'Placeholder[input=Member 'environment' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']', not an object.]*/ within = _this->environment.withinScoped(lambda32);
 		_this->environment = (*_this).left;
 		(*_this) = (*_this).right;
@@ -2554,9 +2556,9 @@ Option<JMethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, 
 	char* stripped = (*_this).strip((*_this));
 	if ((*_this).equals((*_this))) 
 		return new_Some<JMethodDeclaration>(new_JConstructor((*_this)));
-	/*Not a functional type: Placeholder[input=Member 'lastIndexOf' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ i = (*_this).lastIndexOf(" ");
+	int i = (*_this).lastIndexOf(" ");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ substring = (*_this).substring((*_this) + 1).strip((*_this));
+		char* substring = (*_this).substring((*_this) + 1).strip((*_this));
 		if ((*_this).equals((*_this))) 
 			return new_Some<JMethodDeclaration>(new_JConstructor((*_this)));
 	}
@@ -2589,13 +2591,13 @@ Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* stru
 Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue){
 	Main* _this = (Main*) _ref;
 	if ((*_this).endsWith(")")) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
-		/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ i = (*_this).indexOf("(");
+		char* substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+		int i = (*_this).indexOf("(");
 		if ((*_this) >= 0) {
-			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ name = (*_this).substring(0, (*_this));
+			char* name = (*_this).substring(0, (*_this));
 			if (!(*_this).isIdentifier((*_this))) 
 				return new_None<CStructMember>((*_this));
-			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ substring2 = (*_this).substring((*_this) + 1);
+			char* substring2 = (*_this).substring((*_this) + 1);
 			/*Not a functional type: Placeholder[input=Cannot access member 'lineSeparator' in 'Placeholder[input=Unwrapped expression: (*_this) + " " + (*_this) + (*_this) + " = " + "new_" + (*_this) + "(" + substring2 + ")" + ";" + (*_this)]', not an object.]*/ generated = (*_this) + " " + (*_this) + (*_this) + " = " + "new_" + (*_this) + "(" + substring2 + ")" + ";" + (*_this).lineSeparator((*_this));
 			_this->globals = _this->globals.addLast((*_this));
 			return new_Some<CStructMember>(new_EmptyStructMember((*_this)));
@@ -2615,13 +2617,13 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
 	if ((*_this).endsWith(";")) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+		char* substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
 		return (*_this)((*_this)) + _this->compileMethodStatement((*_this)) + ";";
 	}
 	if ((*_this).startsWith("else ")) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ substring = (*_this).substring("else ".length((*_this))).strip((*_this));
+		char* substring = (*_this).substring("else ".length((*_this))).strip((*_this));
 		if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
-			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ substring1 = (*_this).substring(1, (*_this).length((*_this)) - 1);
+			char* substring1 = (*_this).substring(1, (*_this).length((*_this)) - 1);
 			return (*_this)((*_this)) + "else {" + _this->compileMethodsSegments((*_this), (*_this) + 1) + (*_this)((*_this)) + "}";
 		}
 		/*else return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent)*/;
@@ -2636,9 +2638,9 @@ auto lambda44(void* _ref, auto slice){
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input){
 	Main* _this = (Main*) _ref;
 	if ((*_this).startsWith((*_this))) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ substring = (*_this).substring((*_this).length((*_this))).strip((*_this));
+		char* substring = (*_this).substring((*_this).length((*_this))).strip((*_this));
 		if ((*_this).startsWith("(")) {
-			/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]*/ afterConditionStart = (*_this).substring(1).strip((*_this));
+			char* afterConditionStart = (*_this).substring(1).strip((*_this));
 			/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']]', not an object.]]', not an object.]]', not an object.]*/ divisions = _this->divide((*_this), new_EscapedFolder(new_ConditionEndLocator((*_this)))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda44).toList((*_this));
 			if ((*_this).size((*_this)) < 2) 
 				return new_None<char*>((*_this));
@@ -2682,10 +2684,10 @@ char* compileMethodStatement_Main(void* _ref, char* input){
 }
 Option<char*> compileAssignment_Main(void* _ref, char* stripped){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'indexOf' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ index = (*_this).indexOf("=");
+	int index = (*_this).indexOf("=");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ destination = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ substring1 = (*_this).substring((*_this) + 1);
+		char* destination = (*_this).substring(0, (*_this));
+		char* substring1 = (*_this).substring((*_this) + 1);
 		/*Not a functional type: Placeholder[input=Member 'parseAssignable' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ assignable = _this->parseAssignable((*_this));
 		/*Not a functional type: Placeholder[input=Member 'parseExpression' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ maybeSource = _this->parseExpression((*_this));
 		if ((*_this).variant = ?.SomeVariant) {
@@ -2731,7 +2733,7 @@ JAssignable parseAssignable_Main(void* _ref, char* input){
 Option<char*> post_Main(void* _ref, char* stripped, char* slice){
 	Main* _this = (Main*) _ref;
 	if ((*_this).endsWith((*_this))) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ instance = (*_this).substring(0, (*_this).length((*_this)) - 2);
+		char* instance = (*_this).substring(0, (*_this).length((*_this)) - 2);
 		return new_Some<char*>(_this->compileExpressionOrPlaceholder((*_this)) + (*_this));
 	}
 	return new_None<char*>((*_this));
@@ -2773,10 +2775,10 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	char* stripped = (*_this).strip((*_this));
 	if ((*_this).startsWith("switch ")) 
 		return new_Some<char*>("_switch").map(F? { alloc((*_this)), F?Table { new }});
-	/*Not a functional type: Placeholder[input=Member 'lastIndexOf' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ i2 = (*_this).lastIndexOf("::");
+	int i2 = (*_this).lastIndexOf("::");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ substring = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ name = (*_this).substring((*_this) + 2).strip((*_this));
+		char* substring = (*_this).substring(0, (*_this));
+		char* name = (*_this).substring((*_this) + 2).strip((*_this));
 		if (_this->isIdentifier((*_this))) {
 			/*Not a functional type: Placeholder[input=Member 'compileExpressionOrPlaceholder' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ compiled = _this->compileExpressionOrPlaceholder((*_this));
 			/*Unwrapped expression: "F?"*/ functionalInterfaceName = "F?";
@@ -2788,13 +2790,13 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	/*Not a functional type: Placeholder[input=Member 'compileLambda' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ maybeLambda = _this->compileLambda((*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this).map(F? { alloc((*_this)), F?Table { new }});
-	/*Not a functional type: Placeholder[input=Member 'indexOf' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ i3 = (*_this).indexOf(".variant = ?."Variant);
+	int i3 = (*_this).indexOf(".variant = ?."Variant);
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ substring = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ substring1 = (*_this).substring((*_this) + ".variant = ?.".length()Variant).strip((*_this));
+		char* substring = (*_this).substring(0, (*_this));
+		char* substring1 = (*_this).substring((*_this) + ".variant = ?.".length()Variant).strip((*_this));
 		/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'parseCExpression' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']]', not an object.]*/ maybeInstance = _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }});
 		if ((*_this).variant = ?.SomeVariant) {
-			/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]*/ i4 = (*_this).indexOf(" < ");
+			int i4 = (*_this).indexOf(" < ");
 			char* substring2;
 			if ((*_this) >= 0) 
 				(*_this) = (*_this).substring(0, (*_this));
@@ -2802,10 +2804,10 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 			return new_Some<char*>((*_this) + ".variant = ?." + (*_this) + "Variant").map(F? { alloc((*_this)), F?Table { new }});
 		}
 	}
-	/*Not a functional type: Placeholder[input=Member 'lastIndexOf' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ i = (*_this).lastIndexOf(".");
+	int i = (*_this).lastIndexOf(".");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ instanceString = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ memberName = (*_this).substring((*_this) + 1).strip((*_this));
+		char* instanceString = (*_this).substring(0, (*_this));
+		char* memberName = (*_this).substring((*_this) + 1).strip((*_this));
 		if (_this->isIdentifier((*_this))) {
 			/*Not a functional type: Placeholder[input=Member 'parseExpression' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ maybeInstance = _this->parseExpression((*_this));
 			if ((*_this).variant = ?.Some(var value)Variant) 
@@ -2821,7 +2823,7 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	if (_this->isIdentifier((*_this))) 
 		return new_Some<JExpression>(new_Identifier((*_this)));
 	if ((*_this).startsWith("!")) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ substring = (*_this).substring(1);
+		char* substring = (*_this).substring(1);
 		/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'parseCExpression' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']]', not an object.]*/ maybeInstance = _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }});
 		if ((*_this).variant = ?.SomeVariant) 
 			return new_Some<char*>("!" + (*_this)).map(F? { alloc((*_this)), F?Table { new }});
@@ -2840,22 +2842,22 @@ auto lambda55(void* _ref, auto param){
 }
 Option<char*> compileLambda_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'indexOf' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ index = (*_this).indexOf("->");
+	int index = (*_this).indexOf("->");
 	if ((*_this) < 0) 
 		return new_None<char*>((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ beforeContent = (*_this).substring(0, (*_this)).strip((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ maybeWithBraces = (*_this).substring((*_this) + 2).strip((*_this));
+	char* beforeContent = (*_this).substring(0, (*_this)).strip((*_this));
+	char* maybeWithBraces = (*_this).substring((*_this) + 2).strip((*_this));
 	List<char*> params;
 	if (_this->isIdentifier((*_this))) 
 		(*_this) = (*_this).of((*_this));
 	else 
 	if ((*_this).startsWith("(") && beforeContent.endsWith(")")) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]*/ substring = (*_this).substring(1, (*_this).length((*_this)) - 1);
+		char* substring = (*_this).substring(1, (*_this).length((*_this)) - 1);
 		(*_this) = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda54).toList((*_this));
 	}
 	/*else return new None<String>()*/;
 	if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]*/ content = (*_this).substring(1, (*_this).length((*_this)) - 1);
+		char* content = (*_this).substring(1, (*_this).length((*_this)) - 1);
 		/*Not a functional type: Placeholder[input=Member 'compileMethodsSegments' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ compiled = _this->compileMethodsSegments((*_this), 1);
 		/*Not a functional type: Placeholder[input=Member 'generateName' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ generatedName = _this->generateName((*_this));
 		/*Not a functional type: Placeholder[input=Cannot access member 'addFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ paramList = (*_this).iter((*_this)).map(lambda55).toList((*_this)).addFirst("void* _ref");
@@ -2885,7 +2887,7 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 	/*Unwrapped expression: 0*/ depth = 0;
 	/*Unwrapped expression: 0*/ i = 0;
 	while ((*_this) < (*_this).length((*_this)) - 1) {
-		/*Not a functional type: Placeholder[input=Member 'charAt' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ c = (*_this).charAt((*_this));
+		char c = (*_this).charAt((*_this));
 		if ((*_this) == (*_this).charAt(0)) 
 			if ((*_this) == 0) {
 				(*_this) = (*_this);
@@ -2898,8 +2900,8 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 		(*_this)++;
 	}
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ leftString = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ right = (*_this).substring((*_this) + (*_this).length((*_this)));
+		char* leftString = (*_this).substring(0, (*_this));
+		char* right = (*_this).substring((*_this) + (*_this).length((*_this)));
 		if (_this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).variant = ?.SomeVariant) 
 			if (_this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).variant = ?.SomeVariant) 
 				return new_Some<char*>((*_this) + " " + (*_this) + " " + (*_this));
@@ -2911,13 +2913,13 @@ Option<JExpression> parseInvokable_Main(void* _ref, char* stripped){
 	if (!(*_this).endsWith(")")) 
 		return new_None<JExpression>((*_this));
 	char* stripped1 = (*_this);
-	/*Not a functional type: Placeholder[input=Member 'length' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ length = (*_this).length((*_this));
-	/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ withoutEnd = (*_this).substring(0, (*_this) - 1);
+	int length = (*_this).length((*_this));
+	char* withoutEnd = (*_this).substring(0, (*_this) - 1);
 	/*Not a functional type: Placeholder[input=Member 'findCallerStart' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ callerStart = _this->findCallerStart((*_this));
 	if ((*_this) < 0) 
 		return new_None<JExpression>((*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ callerString = (*_this).substring(0, (*_this));
-	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ argumentsString = (*_this).substring((*_this) + 1);
+	char* callerString = (*_this).substring(0, (*_this));
+	char* argumentsString = (*_this).substring((*_this) + 1);
 	/*Not a functional type: Placeholder[input=Member 'parseCaller' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ maybeCaller = _this->parseCaller((*_this));
 	if (!(*_this)((*_this).variant = ?.Some(var value)Variant)) 
 		return new_None<JExpression>((*_this));
@@ -2930,7 +2932,7 @@ int findCallerStart_Main(void* _ref, char* withoutEnd){
 	/*Unwrapped expression: 0*/ depth = 0;
 	/*Unwrapped expression: 0*/ i = 0;
 	while ((*_this) < (*_this).length((*_this))) {
-		/*Not a functional type: Placeholder[input=Member 'charAt' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ c = (*_this).charAt((*_this));
+		char c = (*_this).charAt((*_this));
 		if ((*_this) == '(') {
 			if ((*_this) == 0) 
 				(*_this) = (*_this);
@@ -2959,7 +2961,7 @@ Option<JCaller> parseCaller_Main(void* _ref, char* input){
 	if ((*_this).variant = ?.SomeVariant) 
 		return new_Some<JCaller>((*_this));
 	if ((*_this).startsWith("new ")) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ type = (*_this).substring("new ".length((*_this)));
+		char* type = (*_this).substring("new ".length((*_this)));
 		/*Not a functional type: Placeholder[input=Member 'parseType' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ jType = _this->parseType((*_this));
 		return new_Some<JCaller>(new_JConstruction((*_this)));
 	}
@@ -2968,10 +2970,10 @@ Option<JCaller> parseCaller_Main(void* _ref, char* input){
 Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	char* stripped = (*_this).strip((*_this));
-	/*Not a functional type: Placeholder[input=Member 'lastIndexOf' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ nameSeparator = (*_this).lastIndexOf(" ");
+	int nameSeparator = (*_this).lastIndexOf(" ");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ beforeName = (*_this).substring(0, (*_this)).strip((*_this));
-		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ name = (*_this).substring((*_this) + 1).strip((*_this));
+		char* beforeName = (*_this).substring(0, (*_this)).strip((*_this));
+		char* name = (*_this).substring((*_this) + 1).strip((*_this));
 		/*Not a functional type: Placeholder[input=Member 'findTypeSeparator' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ typeSeparator = _this->findTypeSeparator((*_this));
 		if (!(*_this).isIdentifier((*_this))) 
 			return new_None<JDeclaration>((*_this));
@@ -2979,19 +2981,19 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 			/*Not a functional type: Placeholder[input=Member 'parseType' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ type = _this->parseType((*_this));
 			return new_Some<JDeclaration>(new_JDeclaration((*_this), (*_this)));
 		}
-		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]*/ beforeType = (*_this).substring(0, (*_this)).strip((*_this));
+		char* beforeType = (*_this).substring(0, (*_this)).strip((*_this));
 		List<char*> copy = (*_this).empty((*_this));
 		if ((*_this).endsWith(">")) {
-			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
-			/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ i = (*_this).indexOf(" < ");
+			char* substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+			int i = (*_this).indexOf(" < ");
 			if ((*_this) >= 0) {
-				/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ substring2 = (*_this).substring((*_this) + 1);
+				char* substring2 = (*_this).substring((*_this) + 1);
 				(*_this) = _this->splitValues((*_this));
 				(*_this) = (*_this).substring(0, (*_this));
 			}
 		}
 		List<char*> annotations = (*_this).empty((*_this));
-		/*Not a functional type: Placeholder[input=Cannot access member 'lastIndexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ i = (*_this).lastIndexOf("\n");
+		int i = (*_this).lastIndexOf("\n");
 		if ((*_this) >= 0) {
 			(*_this) = _this->collectAnnotations((*_this).substring(0, (*_this)));
 			(*_this) = (*_this).substring((*_this) + 1).strip((*_this));
@@ -3020,7 +3022,7 @@ int findTypeSeparator_Main(void* _ref, char* beforeName){
 	/*Unwrapped expression: 0*/ depth = 0;
 	/*Unwrapped expression: 0*/ i = 0;
 	while ((*_this) < (*_this).length((*_this))) {
-		/*Not a functional type: Placeholder[input=Member 'charAt' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ c = (*_this).charAt((*_this));
+		char c = (*_this).charAt((*_this));
 		if ((*_this) == ' ' && (*_this) == 0) 
 			(*_this) = (*_this);
 		if ((*_this) == '<') 
@@ -3055,16 +3057,16 @@ JType parseType_Main(void* _ref, char* input){
 			}
 		}*/
 	if ((*_this).endsWith("[]")) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ slice = (*_this).substring(0, (*_this).length((*_this)) - 2);
+		char* slice = (*_this).substring(0, (*_this).length((*_this)) - 2);
 		/*Not a functional type: Placeholder[input=Member 'parseType' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']*/ type = _this->parseType((*_this));
 		return new_JArrayType((*_this));
 	}
 	if ((*_this).endsWith(">")) {
-		/*Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
-		/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ i = (*_this).indexOf(" < ");
+		char* substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+		int i = (*_this).indexOf(" < ");
 		if ((*_this) >= 0) {
-			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ base = (*_this).substring(0, (*_this));
-			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'substring' not defined in 'magma.Main$JRecursiveType@ba8a1dc']]', not an object.]*/ parameters = (*_this).substring((*_this) + 1);
+			char* base = (*_this).substring(0, (*_this));
+			char* parameters = (*_this).substring((*_this) + 1);
 			/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@1b701da1]']]', not an object.]]', not an object.]*/ list = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { parseType }}).toList((*_this));
 			return new_JGenericType((*_this), (*_this));
 		}
