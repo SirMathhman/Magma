@@ -1143,7 +1143,10 @@ public class Main {
 			case Placeholder placeholder -> placeholder.toCType();
 			case JFunctionalType jFunctionalType -> new Placeholder(jFunctionalType.toString());
 			case JObjectType jStructureType -> new Identifier(jStructureType.name);
-			case JRecursiveType jRecursiveType -> new Placeholder("???");
+			case JRecursiveType jRecursiveType -> {
+				if (jRecursiveType == StringType) yield new CPointerType(CPrimitiveType.Char);
+				else yield new Placeholder("Unknown built-in type");
+			}
 		};
 	}
 
