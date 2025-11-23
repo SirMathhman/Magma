@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -965,7 +966,63 @@ public class Main {
 
 	private record JFunctionalType(List<JType> parameterTypes, JType returnType) implements JType {}
 
-	private List<List<JDeclaration>> environment = new JavaList<List<JDeclaration>>();
+
+	private static class Environment {
+		private List<Frame> frames = new JavaList<Frame>();
+
+		private Option<JDeclaration> resolveExpression(String identifier) {
+			return this.frames.iter().map(frame -> frame.resolve(identifier)).flatMap(Option::iter).next();
+		}
+
+		public <T> Tuple<Environment, T> withinScoped(F1R<Environment, Tuple<Environment, T>> supplier) {
+			this.frames = this.frames.addLast(new Frame());
+			final var result = supplier.apply(this);
+			this.frames = this.frames.removeLast();
+			return result;
+		}
+
+		public Environment defineAll(JavaList<JDeclaration> declarations) {
+			this.frames = this.frames.mapLast(last -> last.defineAll(declarations));
+			return this;
+		}
+
+		public <T> Tuple<Environment, T> within(Supplier<T> supplier) {
+			this.frames = this.frames.addLast(new Frame());
+			final var result = supplier.get();
+			this.frames = this.frames.removeLast();
+			return new Tuple<Environment, T>(this, result);
+		}
+
+		public Environment define(JDeclaration declaration) {
+			this.frames = this.frames.mapLast(last -> last.define(declaration));
+			return this;
+		}
+	}
+
+	private static class Frame {
+		private List<JDeclaration> definitions;
+
+		private Frame(List<JDeclaration> defined) {this.definitions = defined;}
+
+		public Frame() {
+			this(new JavaList<JDeclaration>());
+		}
+
+		public Frame defineAll(List<JDeclaration> declarations) {
+			return new Frame(this.definitions.addAll(declarations));
+		}
+
+		public Option<JDeclaration> resolve(String identifier) {
+			return this.definitions.iter().filter(define -> define.name.equals(identifier)).next();
+		}
+
+		public Frame define(JDeclaration declaration) {
+			this.definitions = this.definitions.addLast(declaration);
+			return this;
+		}
+	}
+
+	private Environment environment = new Environment();
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structures;
@@ -1382,7 +1439,6 @@ public class Main {
 				.flatMap(Option::iter)
 				.toList();
 
-		this.environment = this.environment.addLast(parameters);
 		var cParameters = parameters.iter().map(JDeclaration::toCDeclaration).toList();
 
 		final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName);
@@ -1401,9 +1457,15 @@ public class Main {
 
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final var inputContent = withBraces.substring(1, withBraces.length() - 1);
-			this.environment = this.environment.addLast(new JavaList<JDeclaration>());
-			maybeCompiled = new Some<String>(this.compileMethodsSegments(inputContent, 1));
-			this.environment = this.environment.removeLast();
+
+			final var within = this.environment.withinScoped((env) -> {
+				return env.defineAll(new JavaList<JDeclaration>()).within(() -> {
+					return new Some<String>(this.compileMethodsSegments(inputContent, 1));
+				});
+			});
+
+			this.environment = within.left;
+			maybeCompiled = within.right;
 		}
 
 		String outputContent;
@@ -1672,12 +1734,11 @@ public class Main {
 
 	private CAssignable transformAssignable(JAssignable assignable, JExpression source) {
 		return switch (assignable) {
-			case JDeclaration jDeclaration -> {
-				if (jDeclaration.type.equals(JPrimitiveType.Var))
-					yield jDeclaration.withType(this.resolveExpression(source)).toCAssignable();
+			case JDeclaration local -> {
+				if (local.type.equals(JPrimitiveType.Var)) yield local.withType(this.resolveExpression(source)).toCAssignable();
 
-				this.environment = this.environment.mapLast(last -> last.addLast(jDeclaration));
-				yield jDeclaration.toCAssignable();
+				this.environment = this.environment.define(local);
+				yield local.toCAssignable();
 			}
 
 			case JExpression jExpression -> jExpression.toAssignable();
@@ -1688,7 +1749,7 @@ public class Main {
 	private JType resolveExpression(JExpression source) {
 		return switch (source) {
 			case Identifier(var value) -> {
-				final var maybeFound = this.resolveIdentifierInEnvironment(value);
+				final var maybeFound = this.environment.resolveExpression(value).map(JDeclaration::type);
 
 				if (maybeFound instanceof Some<JType>(var found)) yield found;
 				yield new Placeholder("Undefined identifier: " + value);
@@ -1719,15 +1780,6 @@ public class Main {
 				yield new Placeholder("Not a functional type: " + jType);
 			}
 		};
-	}
-
-	private Option<JType> resolveIdentifierInEnvironment(String identifier) {
-		return this.environment
-				.iter()
-				.flatMap(List::iter)
-				.filter(def -> def.name.equals(identifier))
-				.next()
-				.map(found -> found.type);
 	}
 
 	private JAssignable parseAssignable(String input) {
