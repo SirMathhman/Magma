@@ -1,5 +1,8 @@
-struct PrimitiveType {
+struct CPrimitiveType {
 	char* content;
+};
+struct JPrimitiveType {
+	CType type;
 };
 template <typename T>
 struct HeadTable {
@@ -12,10 +15,10 @@ struct Head {
 };
 template <typename T>
 struct ListTable {
-	Stream<T> (*stream)(void*);
-	int (*isEmpty)(void*);
+	Stream<T> (*iter)(void*);
+	void (*isEmpty)(void*);
 	List<T> (*addLast)(void*, T);
-	int (*contains)(void*, T);
+	void (*contains)(void*, T);
 	List<T> (*addFirst)(void*, T);
 	List<T> (*addAll)(void*, List<T>);
 	int (*size)(void*);
@@ -83,23 +86,23 @@ struct Result {
 	ResultVariant variant;
 	ResultData<T, X> data;
 };
-enum TypeVariant {
+enum CTypeVariant {
 	IdentifierVariant,
 	PlaceholderVariant,
-	PointerTypeVariant,
-	PrimitiveTypeVariant,
-	TemplateTypeVariant
+	CPointerTypeVariant,
+	CPrimitiveTypeVariant,
+	CTemplateTypeVariant
 };
-union TypeData {
+union CTypeData {
 	Identifier Identifier;
 	Placeholder Placeholder;
-	PointerType PointerType;
-	PrimitiveType PrimitiveType;
-	TemplateType TemplateType;
+	CPointerType CPointerType;
+	CPrimitiveType CPrimitiveType;
+	CTemplateType CTemplateType;
 };
-struct Type {
-	TypeVariant variant;
-	TypeData data;
+struct CType {
+	CTypeVariant variant;
+	CTypeData data;
 };
 enum JMethodDeclarationVariant {
 	JConstructorVariant,
@@ -115,23 +118,21 @@ struct JMethodDeclaration {
 	JMethodDeclarationVariant variant;
 	JMethodDeclarationData data;
 };
-enum StructMemberVariant {
-	JDeclarationVariant,
+enum CStructMemberVariant {
 	EmptyStructMemberVariant,
-	FieldVariant,
+	CFieldVariant,
 	F1RDeclarationVariant,
 	PlaceholderVariant
 };
-union StructMemberData {
-	JDeclaration JDeclaration;
+union CStructMemberData {
 	EmptyStructMember EmptyStructMember;
-	Field Field;
+	CField CField;
 	F1RDeclaration F1RDeclaration;
 	Placeholder Placeholder;
 };
-struct StructMember {
-	StructMemberVariant variant;
-	StructMemberData data;
+struct CStructMember {
+	CStructMemberVariant variant;
+	CStructMemberData data;
 };
 struct FolderTable {
 	State (*apply)(void*, State, char);
@@ -181,6 +182,27 @@ struct CFunctionDeclaration {
 	CFunctionDeclarationTable table;
 	void* data;
 };
+struct CAssignableTable {
+	char* (*generate)(void*);
+};
+struct CAssignable {
+	CAssignableTable table;
+	void* data;
+};
+struct JTypeTable {
+	CType (*toCType)(void*);
+};
+struct JType {
+	JTypeTable table;
+	void* data;
+};
+struct JAssignableTable {
+	CAssignable (*toCAssignable)(void*);
+};
+struct JAssignable {
+	JAssignableTable table;
+	void* data;
+};
 struct StringBuilders {
 };
 struct StringBuilder {
@@ -216,12 +238,12 @@ struct State {
 	int index;
 	int depth;
 };
-struct PointerType {
-	Type type;
+struct CPointerType {
+	CType type;
 };
-struct TemplateType {
+struct CTemplateType {
 	char* base;
-	List<Type> list;
+	List<CType> list;
 };
 struct Identifier {
 	char* value;
@@ -236,13 +258,13 @@ struct JDeclaration {
 	List<char*> annotations;
 	List<char*> typeParameters;
 	Option<char*> maybeBeforeType;
-	char* type;
+	JType type;
 	char* name;
 };
 struct F1RDeclaration {
-	char* type;
+	CType type;
 	char* name;
-	List<char*> parameterTypes;
+	List<CType> parameterTypes;
 };
 struct EmptyStructMember {
 };
@@ -260,8 +282,8 @@ struct None {
 };
 struct ConditionEndLocator {
 };
-struct Field {
-	JDeclaration declaration;
+struct CField {
+	CDeclaration declaration;
 };
 struct Streams {
 };
@@ -273,7 +295,7 @@ struct MapHead {
 template <typename T>
 struct SingleHead {
 	T value;
-	int retrieved;
+	void retrieved;
 };
 template <typename T, typename R>
 struct FlatMapHead {
@@ -286,7 +308,7 @@ struct EmptyHead {
 };
 template <typename T>
 struct AnyMatch {
-	F1R<T, int> predicate;
+	F1R<T, void> predicate;
 };
 struct Joiner {
 	char* delimiter;
@@ -298,8 +320,21 @@ struct Paths {
 };
 struct CDeclaration {
 	List<char*> typeParameters;
-	char* type;
+	CType type;
 	char* name;
+};
+struct JExpression {
+	char* content;
+};
+struct CExpression {
+	char* content;
+};
+struct JArrayType {
+	JType type;
+};
+struct JGenericType {
+	char* base;
+	List<JType> typeArguments;
 };
 struct Main {
 	List<char*> functionDeclarations;
@@ -308,22 +343,29 @@ struct Main {
 	List<char*> functions;
 	int counter;
 };
-PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
-PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
-PrimitiveType PrimitiveTypeInt = new_PrimitiveType("int");
-PrimitiveType new_PrimitiveType(char* content);
-char* generate_PrimitiveType(void* _ref);
-char* toBaseName_PrimitiveType(void* _ref);
+CPrimitiveType CPrimitiveTypeVoid = new_CPrimitiveType("void");
+CPrimitiveType CPrimitiveTypeChar = new_CPrimitiveType("char");
+CPrimitiveType CPrimitiveTypeInt = new_CPrimitiveType("int");
+JPrimitiveType JPrimitiveTypeInt = new_JPrimitiveType(CPrimitiveType.Int);
+JPrimitiveType JPrimitiveTypeVoid = new_JPrimitiveType(CPrimitiveType.Void);
+JPrimitiveType JPrimitiveTypeBoolean = new_JPrimitiveType(CPrimitiveType.Void);
+JPrimitiveType JPrimitiveTypeString = new_JPrimitiveType(new CPointerType(CPrimitiveType.Char));
+JPrimitiveType JPrimitiveTypeChar = new_JPrimitiveType(CPrimitiveType.Char);
+CPrimitiveType<> new_CPrimitiveType(char* content);
+char* generate_CPrimitiveType(void* _ref);
+char* toBaseName_CPrimitiveType(void* _ref);
+JPrimitiveType<> new_JPrimitiveType(CType type);
+CType toCType_JPrimitiveType(void* _ref);
 template <typename T>
 Option<T> next_Head(void* _ref);
 template <typename T>
-Stream<T> stream_List(void* _ref);
+Stream<T> iter_List(void* _ref);
 template <typename T>
-int isEmpty_List(void* _ref);
+void isEmpty_List(void* _ref);
 template <typename T>
 List<T> addLast_List(void* _ref, T element);
 template <typename T>
-int contains_List(void* _ref, T element);
+void contains_List(void* _ref, T element);
 template <typename T>
 List<T> addFirst_List(void* _ref, T element);
 template <typename T>
@@ -354,14 +396,14 @@ Stream<T> stream_Option(void* _ref);
 template <typename T>
 Option<T> or_Option(void* _ref, FR<Option<T>> other);
 template <typename T>
-Tuple<int, T> toTuple_Option(void* _ref, FR<T> other);
+Tuple<void, T> toTuple_Option(void* _ref, FR<T> other);
 template <typename T0, typename R>
 R apply_F1R(void* _ref, T0 value);
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Result(void* _ref, F1R<T, R> mapper);
-char* generate_Type(void* _ref);
-char* toBaseName_Type(void* _ref);
-char* generate_StructMember(void* _ref);
+char* generate_CType(void* _ref);
+char* toBaseName_CType(void* _ref);
+char* generate_CStructMember(void* _ref);
 State apply_Folder(void* _ref, State state, char character);
 template <typename A, typename B, typename R>
 R apply_F2R(void* _ref, A a, B b);
@@ -373,6 +415,9 @@ char* display_IOError(void* _ref);
 CFunctionDeclaration mapTypeParameters_CFunctionDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
 CFunctionDeclaration mapName_CFunctionDeclaration(void* _ref, F1R<char*, char*> mapper);
 char* generate_CFunctionDeclaration(void* _ref);
+char* generate_CAssignable(void* _ref);
+CType toCType_JType(void* _ref);
+CAssignable toCAssignable_JAssignable(void* _ref);
 StringBuilder empty_StringBuilders(void* _ref);
 StringBuilder appendChar_StringBuilder(void* _ref, char next);
 StringBuilder clear_StringBuilder(void* _ref);
@@ -391,10 +436,10 @@ C collect_Stream(void* _ref, Collector<T, C> collector);
 template <typename T>
 List<T> toList_Stream(void* _ref);
 template <typename T>
-Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate);
+Stream<T> filter_Stream(void* _ref, F1R<T, void> predicate);
 template <typename R, typename T>
 Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);
-RangeHead new_RangeHead(int length);
+RangeHead<> new_RangeHead(int length);
 Option<int> next_RangeHead(void* _ref);
 template <typename T>
 List<T> empty_Lists();
@@ -404,9 +449,9 @@ template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper);
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper);
-State new_State(char* input);
-int isShallow_State(void* _ref);
-int isLevel_State(void* _ref);
+State<> new_State(char* input);
+void isShallow_State(void* _ref);
+void isLevel_State(void* _ref);
 State append_State(void* _ref, char next);
 Option<char> pop_State(void* _ref);
 State advance_State(void* _ref);
@@ -416,18 +461,22 @@ Stream<char*> stream_State(void* _ref);
 Option<Tuple<State, char>> popAndAppendToTuple_State(void* _ref);
 Option<State> popAndAppendToOption_State(void* _ref);
 Option<char> peek_State(void* _ref);
-char* generate_PointerType(void* _ref);
-char* toBaseName_PointerType(void* _ref);
-char* generate_TemplateType(void* _ref);
-char* toBaseName_TemplateType(void* _ref);
+char* generate_CPointerType(void* _ref);
+char* toBaseName_CPointerType(void* _ref);
+char* generate_CTemplateType(void* _ref);
+char* toBaseName_CTemplateType(void* _ref);
 char* generate_Identifier(void* _ref);
+char* toString_Identifier(void* _ref);
 char* toBaseName_Identifier(void* _ref);
+CType toCType_Identifier(void* _ref);
 char* generate_Placeholder(void* _ref);
 char* toBaseName_Placeholder(void* _ref);
-JDeclaration new_JDeclaration(char* type, char* name);
-char* generate_JDeclaration(void* _ref);
+CAssignable toCAssignable_Placeholder(void* _ref);
+CType toCType_Placeholder(void* _ref);
+JDeclaration<> new_JDeclaration(JType type, char* name);
 JDeclaration mapName_JDeclaration(void* _ref, F1R<char*, char*> mapper);
-JDeclaration mapTypeParameters_JDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
+CDeclaration toCDeclaration_JDeclaration(void* _ref);
+CAssignable toCAssignable_JDeclaration(void* _ref);
 char* generate_F1RDeclaration(void* _ref);
 char* generate_EmptyStructMember(void* _ref);
 State apply_EscapedFolder(void* _ref, State state, char next);
@@ -445,7 +494,7 @@ Stream<T> stream_Some(void* _ref);
 template <typename T>
 Option<T> or_Some(void* _ref, FR<Option<T>> other);
 template <typename T>
-Tuple<int, T> toTuple_Some(void* _ref, FR<T> other);
+Tuple<void, T> toTuple_Some(void* _ref, FR<T> other);
 template <typename R, typename T>
 Option<R> map_None(void* _ref, F1R<T, R> mapper);
 template <typename T>
@@ -459,9 +508,9 @@ Stream<T> stream_None(void* _ref);
 template <typename T>
 Option<T> or_None(void* _ref, FR<Option<T>> other);
 template <typename T>
-Tuple<int, T> toTuple_None(void* _ref, FR<T> other);
+Tuple<void, T> toTuple_None(void* _ref, FR<T> other);
 State apply_ConditionEndLocator(void* _ref, State state, char c);
-char* generate_Field(void* _ref);
+char* generate_CField(void* _ref);
 template <typename T>
 Stream<T> fromObjArray_Streams(void* _ref, T* elements);
 Stream<char> fromCharArray_Streams(void* _ref, char* array);
@@ -478,10 +527,10 @@ Option<R> next_FlatMapHead(void* _ref);
 template <typename T>
 Option<T> next_EmptyHead(void* _ref);
 template <typename T>
-int createInitial_AnyMatch(void* _ref);
+void createInitial_AnyMatch(void* _ref);
 template <typename T>
-int fold_AnyMatch(void* _ref, int aBoolean, T t);
-Joiner new_Joiner();
+void fold_AnyMatch(void* _ref, void aBoolean, T t);
+Joiner<> new_Joiner();
 char* createInitial_Joiner(void* _ref);
 char* fold_Joiner(void* _ref, char* current, char* element);
 template <typename T>
@@ -489,11 +538,16 @@ List<T> createInitial_ListCollector(void* _ref);
 template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t);
 Path get_Paths(char* first, /*String...*/ more);
-CDeclaration new_CDeclaration(char* type, char* name);
+CDeclaration<> new_CDeclaration(CType type, char* name);
 CFunctionDeclaration mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper);
 CFunctionDeclaration mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
 char* generate_CDeclaration(void* _ref);
-Main new_Main();
+CExpression toCExpression_JExpression(void* _ref);
+CAssignable toCAssignable_JExpression(void* _ref);
+char* generate_CExpression(void* _ref);
+CType toCType_JArrayType(void* _ref);
+CType toCType_JGenericType(void* _ref);
+Main<> new_Main();
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);
 char* wrap_Main(void* _ref, char* input);
 void main_Main(void* _ref, char** args);
@@ -507,58 +561,77 @@ char* compileAll_Main(void* _ref, char* input, F1R<char*, char*> mapper, Folder 
 Stream<char*> divide_Main(void* _ref, char* input, Folder folder);
 State foldStatement_Main(void* _ref, State current, char next);
 char* compileRootSegment_Main(void* _ref, char* input);
-Option<StructMember> compileStructure_Main(void* _ref, char* type, char* stripped);
-char* getString_Main(void* _ref, Type implementee, char* name, char* joinedTypeParameters, char* templateString);
+Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripped);
+char* getString_Main(void* _ref, CType implementee, char* name, char* joinedTypeParameters, char* templateString);
 char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters);
 char* generateStatement_Main(void* _ref, char* content);
 List<char*> splitValues_Main(void* _ref, char* input);
-int isIdentifier_Main(void* _ref, char* input);
-Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants);
-Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input);
+void isIdentifier_Main(void* _ref, char* input);
+Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants);
+Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input);
 char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent);
 char* generateCase_Main(void* _ref, JDeclaration declaration, char* variant);
 JMethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName);
 JMethodDeclaration toInterface_Main(void* _ref, JDeclaration value);
 Option<JMethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName);
-Option<StructMember> compileEnumValues_Main(void* _ref, char* input, char* structName);
-Option<StructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue);
+Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* structName);
+Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue);
 char* compileMethodSegment_Main(void* _ref, char* input, int indent);
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input);
 char* compileMethodStatement_Main(void* _ref, char* input);
+Option<char*> compileAssignment_Main(void* _ref, char* stripped);
+JAssignable parseAssignable_Main(void* _ref, char* input);
 Option<char*> post_Main(void* _ref, char* stripped, char* slice);
 char* compileExpressionOrPlaceholder_Main(void* _ref, char* input);
-Option<char*> compileExpression_Main(void* _ref, char* input);
+Option<CExpression> parseCExpression_Main(void* _ref, char* input);
+Option<JExpression> parseExpression_Main(void* _ref, char* input);
+Option<char*> getStringOption_Main(void* _ref, char* input);
 Option<char*> compileLambda_Main(void* _ref, char* stripped);
 char* generateName_Main(void* _ref);
 Option<char*> compileOperator_Main(void* _ref, char* input, char* operator);
 Option<char*> compileInvokable_Main(void* _ref, char* stripped);
 int findCallerStart_Main(void* _ref, char* withoutEnd);
-int isNumber_Main(void* _ref, char* input);
-int allDigits_Main(void* _ref, char* input);
+void isNumber_Main(void* _ref, char* input);
+void allDigits_Main(void* _ref, char* input);
 Option<char*> compileCaller_Main(void* _ref, char* input);
 Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input);
 List<char*> collectAnnotations_Main(void* _ref, char* input);
 int findTypeSeparator_Main(void* _ref, char* beforeName);
 char* compileType_Main(void* _ref, char* input);
-Type parseType_Main(void* _ref, char* input);
-Type toType_PrimitiveType(void* _ref){
-	PrimitiveType _this = *((PrimitiveType*) _ref);
-	TypeData data;
-	data.PrimitiveType = _this;
-	return { PrimitiveTypeVariant, data };
+JType parseType_Main(void* _ref, char* input);
+CType toCType_CPrimitiveType(void* _ref){
+	CPrimitiveType _this = *((CPrimitiveType*) _ref);
+	CTypeData data;
+	data.CPrimitiveType = _this;
+	return { CPrimitiveTypeVariant, data };
 }
-PrimitiveType new_PrimitiveType(char* content){
-	PrimitiveType _this;
+CPrimitiveType<> new_CPrimitiveType(char* content){
+	CPrimitiveType _this;
 	(*_this).content = content;
 	return _this;
 }
-char* generate_PrimitiveType(void* _ref){
-	PrimitiveType* _this = (PrimitiveType*) _ref;
+char* generate_CPrimitiveType(void* _ref){
+	CPrimitiveType* _this = (CPrimitiveType*) _ref;
 	return (*_this).content;
 }
-char* toBaseName_PrimitiveType(void* _ref){
-	PrimitiveType* _this = (PrimitiveType*) _ref;
+char* toBaseName_CPrimitiveType(void* _ref){
+	CPrimitiveType* _this = (CPrimitiveType*) _ref;
 	return (*_this).content;
+}
+JType toJType_JPrimitiveType(void* _ref){
+	JPrimitiveType _this = *((JPrimitiveType*) _ref);
+	JTypeData data;
+	data.JPrimitiveType = _this;
+	return { JPrimitiveTypeVariant, data };
+}
+JPrimitiveType<> new_JPrimitiveType(CType type){
+	JPrimitiveType _this;
+	(*_this).type = type;
+	return _this;
+}
+CType toCType_JPrimitiveType(void* _ref){
+	JPrimitiveType* _this = (JPrimitiveType*) _ref;
+	return (*_this).type;
 }
 template <typename T>
 Option<T> next_Head(void* _ref){
@@ -566,12 +639,12 @@ Option<T> next_Head(void* _ref){
 	return _this->table.next(_this->data);
 }
 template <typename T>
-Stream<T> stream_List(void* _ref){
+Stream<T> iter_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
-	return _this->table.stream(_this->data);
+	return _this->table.iter(_this->data);
 }
 template <typename T>
-int isEmpty_List(void* _ref){
+void isEmpty_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
 	return _this->table.isEmpty(_this->data);
 }
@@ -581,7 +654,7 @@ List<T> addLast_List(void* _ref, T element){
 	return _this->table.addLast(_this->data, element);
 }
 template <typename T>
-int contains_List(void* _ref, T element){
+void contains_List(void* _ref, T element){
 	List<T>* _this = (List<T>*) _ref;
 	return _this->table.contains(_this->data, element);
 }
@@ -717,9 +790,9 @@ Option<T> or_Option(void* _ref, FR<Option<T>> other){
 	return _ret;
 }
 template <typename T>
-Tuple<int, T> toTuple_Option(void* _ref, FR<T> other){
+Tuple<void, T> toTuple_Option(void* _ref, FR<T> other){
 	Option<T>* _this = (Option<T>*) _ref;
-	Tuple<int, T> _ret;
+	Tuple<void, T> _ret;
 	switch (_this->variant) {
 		case NoneVariant:
 			_ret = toTuple_None(&(_this->data.None));
@@ -749,8 +822,8 @@ Result<R, X> mapValue_Result(void* _ref, F1R<T, R> mapper){
 	}
 	return _ret;
 }
-char* generate_Type(void* _ref){
-	Type* _this = (Type*) _ref;
+char* generate_CType(void* _ref){
+	CType* _this = (CType*) _ref;
 	char* _ret;
 	switch (_this->variant) {
 		case IdentifierVariant:
@@ -759,20 +832,20 @@ char* generate_Type(void* _ref){
 		case PlaceholderVariant:
 			_ret = generate_Placeholder(&(_this->data.Placeholder));
 			break;
-		case PointerTypeVariant:
-			_ret = generate_PointerType(&(_this->data.PointerType));
+		case CPointerTypeVariant:
+			_ret = generate_CPointerType(&(_this->data.CPointerType));
 			break;
-		case PrimitiveTypeVariant:
-			_ret = generate_PrimitiveType(&(_this->data.PrimitiveType));
+		case CPrimitiveTypeVariant:
+			_ret = generate_CPrimitiveType(&(_this->data.CPrimitiveType));
 			break;
-		case TemplateTypeVariant:
-			_ret = generate_TemplateType(&(_this->data.TemplateType));
+		case CTemplateTypeVariant:
+			_ret = generate_CTemplateType(&(_this->data.CTemplateType));
 			break;
 	}
 	return _ret;
 }
-char* toBaseName_Type(void* _ref){
-	Type* _this = (Type*) _ref;
+char* toBaseName_CType(void* _ref){
+	CType* _this = (CType*) _ref;
 	char* _ret;
 	switch (_this->variant) {
 		case IdentifierVariant:
@@ -781,30 +854,27 @@ char* toBaseName_Type(void* _ref){
 		case PlaceholderVariant:
 			_ret = toBaseName_Placeholder(&(_this->data.Placeholder));
 			break;
-		case PointerTypeVariant:
-			_ret = toBaseName_PointerType(&(_this->data.PointerType));
+		case CPointerTypeVariant:
+			_ret = toBaseName_CPointerType(&(_this->data.CPointerType));
 			break;
-		case PrimitiveTypeVariant:
-			_ret = toBaseName_PrimitiveType(&(_this->data.PrimitiveType));
+		case CPrimitiveTypeVariant:
+			_ret = toBaseName_CPrimitiveType(&(_this->data.CPrimitiveType));
 			break;
-		case TemplateTypeVariant:
-			_ret = toBaseName_TemplateType(&(_this->data.TemplateType));
+		case CTemplateTypeVariant:
+			_ret = toBaseName_CTemplateType(&(_this->data.CTemplateType));
 			break;
 	}
 	return _ret;
 }
-char* generate_StructMember(void* _ref){
-	StructMember* _this = (StructMember*) _ref;
+char* generate_CStructMember(void* _ref){
+	CStructMember* _this = (CStructMember*) _ref;
 	char* _ret;
 	switch (_this->variant) {
-		case JDeclarationVariant:
-			_ret = generate_JDeclaration(&(_this->data.JDeclaration));
-			break;
 		case EmptyStructMemberVariant:
 			_ret = generate_EmptyStructMember(&(_this->data.EmptyStructMember));
 			break;
-		case FieldVariant:
-			_ret = generate_Field(&(_this->data.Field));
+		case CFieldVariant:
+			_ret = generate_CField(&(_this->data.CField));
 			break;
 		case F1RDeclarationVariant:
 			_ret = generate_F1RDeclaration(&(_this->data.F1RDeclaration));
@@ -850,6 +920,18 @@ char* generate_CFunctionDeclaration(void* _ref){
 	CFunctionDeclaration* _this = (CFunctionDeclaration*) _ref;
 	return _this->table.generate(_this->data);
 }
+char* generate_CAssignable(void* _ref){
+	CAssignable* _this = (CAssignable*) _ref;
+	return _this->table.generate(_this->data);
+}
+CType toCType_JType(void* _ref){
+	JType* _this = (JType*) _ref;
+	return _this->table.toCType(_this->data);
+}
+CAssignable toCAssignable_JAssignable(void* _ref){
+	JAssignable* _this = (JAssignable*) _ref;
+	return _this->table.toCAssignable(_this->data);
+}
 StringBuilder empty_StringBuilders(void* _ref){
 	StringBuilders* _this = (StringBuilders*) _ref;
 	return new_StringBuilder(Lists.empty());
@@ -868,7 +950,7 @@ StringBuilder appendString_StringBuilder(void* _ref, char* chars){
 }
 char* toString_StringBuilder(void* _ref){
 	StringBuilder* _this = (StringBuilder*) _ref;
-	return (*_this).list.stream().map(F? { alloc(String), F?Table { valueOf }}).collect(new_Joiner());
+	return (*_this).list.iter().map(F? { alloc(String), F?Table { valueOf }}).collect(new_Joiner());
 }
 template <typename T, typename T>
 Stream<T> of_Stream(void* _ref, T value){
@@ -923,7 +1005,7 @@ auto lambda2(void* _ref, auto element){
 	return new_Stream<T>(new_EmptyHead<T>());
 }
 template <typename T>
-Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate){
+Stream<T> filter_Stream(void* _ref, F1R<T, void> predicate){
 	Stream<T>* _this = (Stream<T>*) _ref;
 	return (*_this).flatMap(lambda2);
 }
@@ -938,7 +1020,7 @@ Head<int> toHead_RangeHead(void* _ref){
 	data.RangeHead = _this;
 	return { RangeHeadVariant, data };
 }
-RangeHead new_RangeHead(int length){
+RangeHead<> new_RangeHead(int length){
 	RangeHead _this;
 	(*_this).length = length;
 	(*_this).counter = 0;
@@ -984,7 +1066,7 @@ Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper){
 	Ok<T, X>* _this = (Ok<T, X>*) _ref;
 	return new_Ok<R, X>(mapper.apply((*_this).value));
 }
-State new_State(char* input){
+State<> new_State(char* input){
 	State _this;
 	(*_this).input = input;
 	(*_this).index = 0;
@@ -993,11 +1075,11 @@ State new_State(char* input){
 	(*_this).segments = Lists.empty();
 	return _this;
 }
-int isShallow_State(void* _ref){
+void isShallow_State(void* _ref){
 	State* _this = (State*) _ref;
 	return (*_this).depth == 1;
 }
-int isLevel_State(void* _ref){
+void isLevel_State(void* _ref){
 	State* _this = (State*) _ref;
 	return (*_this).depth == 0;
 }
@@ -1035,7 +1117,7 @@ State exit_State(void* _ref){
 }
 Stream<char*> stream_State(void* _ref){
 	State* _this = (State*) _ref;
-	return (*_this).segments.stream();
+	return (*_this).segments.iter();
 }
 auto lambda3(void* _ref, auto popped){
 	var appended = (*_this).append(popped);
@@ -1059,38 +1141,44 @@ Option<char> peek_State(void* _ref){
 	}
 	return new_None<char>();
 }
-Type toType_PointerType(void* _ref){
-	PointerType _this = *((PointerType*) _ref);
-	TypeData data;
-	data.PointerType = _this;
-	return { PointerTypeVariant, data };
+CType toCType_CPointerType(void* _ref){
+	CPointerType _this = *((CPointerType*) _ref);
+	CTypeData data;
+	data.CPointerType = _this;
+	return { CPointerTypeVariant, data };
 }
-char* generate_PointerType(void* _ref){
-	PointerType* _this = (PointerType*) _ref;
+char* generate_CPointerType(void* _ref){
+	CPointerType* _this = (CPointerType*) _ref;
 	return (*_this).type.generate() + "*";
 }
-char* toBaseName_PointerType(void* _ref){
-	PointerType* _this = (PointerType*) _ref;
+char* toBaseName_CPointerType(void* _ref){
+	CPointerType* _this = (CPointerType*) _ref;
 	return (*_this).type.toBaseName() + "_ptr";
 }
-Type toType_TemplateType(void* _ref){
-	TemplateType _this = *((TemplateType*) _ref);
-	TypeData data;
-	data.TemplateType = _this;
-	return { TemplateTypeVariant, data };
+CType toCType_CTemplateType(void* _ref){
+	CTemplateType _this = *((CTemplateType*) _ref);
+	CTypeData data;
+	data.CTemplateType = _this;
+	return { CTemplateTypeVariant, data };
 }
-char* generate_TemplateType(void* _ref){
-	TemplateType* _this = (TemplateType*) _ref;
-	var typeArguments = (*_this).list.stream().map(F? { alloc(Type), F?Table { generate }}).collect(new_Joiner(", "));
+char* generate_CTemplateType(void* _ref){
+	CTemplateType* _this = (CTemplateType*) _ref;
+	var typeArguments = (*_this).list.iter().map(F? { alloc(CType), F?Table { generate }}).collect(new_Joiner(", "));
 	return (*_this).base + " < " + typeArguments + ">";
 }
-char* toBaseName_TemplateType(void* _ref){
-	TemplateType* _this = (TemplateType*) _ref;
+char* toBaseName_CTemplateType(void* _ref){
+	CTemplateType* _this = (CTemplateType*) _ref;
 	return (*_this).base;
 }
-Type toType_Identifier(void* _ref){
+CType toCType_Identifier(void* _ref){
 	Identifier _this = *((Identifier*) _ref);
-	TypeData data;
+	CTypeData data;
+	data.Identifier = _this;
+	return { IdentifierVariant, data };
+}
+JType toJType_Identifier(void* _ref){
+	Identifier _this = *((Identifier*) _ref);
+	JTypeData data;
 	data.Identifier = _this;
 	return { IdentifierVariant, data };
 }
@@ -1098,13 +1186,21 @@ char* generate_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
 	return (*_this).value;
 }
+char* toString_Identifier(void* _ref){
+	Identifier* _this = (Identifier*) _ref;
+	return "";
+}
 char* toBaseName_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
 	return (*_this).value;
 }
-Type toType_Placeholder(void* _ref){
+CType toCType_Identifier(void* _ref){
+	Identifier* _this = (Identifier*) _ref;
+	return (*_this);
+}
+CType toCType_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
-	TypeData data;
+	CTypeData data;
 	data.Placeholder = _this;
 	return { PlaceholderVariant, data };
 }
@@ -1114,15 +1210,33 @@ JMethodDeclaration toJMethodDeclaration_Placeholder(void* _ref){
 	data.Placeholder = _this;
 	return { PlaceholderVariant, data };
 }
-StructMember toStructMember_Placeholder(void* _ref){
+CStructMember toCStructMember_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
-	StructMemberData data;
+	CStructMemberData data;
 	data.Placeholder = _this;
 	return { PlaceholderVariant, data };
 }
 CFunctionDeclaration toCFunctionDeclaration_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	CFunctionDeclarationData data;
+	data.Placeholder = _this;
+	return { PlaceholderVariant, data };
+}
+CAssignable toCAssignable_Placeholder(void* _ref){
+	Placeholder _this = *((Placeholder*) _ref);
+	CAssignableData data;
+	data.Placeholder = _this;
+	return { PlaceholderVariant, data };
+}
+JAssignable toJAssignable_Placeholder(void* _ref){
+	Placeholder _this = *((Placeholder*) _ref);
+	JAssignableData data;
+	data.Placeholder = _this;
+	return { PlaceholderVariant, data };
+}
+JType toJType_Placeholder(void* _ref){
+	Placeholder _this = *((Placeholder*) _ref);
+	JTypeData data;
 	data.Placeholder = _this;
 	return { PlaceholderVariant, data };
 }
@@ -1133,6 +1247,14 @@ char* generate_Placeholder(void* _ref){
 char* toBaseName_Placeholder(void* _ref){
 	Placeholder* _this = (Placeholder*) _ref;
 	return wrap((*_this).input);
+}
+CAssignable toCAssignable_Placeholder(void* _ref){
+	Placeholder* _this = (Placeholder*) _ref;
+	return (*_this);
+}
+CType toCType_Placeholder(void* _ref){
+	Placeholder* _this = (Placeholder*) _ref;
+	return (*_this);
 }
 JMethodDeclaration toJMethodDeclaration_JConstructor(void* _ref){
 	JConstructor _this = *((JConstructor*) _ref);
@@ -1146,44 +1268,43 @@ JMethodDeclaration toJMethodDeclaration_JDeclaration(void* _ref){
 	data.JDeclaration = _this;
 	return { JDeclarationVariant, data };
 }
-StructMember toStructMember_JDeclaration(void* _ref){
+JAssignable toJAssignable_JDeclaration(void* _ref){
 	JDeclaration _this = *((JDeclaration*) _ref);
-	StructMemberData data;
+	JAssignableData data;
 	data.JDeclaration = _this;
 	return { JDeclarationVariant, data };
 }
-JDeclaration new_JDeclaration(char* type, char* name){
+JDeclaration<> new_JDeclaration(JType type, char* name){
 	JDeclaration _this;
 	(*_this)(Lists.empty(), Lists.empty(), new_None<char*>(), type, name);
 	return _this;
-}
-char* generate_JDeclaration(void* _ref){
-	JDeclaration* _this = (JDeclaration*) _ref;
-	var beforeDeclaration = generateTemplateString((*_this).typeParameters());
-	return beforeDeclaration + (*_this).type + " " + (*_this).name;
 }
 JDeclaration mapName_JDeclaration(void* _ref, F1R<char*, char*> mapper){
 	JDeclaration* _this = (JDeclaration*) _ref;
 	return new_JDeclaration((*_this).annotations, (*_this).typeParameters, (*_this).maybeBeforeType, (*_this).type, mapper.apply((*_this).name));
 }
-JDeclaration mapTypeParameters_JDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper){
+CDeclaration toCDeclaration_JDeclaration(void* _ref){
 	JDeclaration* _this = (JDeclaration*) _ref;
-	return new_JDeclaration((*_this).annotations, mapper.apply((*_this).typeParameters), (*_this).maybeBeforeType, (*_this).type, (*_this).name);
+	return new_CDeclaration((*_this).typeParameters, (*_this).type.toCType(), (*_this).name);
 }
-StructMember toStructMember_F1RDeclaration(void* _ref){
+CAssignable toCAssignable_JDeclaration(void* _ref){
+	JDeclaration* _this = (JDeclaration*) _ref;
+	return (*_this).toCDeclaration();
+}
+CStructMember toCStructMember_F1RDeclaration(void* _ref){
 	F1RDeclaration _this = *((F1RDeclaration*) _ref);
-	StructMemberData data;
+	CStructMemberData data;
 	data.F1RDeclaration = _this;
 	return { F1RDeclarationVariant, data };
 }
 char* generate_F1RDeclaration(void* _ref){
 	F1RDeclaration* _this = (F1RDeclaration*) _ref;
-	var joinedParameterTypes = "(" + this.parameterTypes.stream().collect(new Joiner(", ")) + ")";
-	return (*_this).type + " (*" + this.name + ")" + joinedParameterTypes;
+	var joinedParameterTypes = "(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")";
+	return (*_this).type.generate() + " (*" + this.name + ")" + joinedParameterTypes;
 }
-StructMember toStructMember_EmptyStructMember(void* _ref){
+CStructMember toCStructMember_EmptyStructMember(void* _ref){
 	EmptyStructMember _this = *((EmptyStructMember*) _ref);
-	StructMemberData data;
+	CStructMemberData data;
 	data.EmptyStructMember = _this;
 	return { EmptyStructMemberVariant, data };
 }
@@ -1296,9 +1417,9 @@ Option<T> or_Some(void* _ref, FR<Option<T>> other){
 	return (*_this);
 }
 template <typename T>
-Tuple<int, T> toTuple_Some(void* _ref, FR<T> other){
+Tuple<void, T> toTuple_Some(void* _ref, FR<T> other){
 	Some<T>* _this = (Some<T>*) _ref;
-	return new_Tuple<int, T>(true, (*_this).value);
+	return new_Tuple<void, T>(true, (*_this).value);
 }
 template <typename T>
 Option<T> toOption_None(void* _ref){
@@ -1338,9 +1459,9 @@ Option<T> or_None(void* _ref, FR<Option<T>> other){
 	return other.apply();
 }
 template <typename T>
-Tuple<int, T> toTuple_None(void* _ref, FR<T> other){
+Tuple<void, T> toTuple_None(void* _ref, FR<T> other){
 	None<T>* _this = (None<T>*) _ref;
-	return new_Tuple<int, T>(false, other.apply());
+	return new_Tuple<void, T>(false, other.apply());
 }
 Folder toFolder_ConditionEndLocator(void* _ref){
 	ConditionEndLocator _this = *((ConditionEndLocator*) _ref);
@@ -1362,14 +1483,14 @@ State apply_ConditionEndLocator(void* _ref, State state, char c){
 	}
 	return appended;
 }
-StructMember toStructMember_Field(void* _ref){
-	Field _this = *((Field*) _ref);
-	StructMemberData data;
-	data.Field = _this;
-	return { FieldVariant, data };
+CStructMember toCStructMember_CField(void* _ref){
+	CField _this = *((CField*) _ref);
+	CStructMemberData data;
+	data.CField = _this;
+	return { CFieldVariant, data };
 }
-char* generate_Field(void* _ref){
-	Field* _this = (Field*) _ref;
+char* generate_CField(void* _ref){
+	CField* _this = (CField*) _ref;
 	return Main.generateStatement(1, (*_this).declaration.generate());
 }
 auto lambda6(void* _ref, auto index){
@@ -1467,19 +1588,19 @@ Option<T> next_EmptyHead(void* _ref){
 	return new_None<T>();
 }
 template <typename T>
-Collector<T, int> toCollector_AnyMatch(void* _ref){
+Collector<T, void> toCollector_AnyMatch(void* _ref){
 	AnyMatch<T> _this = *((AnyMatch<T>*) _ref);
 	CollectorData<T> data;
 	data.AnyMatch = _this;
 	return { AnyMatchVariant, data };
 }
 template <typename T>
-int createInitial_AnyMatch(void* _ref){
+void createInitial_AnyMatch(void* _ref){
 	AnyMatch<T>* _this = (AnyMatch<T>*) _ref;
 	return false;
 }
 template <typename T>
-int fold_AnyMatch(void* _ref, int aBoolean, T t){
+void fold_AnyMatch(void* _ref, void aBoolean, T t){
 	AnyMatch<T>* _this = (AnyMatch<T>*) _ref;
 	return aBoolean || (*_this).predicate.apply(t);
 }
@@ -1489,7 +1610,7 @@ Collector<char*, char*> toCollector_Joiner(void* _ref){
 	data.Joiner = _this;
 	return { JoinerVariant, data };
 }
-Joiner new_Joiner(){
+Joiner<> new_Joiner(){
 	Joiner _this;
 	(*_this)("");
 	return _this;
@@ -1528,7 +1649,13 @@ CFunctionDeclaration toCFunctionDeclaration_CDeclaration(void* _ref){
 	data.CDeclaration = _this;
 	return { CDeclarationVariant, data };
 }
-CDeclaration new_CDeclaration(char* type, char* name){
+CAssignable toCAssignable_CDeclaration(void* _ref){
+	CDeclaration _this = *((CDeclaration*) _ref);
+	CAssignableData data;
+	data.CDeclaration = _this;
+	return { CDeclarationVariant, data };
+}
+CDeclaration<> new_CDeclaration(CType type, char* name){
 	CDeclaration _this;
 	(*_this)(Lists.empty(), type, name);
 	return _this;
@@ -1544,9 +1671,54 @@ CFunctionDeclaration mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>,
 char* generate_CDeclaration(void* _ref){
 	CDeclaration* _this = (CDeclaration*) _ref;
 	var template = generateTemplateString((*_this).typeParameters);
-	return template + (*_this).type + " " + (*_this).name;
+	return template + (*_this).type.generate() + " " + (*_this).name;
 }
-Main new_Main(){
+JAssignable toJAssignable_JExpression(void* _ref){
+	JExpression _this = *((JExpression*) _ref);
+	JAssignableData data;
+	data.JExpression = _this;
+	return { JExpressionVariant, data };
+}
+CExpression toCExpression_JExpression(void* _ref){
+	JExpression* _this = (JExpression*) _ref;
+	return new_CExpression((*_this).content);
+}
+CAssignable toCAssignable_JExpression(void* _ref){
+	JExpression* _this = (JExpression*) _ref;
+	return new_CExpression((*_this).content);
+}
+CAssignable toCAssignable_CExpression(void* _ref){
+	CExpression _this = *((CExpression*) _ref);
+	CAssignableData data;
+	data.CExpression = _this;
+	return { CExpressionVariant, data };
+}
+char* generate_CExpression(void* _ref){
+	CExpression* _this = (CExpression*) _ref;
+	return (*_this).content;
+}
+JType toJType_JArrayType(void* _ref){
+	JArrayType _this = *((JArrayType*) _ref);
+	JTypeData data;
+	data.JArrayType = _this;
+	return { JArrayTypeVariant, data };
+}
+CType toCType_JArrayType(void* _ref){
+	JArrayType* _this = (JArrayType*) _ref;
+	return new_CPointerType((*_this).type.toCType());
+}
+JType toJType_JGenericType(void* _ref){
+	JGenericType _this = *((JGenericType*) _ref);
+	JTypeData data;
+	data.JGenericType = _this;
+	return { JGenericTypeVariant, data };
+}
+CType toCType_JGenericType(void* _ref){
+	JGenericType* _this = (JGenericType*) _ref;
+	var newTypeArguments = (*_this).typeArguments.iter().map(F? { alloc(JType), F?Table { toCType }}).toList();
+	return new_CTemplateType((*_this).base, newTypeArguments);
+}
+Main<> new_Main(){
 	Main _this;
 	(*_this).structures = Lists.empty();
 	(*_this).functionDeclarations = Lists.empty();
@@ -1565,7 +1737,7 @@ char* generateTemplateString_Main(void* _ref, List<char*> typeParameters){
 		templateString = "";
 	}
 	else {
-		var typeNames = typeParameters.stream().map(lambda8).collect(new_Joiner(", "));
+		var typeNames = typeParameters.iter().map(lambda8).collect(new_Joiner(", "));
 		templateString = "template <" + typeNames + ">" + System.lineSeparator();
 	}
 	return templateString;
@@ -1608,7 +1780,7 @@ char* compile_Main(void* _ref, char* input){
 }
 char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures){
 	Main* _this = (Main*) _ref;
-	return structures.stream().collect(new_Joiner(delimiter));
+	return structures.iter().collect(new_Joiner(delimiter));
 }
 char* compileStatements_Main(void* _ref, char* input, F1R<char*, char*> mapper){
 	Main* _this = (Main*) _ref;
@@ -1687,40 +1859,43 @@ char* compileRootSegment_Main(void* _ref, char* input){
 	if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 		return "";
 	}
-	return (*_this).compileStructure("class", stripped).map(F? { alloc(StructMember), F?Table { generate }}).orElseGet(lambda9);
+	return (*_this).compileStructure("class", stripped).map(F? { alloc(CStructMember), F?Table { generate }}).orElseGet(lambda9);
 }
-auto lambda10(void* _ref, auto slice){
+auto lambda10(void* _ref, auto input){
+	return (*_this).parseType(input).toCType();
+}
+auto lambda11(void* _ref, auto slice){
 	return !slice.isEmpty();
-}
-auto lambda11(void* _ref, auto (state, character)){
-	return new_ValueFolder().apply(state, character);
 }
 auto lambda12(void* _ref, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
 }
-auto lambda13(void* _ref, auto slice){
+auto lambda13(void* _ref, auto (state, character)){
+	return new_ValueFolder().apply(state, character);
+}
+auto lambda14(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda14(void* _ref, auto implementee){
+auto lambda15(void* _ref, auto implementee){
 	return (*_this).getString(implementee, name, joinedTypeParameters, templateString);
 }
-auto lambda15(void* _ref, auto slice){
+auto lambda16(void* _ref, auto slice){
 	return (*_this).compileClassSegment(slice, name, finalTypeParameters, finalVariants);
 }
-auto lambda16(void* _ref, auto variant){
+auto lambda17(void* _ref, auto variant){
 	return System.lineSeparator() + "\t" + variant + "Variant";
 }
-auto lambda17(void* _ref, auto variant){
+auto lambda18(void* _ref, auto variant){
 	return System.lineSeparator() + "\t" + variant + joinedTypeParameters + " " + variant + ";";
 }
-auto lambda18(void* _ref, auto member){
+auto lambda19(void* _ref, auto member){
 	return !(member.variant = ?.F1RDeclarationVariant);
 }
-Option<StructMember> compileStructure_Main(void* _ref, char* type, char* stripped){
+Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripped){
 	Main* _this = (Main*) _ref;
 	var i = stripped.indexOf(type + " ");
 	if (i < 0) {
-		return new_None<StructMember>();
+		return new_None<CStructMember>();
 	}
 	var beforeType = stripped.substring(0, i).strip();
 	char* modifiers;
@@ -1736,17 +1911,17 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 		modifiers = beforeType;
 	}
 	if (annotations.contains("Actual")) {
-		return new_Some<StructMember>(new_EmptyStructMember());
+		return new_Some<CStructMember>(new_EmptyStructMember());
 	}
 	var afterKeyword = stripped.substring(i + (type + " ").length()).strip();
 	var i1 = afterKeyword.indexOf("{");
 	if (i1 < 0) {
-		return new_None<StructMember>();
+		return new_None<CStructMember>();
 	}
 	var beforeContent = afterKeyword.substring(0, i1).strip();
 	var withEnd = afterKeyword.substring(i1 + 1).strip();
 	if (!withEnd.endsWith("}")) {
-		return new_None<StructMember>();
+		return new_None<CStructMember>();
 	}
 	var inputContent = withEnd.substring(0, withEnd.length() - 1);
 	List<char*> variants = Lists.empty();
@@ -1756,12 +1931,12 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 		beforeContent = beforeContent.substring(0, i2);
 		variants = (*_this).splitValues(substring1);
 	}
-	List<Type> implementees = Lists.empty();
+	List<CType> implementees = Lists.empty();
 	var i4 = beforeContent.indexOf("implements ");
 	if (i4 >= 0) {
 		var implementeesString = beforeContent.substring(i4 + "implements ".length());
 		beforeContent = beforeContent.substring(0, i4).strip();
-		implementees = (*_this).divide(implementeesString, lambda11).map(F? { alloc(String), F?Table { strip }}).filter(lambda10).map(F? { alloc((*_this)), F?Table { parseType }}).toList();
+		implementees = (*_this).divide(implementeesString, lambda12).map(F? { alloc(String), F?Table { strip }}).filter(lambda11).map(lambda10).toList();
 	}
 	List<JDeclaration> recordFields = Lists.empty();
 	if (beforeContent.endsWith(")")) {
@@ -1769,7 +1944,7 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 		var i3 = substring.indexOf("(");
 		if (i3 >= 0) {
 			beforeContent = substring.substring(0, i3);
-			recordFields = (*_this).divide(substring.substring(i3 + 1), lambda12).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+			recordFields = (*_this).divide(substring.substring(i3 + 1), lambda13).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
 		}
 	}
 	List<char*> typeParameters = Lists.empty();
@@ -1783,23 +1958,23 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 		}
 	}
 	if (!(*_this).isIdentifier(beforeContent)) {
-		return new_None<StructMember>();
+		return new_None<CStructMember>();
 	}
-	var modifiersList = Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda13).toList();
+	var modifiersList = Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList();
 	var name = beforeContent.strip();
 	var templateString = generateTemplateString(typeParameters);
 	var joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
 	var fields = StringBuilders.empty();
 	var dependencies = StringBuilders.empty();
-	(*_this).functions = implementees.stream().map(lambda14).fold((*_this).functions, F? { alloc(List), F?Table { addLast }});
-	var joinedRecordFields = recordFields.stream().map(F? { alloc(JDeclaration), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner());
+	(*_this).functions = implementees.iter().map(lambda15).fold((*_this).functions, F? { alloc(List), F?Table { addLast }});
+	var joinedRecordFields = recordFields.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).map(F? { alloc(CDeclaration), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner());
 	var finalTypeParameters = typeParameters;
 	var finalVariants = variants;
-	var members = (*_this).divide(inputContent, new_EscapedFolder(F? { alloc((*_this)), F?Table { foldStatement }})).map(lambda15).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+	var members = (*_this).divide(inputContent, new_EscapedFolder(F? { alloc((*_this)), F?Table { foldStatement }})).map(lambda16).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
 	if (modifiersList.contains("sealed")) {
-		var enumFields = variants.stream().map(lambda16).collect(new_Joiner(","));
+		var enumFields = variants.iter().map(lambda17).collect(new_Joiner(","));
 		var generatedEnum = "enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
-		var unionFields = variants.stream().map(lambda17).collect(new_Joiner());
+		var unionFields = variants.iter().map(lambda18).collect(new_Joiner());
 		var generatedUnion = templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
 		var s = name + "Variant variant";
 		var s1 = name + "Data" + joinedTypeParameters + " data";
@@ -1811,20 +1986,20 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 	if (type.equals("interface")) {
 		var table = (*_this).generateStatement(name + "Table" + joinedTypeParameters + " table");
 		var data = (*_this).generateStatement("void* data");
-		var tableMembers = members.stream().map(F? { alloc(StructMember), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""));
+		var tableMembers = members.iter().map(F? { alloc(CStructMember), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""));
 		var vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator();
 		dependencies = dependencies.appendString(vTable);
 		fields = fields.appendString(table).appendString(data);
 	}
 	else {
-		var joinedMembers = members.stream().filter(lambda18).map(F? { alloc(StructMember), F?Table { generate }}).collect(new_Joiner());
+		var joinedMembers = members.iter().filter(lambda19).map(F? { alloc(CStructMember), F?Table { generate }}).collect(new_Joiner());
 		fields = fields.appendString(joinedMembers);
 	}
 	var generated = dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator();
 	(*_this).structures = (*_this).structures.addLast(generated);
-	return new_Some<StructMember>(new_EmptyStructMember());
+	return new_Some<CStructMember>(new_EmptyStructMember());
 }
-char* getString_Main(void* _ref, Type implementee, char* name, char* joinedTypeParameters, char* templateString){
+char* getString_Main(void* _ref, CType implementee, char* name, char* joinedTypeParameters, char* templateString){
 	Main* _this = (Main*) _ref;
 	var identifier = implementee.toBaseName();
 	var thisType = name + joinedTypeParameters;
@@ -1842,7 +2017,7 @@ char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters){
 		joinedTypeParameters = "";
 	}
 	else {
-		joinedTypeParameters = " < " + typeParameters.stream().collect(new_Joiner(", ")) + ">";
+		joinedTypeParameters = " < " + typeParameters.iter().collect(new_Joiner(", ")) + ">";
 	}
 	return joinedTypeParameters;
 }
@@ -1850,29 +2025,29 @@ char* generateStatement_Main(void* _ref, char* content){
 	Main* _this = (Main*) _ref;
 	return generateStatement(1, content);
 }
-auto lambda19(void* _ref, auto slice){
+auto lambda20(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var segments = input.split(Pattern.quote(","));
-	var list = Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda19).toList();
+	var list = Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda20).toList();
 	return new_JavaList<char*>(list);
 }
-auto lambda20(void* _ref, auto i){
+auto lambda21(void* _ref, auto i){
 	var c = stripped.charAt(i);
 	return Character.isLetter(c) || (i != 0 && Character.isDigit(c));
 }
-int isIdentifier_Main(void* _ref, char* input){
+void isIdentifier_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
-	return IntStream.range(0, stripped.length()).allMatch(lambda20);
+	return IntStream.range(0, stripped.length()).allMatch(lambda21);
 }
-Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
+Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
 	if (stripped.isEmpty()) {
-		return new_None<StructMember>();
+		return new_None<CStructMember>();
 	}
 	var maybeEnum = (*_this).compileStructure("enum", input);
 	if (maybeEnum.variant = ?.SomeVariant) {
@@ -1898,69 +2073,69 @@ Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* str
 		var substring = stripped.substring(0, stripped.length() - 1);
 		var maybeDeclaration = (*_this).parseDeclaration(substring);
 		if (maybeDeclaration.variant = ?.SomeVariant) {
-			return new_Some<StructMember>(new_Field(declaration));
+			return new_Some<CStructMember>(new_CField(declaration.toCDeclaration()));
 		}
 	}
 	var maybeMethod = (*_this).compileMethod(structName, typeParameters, variants, stripped);
 	if (maybeMethod.variant = ?.SomeVariant) {
 		return maybeMethod;
 	}
-	return new_Some<StructMember>(new_Placeholder(stripped));
+	return new_Some<CStructMember>(new_Placeholder(stripped));
 }
-auto lambda21(void* _ref, auto slice){
+auto lambda22(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda22(void* _ref, auto (state, character)){
+auto lambda23(void* _ref, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
 }
-auto lambda23(void* _ref, auto name){
+auto lambda24(void* _ref, auto name){
 	return name + "_" + structName;
 }
-auto lambda24(void* _ref, auto parameter){
+auto lambda25(void* _ref, auto parameter){
 	return parameter.name;
 }
-auto lambda25(void* _ref, auto variant){
+auto lambda26(void* _ref, auto variant){
 	return (*_this).generateCase(declaration, variant);
 }
-auto lambda26(void* _ref){
+auto lambda27(void* _ref){
 	if (variants.isEmpty()) {
-		var joinedParameters = finalParameters.subList(1, finalParameters.size()).stream().map(lambda24).toList().addFirst("_this->data").stream().collect(new_Joiner(", "));
+		var joinedParameters = finalParameters.subList(1, finalParameters.size()).iter().map(lambda25).toList().addFirst("_this->data").iter().collect(new_Joiner(", "));
 		return (*_this).generateStatement("return _this->table." + declaration.name + "(" + joinedParameters + ")");
 	}
 	else {
-		var returnValueDefinition = (*_this).generateStatement(declaration.type + " _ret");
-		var cases = variants.stream().map(lambda25).collect(new_Joiner());
+		var returnValueDefinition = (*_this).generateStatement(declaration.type.toCType().generate() + " _ret");
+		var cases = variants.iter().map(lambda26).collect(new_Joiner());
 		return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases + generateIndent(1) + "}" + (*_this).generateStatement("return _ret");
 	}
 }
-auto lambda27(void* _ref, auto name){
+auto lambda28(void* _ref, auto name){
 	return name + "_" + structName;
 }
-auto lambda28(void* _ref, auto typeParameters0){
+auto lambda29(void* _ref, auto typeParameters0){
 	return typeParameters0.addAll(typeParameters);
 }
-Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
+Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
 	Main* _this = (Main*) _ref;
 	var i = input.indexOf("(");
 	if (i < 0) {
-		return new_None<StructMember>();
+		return new_None<CStructMember>();
 	}
 	var declarationString = input.substring(0, i);
 	var substring1 = input.substring(i + 1);
 	var i1 = substring1.indexOf(")");
 	if (i1 < 0) {
-		return new_None<StructMember>();
+		return new_None<CStructMember>();
 	}
 	var parametersString = substring1.substring(0, i1);
 	var withBraces = substring1.substring(i1 + 1).strip();
-	var parameters = (*_this).divide(parametersString, lambda22).map(F? { alloc(String), F?Table { strip }}).filter(lambda21).toList().stream().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+	var parameters = (*_this).divide(parametersString, lambda23).map(F? { alloc(String), F?Table { strip }}).filter(lambda22).toList().iter().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).toList();
 	var methodDeclaration = (*_this).parseMethodDeclaration(declarationString, structName);
 	Option<char*> maybeCompiled = new_None<char*>();
 	if (methodDeclaration.variant = ?.JDeclaration declaration && declaration.annotations.contains("Actual")Variant) {
-		var compiledParameters = parameters.stream().map(F? { alloc(JDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
-		var modifiedMethodDeclaration = declaration.mapName(lambda23);
+		var compiledParameters = parameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
+		var modifiedMethodDeclaration = declaration.mapName(lambda24).toCDeclaration();
 		(*_this).functionDeclarations = (*_this).functionDeclarations.addLast(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
-		return new_Some<StructMember>(new_EmptyStructMember());
+		return new_Some<CStructMember>(new_EmptyStructMember());
 	}
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		var inputContent = withBraces.substring(1, withBraces.length() - 1);
@@ -1973,45 +2148,45 @@ Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*
 	}
 	else 
 	if (methodDeclaration.variant = ?.JDeclaration declarationVariant) {
-		parameters = parameters.addFirst(new_JDeclaration("void*", "_ref"));
+		parameters = parameters.addFirst(new_CDeclaration(new_CPointerType(CPrimitiveType.Void), "_ref"));
 		var joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
 		var thisInitialization = (*_this).generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
-		List<JDeclaration> finalParameters = parameters;
-		outputContent = thisInitialization + maybeCompiled.orElseGet(lambda26);
+		var finalParameters = parameters;
+		outputContent = thisInitialization + maybeCompiled.orElseGet(lambda27);
 	}
 	else {
 		outputContent = "?";
 	}
-	var compiledParameters = parameters.stream().map(F? { alloc(JDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
+	var compiledParameters = parameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
 	var modifiedMethodDeclaration = _switch;
-	var mapped = modifiedMethodDeclaration.mapTypeParameters(lambda28).mapName(lambda27);
+	var mapped = modifiedMethodDeclaration.mapTypeParameters(lambda29).mapName(lambda28);
 	var header = mapped.generate() + "(" + compiledParameters + ")";
 	var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 	(*_this).functionDeclarations = (*_this).functionDeclarations.addLast(header + ";" + System.lineSeparator());
 	(*_this).functions = (*_this).functions.addLast(generated);
-	var parameterTypes = parameters.stream().map(F? { alloc(JDeclaration), F?Table { type }}).toList();
+	var parameterTypes = parameters.iter().map(F? { alloc(CDeclaration), F?Table { type }}).toList();
 	return _switch;
 }
-auto lambda29(void* _ref, auto input){
+auto lambda30(void* _ref, auto input){
 	return (*_this).compileMethodSegment(input, indent);
 }
 char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent){
 	Main* _this = (Main*) _ref;
-	return (*_this).compileStatements(inputContent, lambda29);
+	return (*_this).compileStatements(inputContent, lambda30);
 }
 char* generateCase_Main(void* _ref, JDeclaration declaration, char* variant){
 	Main* _this = (Main*) _ref;
 	return generateIndent(2) + "case " + variant + "Variant:" + generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&(_this->data." + variant + "))") + generateStatement(3, "break");
 }
-auto lambda30(void* _ref, auto ()){
+auto lambda31(void* _ref, auto ()){
 	return new_Placeholder(declaration);
 }
-auto lambda31(void* _ref, auto ()){
+auto lambda32(void* _ref, auto ()){
 	return (*_this).parseDeclaration(declaration).map(F? { alloc((*_this)), F?Table { toInterface }});
 }
 JMethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	return (*_this).parseConstructor(declaration, structName).or(lambda31).orElseGet(lambda30);
+	return (*_this).parseConstructor(declaration, structName).or(lambda32).orElseGet(lambda31);
 }
 JMethodDeclaration toInterface_Main(void* _ref, JDeclaration value){
 	Main* _this = (Main*) _ref;
@@ -2032,36 +2207,39 @@ Option<JMethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, 
 	}
 	return new_None<JMethodDeclaration>();
 }
-auto lambda32(void* _ref, auto slice){
+auto lambda33(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda33(void* _ref, auto (state, character)){
+auto lambda34(void* _ref, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
 }
-auto lambda34(void* _ref, auto enumValue){
+auto lambda35(void* _ref, auto enumValue){
 	return (*_this).compileEnumValue(structName, enumValue);
 }
-auto lambda35(void* _ref, auto option){
+auto lambda36(void* _ref, auto option){
 	return option.variant = ?.NoneVariant;
 }
-Option<StructMember> compileEnumValues_Main(void* _ref, char* input, char* structName){
+auto lambda37(void* _ref, auto option){
+	return option.variant = ?.NoneVariant;
+}
+Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* structName){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
 	if (!stripped.endsWith(";")) {
-		return new_None<StructMember>();
+		return new_None<CStructMember>();
 	}
-	var enumValues = (*_this).divide(stripped.substring(0, stripped.length() - 1), lambda33).map(F? { alloc(String), F?Table { strip }}).filter(lambda32).toList();
+	var enumValues = (*_this).divide(stripped.substring(0, stripped.length() - 1), lambda34).map(F? { alloc(String), F?Table { strip }}).filter(lambda33).toList();
 	if (!enumValues.isEmpty()) {
-		var optionStream = enumValues.stream().map(lambda34);
-		var areAnyInvalid = /*
-					(boolean) optionStream.collect(new AnyMatch<Option<StructMember>>(option -> option instanceof None<StructMember>))*/;
+		var optionStream = enumValues.iter().map(lambda35);
+		/*final var areAnyInvalid =
+					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>))*/;
 		if (areAnyInvalid) {
-			return new_None<StructMember>();
+			return new_None<CStructMember>();
 		}
 	}
-	return new_Some<StructMember>(new_EmptyStructMember());
+	return new_Some<CStructMember>(new_EmptyStructMember());
 }
-Option<StructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue){
+Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue){
 	Main* _this = (Main*) _ref;
 	if (enumValue.endsWith(")")) {
 		var substring = enumValue.substring(0, enumValue.length() - 1);
@@ -2069,15 +2247,15 @@ Option<StructMember> compileEnumValue_Main(void* _ref, char* structName, char* e
 		if (i >= 0) {
 			var name = substring.substring(0, i);
 			if (!(*_this).isIdentifier(name)) {
-				return new_None<StructMember>();
+				return new_None<CStructMember>();
 			}
 			var substring2 = substring.substring(i + 1);
 			var generated = structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator();
 			(*_this).globals = (*_this).globals.addLast(generated);
-			return new_Some<StructMember>(new_EmptyStructMember());
+			return new_Some<CStructMember>(new_EmptyStructMember());
 		}
 	}
-	return new_None<StructMember>();
+	return new_None<CStructMember>();
 }
 char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	Main* _this = (Main*) _ref;
@@ -2112,7 +2290,7 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	}
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
-auto lambda36(void* _ref, auto slice){
+auto lambda38(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input){
@@ -2121,7 +2299,7 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 		var substring = input.substring(type.length()).strip();
 		if (substring.startsWith("(")) {
 			var afterConditionStart = substring.substring(1).strip();
-			var divisions = (*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda36).toList();
+			var divisions = (*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda38).toList();
 			if (divisions.size() < 2) {
 				return new_None<char*>();
 			}
@@ -2139,12 +2317,6 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 	}
 	return new_None<char*>();
 }
-auto lambda37(void* _ref, auto ()){
-	return wrap(destination);
-}
-auto lambda38(void* _ref, auto ()){
-	return (*_this).parseDeclaration(destination).map(F? { alloc(JDeclaration), F?Table { generate }});
-}
 char* compileMethodStatement_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
@@ -2154,11 +2326,9 @@ char* compileMethodStatement_Main(void* _ref, char* input){
 	if (stripped.startsWith("return ")) {
 		return "return " + (*_this).compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 	}
-	var i = stripped.indexOf("=");
-	if (i >= 0) {
-		var destination = stripped.substring(0, i);
-		var substring1 = stripped.substring(i + 1);
-		return (*_this).compileExpression(destination).or(lambda38).orElseGet(lambda37) + " = " + (*_this).compileExpressionOrPlaceholder(substring1);
+	var maybeAssignment = (*_this).compileAssignment(stripped);
+	if (maybeAssignment.variant = ?.SomeVariant) {
+		return assignment;
 	}
 	var maybeInvokable = (*_this).compileInvokable(stripped);
 	if (maybeInvokable.variant = ?.SomeVariant) {
@@ -2174,9 +2344,79 @@ char* compileMethodStatement_Main(void* _ref, char* input){
 	}
 	var maybeDeclaration = (*_this).parseDeclaration(input);
 	if (maybeDeclaration.variant = ?.SomeVariant) {
-		return declaration.generate();
+		return declaration.toCDeclaration().generate();
 	}
 	return wrap(stripped);
+}
+Option<char*> compileAssignment_Main(void* _ref, char* stripped){
+	Main* _this = (Main*) _ref;
+	var index = stripped.indexOf("=");
+	if (index >= 0) {
+		var destination = stripped.substring(0, index);
+		var substring1 = stripped.substring(index + 1);
+		var assignable = (*_this).parseAssignable(destination);
+		var maybeSource = (*_this).parseCExpression(substring1);
+		if (maybeSource.variant = ?.SomeVariant) {
+			return new_Some<char*>(assignable.toCAssignable().generate() + " = " + source.generate());
+		}
+	}
+	return new_None<char*>();
+}
+auto lambda39(void* _ref, auto ()){
+	return new_Placeholder(input);
+}
+auto lambda41(void* _ref, auto value){
+	return value;
+}
+auto lambda40(void* _ref, auto ()){
+	return (*_this).parseDeclaration(input).map(lambda41);
+}
+auto lambda42(void* _ref, auto value){
+	return value;
+}
+auto lambda43(void* _ref, auto value){
+	return value;
+}
+auto lambda44(void* _ref, auto value){
+	return value;
+}
+auto lambda46(void* _ref, auto value){
+	return value;
+}
+auto lambda45(void* _ref, auto ()){
+	return (*_this).parseDeclaration(input).map(lambda46);
+}
+auto lambda47(void* _ref, auto value){
+	return value;
+}
+auto lambda49(void* _ref, auto value){
+	return value;
+}
+auto lambda48(void* _ref, auto ()){
+	return (*_this).parseDeclaration(input).map(lambda49);
+}
+auto lambda50(void* _ref, auto value){
+	return value;
+}
+auto lambda51(void* _ref, auto ()){
+	return new_Placeholder(input);
+}
+auto lambda53(void* _ref, auto value){
+	return value;
+}
+auto lambda52(void* _ref, auto ()){
+	return (*_this).parseDeclaration(input).map(lambda53);
+}
+auto lambda54(void* _ref, auto value){
+	return value;
+}
+JAssignable parseAssignable_Main(void* _ref, char* input){
+	Main* _this = (Main*) _ref;
+	return /*this
+				.parseExpression(input)
+				.<JAssignable>map(value -> value)
+				.or(() -> this.parseDeclaration(input).map(value -> value))
+				.orElseGet(() -> new Placeholder(input))*/;
 }
 Option<char*> post_Main(void* _ref, char* stripped, char* slice){
 	Main* _this = (Main*) _ref;
@@ -2186,35 +2426,43 @@ Option<char*> post_Main(void* _ref, char* stripped, char* slice){
 	}
 	return new_None<char*>();
 }
-auto lambda39(void* _ref, auto ()){
+auto lambda55(void* _ref, auto ()){
 	return wrap(input);
 }
 char* compileExpressionOrPlaceholder_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return (*_this).compileExpression(input).orElseGet(lambda39);
+	return (*_this).parseCExpression(input).map(F? { alloc(CExpression), F?Table { generate }}).orElseGet(lambda55);
 }
-auto lambda40(void* _ref, auto ()){
+Option<CExpression> parseCExpression_Main(void* _ref, char* input){
+	Main* _this = (Main*) _ref;
+	return (*_this).parseExpression(input).map(F? { alloc(JExpression), F?Table { toCExpression }});
+}
+Option<JExpression> parseExpression_Main(void* _ref, char* input){
+	Main* _this = (Main*) _ref;
+	return (*_this).getStringOption(input).map(F? { alloc(JExpression), F?Table { new }});
+}
+auto lambda56(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " >= ");
 }
-auto lambda41(void* _ref, auto ()){
+auto lambda57(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " || ");
 }
-auto lambda42(void* _ref, auto ()){
+auto lambda58(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " && ");
 }
-auto lambda43(void* _ref, auto ()){
+auto lambda59(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " - ");
 }
-auto lambda44(void* _ref, auto ()){
+auto lambda60(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " + ");
 }
-auto lambda45(void* _ref, auto ()){
+auto lambda61(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " < ");
 }
-auto lambda46(void* _ref, auto ()){
+auto lambda62(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " != ");
 }
-Option<char*> compileExpression_Main(void* _ref, char* input){
+Option<char*> getStringOption_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
 	if (stripped.equals("this")) {
@@ -2244,7 +2492,7 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 	if (i3 >= 0) {
 		var substring = stripped.substring(0, i3);
 		var substring1 = stripped.substring(i3 + ".variant = ?.".length()Variant).strip();
-		var maybeInstance = (*_this).compileExpression(substring);
+		var maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
 		if (maybeInstance.variant = ?.SomeVariant) {
 			var i4 = substring1.indexOf(" < ");
 			char* substring2;
@@ -2262,7 +2510,7 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 		var instanceString = stripped.substring(0, i);
 		var memberName = stripped.substring(i + 1).strip();
 		if ((*_this).isIdentifier(memberName)) {
-			var maybeInstance = (*_this).compileExpression(instanceString);
+			var maybeInstance = (*_this).parseCExpression(instanceString).map(F? { alloc(CExpression), F?Table { generate }});
 			if (maybeInstance.variant = ?.SomeVariant) {
 				char* instance;
 				instance = value;
@@ -2281,7 +2529,7 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 	if (maybeInvokable.variant = ?.SomeVariant) {
 		return maybeInvokable;
 	}
-	var maybeOperator = (*_this).compileOperator(stripped, " == ").or(lambda46).or(lambda45).or(lambda44).or(lambda43).or(lambda42).or(lambda41).or(lambda40);
+	var maybeOperator = (*_this).compileOperator(stripped, " == ").or(lambda62).or(lambda61).or(lambda60).or(lambda59).or(lambda58).or(lambda57).or(lambda56);
 	if (maybeOperator.variant = ?.SomeVariant) {
 		return maybeOperator;
 	}
@@ -2290,7 +2538,7 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 	}
 	if (stripped.startsWith("!")) {
 		var substring = stripped.substring(1);
-		var maybeInstance = (*_this).compileExpression(substring);
+		var maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
 		if (maybeInstance.variant = ?.SomeVariant) {
 			return new_Some<char*>("!" + instance);
 		}
@@ -2303,10 +2551,10 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 	}
 	return new_None<char*>();
 }
-auto lambda47(void* _ref, auto slice){
+auto lambda63(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda48(void* _ref, auto param){
+auto lambda64(void* _ref, auto param){
 	return "auto " + param;
 }
 Option<char*> compileLambda_Main(void* _ref, char* stripped){
@@ -2322,7 +2570,7 @@ Option<char*> compileLambda_Main(void* _ref, char* stripped){
 		else 
 		if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
 			var substring = beforeContent.substring(1, beforeContent.length() - 1);
-			params = (*_this).divide(substring, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda47).toList();
+			params = (*_this).divide(substring, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda63).toList();
 		}
 		else {
 			return new_None<char*>();
@@ -2331,7 +2579,7 @@ Option<char*> compileLambda_Main(void* _ref, char* stripped){
 			var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 			var compiled = (*_this).compileMethodsSegments(content, 1);
 			var generatedName = (*_this).generateName();
-			var paramList = params.stream().map(lambda48).toList().addFirst("void* _ref");
+			var paramList = params.iter().map(lambda64).toList().addFirst("void* _ref");
 			var joined = (*_this).joinStrings(", ", paramList);
 			(*_this).functions = (*_this).functions.addLast("auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" + System.lineSeparator());
 			return new_Some<char*>(generatedName);
@@ -2380,8 +2628,8 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 	if (i1 >= 0) {
 		var leftString = input.substring(0, i1);
 		var right = input.substring(i1 + operator.length());
-		if ((*_this).compileExpression(leftString).variant = ?.SomeVariant) {
-			if ((*_this).compileExpression(right).variant = ?.SomeVariant) {
+		if ((*_this).parseCExpression(leftString).map(F? { alloc(CExpression), F?Table { generate }}).variant = ?.SomeVariant) {
+			if ((*_this).parseCExpression(right).map(F? { alloc(CExpression), F?Table { generate }}).variant = ?.SomeVariant) {
 				return new_Some<char*>(leftCompiled + " " + operator + " " + rightCompiled);
 			}
 		}
@@ -2425,21 +2673,21 @@ int findCallerStart_Main(void* _ref, char* withoutEnd){
 	}
 	return callerStart;
 }
-int isNumber_Main(void* _ref, char* input){
+void isNumber_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	if (input.startsWith(" - ")) {
 		return (*_this).allDigits(input.substring(1));
 	}
 	return (*_this).allDigits(input);
 }
-int allDigits_Main(void* _ref, char* input){
+void allDigits_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	return IntStream.range(0, input.length()).mapToObj(F? { alloc(input), F?Table { charAt }}).allMatch(F? { alloc(Character), F?Table { isDigit }});
 }
 Option<char*> compileCaller_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
-	var maybeExpression = (*_this).compileExpression(stripped);
+	var maybeExpression = (*_this).parseCExpression(stripped).map(F? { alloc(CExpression), F?Table { generate }});
 	if (maybeExpression.variant = ?.SomeVariant) {
 		return maybeExpression;
 	}
@@ -2461,7 +2709,7 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 			return new_None<JDeclaration>();
 		}
 		if (typeSeparator < 0) {
-			var type = (*_this).compileType(beforeName);
+			var type = (*_this).parseType(beforeName);
 			return new_Some<JDeclaration>(new_JDeclaration(type, name));
 		}
 		var beforeType = beforeName.substring(0, typeSeparator).strip();
@@ -2482,20 +2730,22 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 			beforeType = beforeType.substring(i + 1).strip();
 		}
 		if ((*_this).isIdentifier(name)) {
-			return new_Some<JDeclaration>(new_JDeclaration(annotations, copy, new_Some<char*>(beforeType), (*_this).compileType(beforeName.substring(typeSeparator + 1)), name));
+			var type = (*_this).parseType(beforeName.substring(typeSeparator + 1));
+			var jDeclaration = new_JDeclaration(annotations, copy, new_Some<char*>(beforeType), type, name);
+			return new_Some<JDeclaration>(jDeclaration);
 		}
 	}
 	return new_None<JDeclaration>();
 }
-auto lambda49(void* _ref, auto slice){
+auto lambda65(void* _ref, auto slice){
 	return slice.substring(1);
 }
-auto lambda50(void* _ref, auto slice){
+auto lambda66(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
 List<char*> collectAnnotations_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return Streams.fromObjArray(input.split(Pattern.quote("\n"))).filter(lambda50).map(lambda49).map(F? { alloc(String), F?Table { strip }}).toList();
+	return Streams.fromObjArray(input.split(Pattern.quote("\n"))).filter(lambda66).map(lambda65).map(F? { alloc(String), F?Table { strip }}).toList();
 }
 int findTypeSeparator_Main(void* _ref, char* beforeName){
 	Main* _this = (Main*) _ref;
@@ -2519,24 +2769,32 @@ int findTypeSeparator_Main(void* _ref, char* beforeName){
 }
 char* compileType_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return (*_this).parseType(input).generate();
+	return (*_this).parseType(input).toCType().generate();
 }
-Type parseType_Main(void* _ref, char* input){
+JType parseType_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
-	if (stripped.equals("boolean") || stripped.equals("Boolean") || stripped.equals("Integer")) {
-		return PrimitiveType.Int;
-	}
-	if (stripped.equals("void")) {
-		return PrimitiveType.Void;
-	}
+	/*switch (stripped) {
+			case "boolean", "Boolean" -> {
+				return JPrimitiveType.Boolean;
+			}
+			case "Integer" -> {
+				return JPrimitiveType.Int;
+			}
+			case "void" -> {
+				return JPrimitiveType.Void;
+			}
+			case "String" -> {
+				return JPrimitiveType.String;
+			}
+			case "Character" -> {
+				return JPrimitiveType.Char;
+			}
+		}*/
 	if (stripped.endsWith("[]")) {
 		var slice = stripped.substring(0, stripped.length() - 2);
 		var type = (*_this).parseType(slice);
-		return new_PointerType(type);
-	}
-	if (stripped.equals("String")) {
-		return new_PointerType(PrimitiveType.Char);
+		return new_JArrayType(type);
 	}
 	if (stripped.endsWith(">")) {
 		var substring = stripped.substring(0, stripped.length() - 1);
@@ -2545,11 +2803,8 @@ Type parseType_Main(void* _ref, char* input){
 			var base = substring.substring(0, i);
 			var parameters = substring.substring(i + 1);
 			var list = (*_this).divide(parameters, new_ValueFolder()).map(F? { alloc((*_this)), F?Table { parseType }}).toList();
-			return new_TemplateType(base, list);
+			return new_JGenericType(base, list);
 		}
-	}
-	if (stripped.equals("Character")) {
-		return PrimitiveType.Char;
 	}
 	if ((*_this).isIdentifier(stripped)) {
 		return new_Identifier(stripped);
