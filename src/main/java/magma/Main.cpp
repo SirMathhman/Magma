@@ -284,7 +284,7 @@ struct EmptyHead {
 };
 template <typename T>
 struct AnyMatch {
-	Predicate<T> predicate;
+	F1R<T, int> predicate;
 };
 struct Joiner {
 	char* delimiter;
@@ -335,7 +335,7 @@ Stream<R> map_Stream(void* _ref, F1R<T, R> mapper);template <typename R, typenam
 R fold_Stream(void* _ref, R initial, F2R<R, T, R> folder);template <typename C, typename T>
 C collect_Stream(void* _ref, Collector<T, C> collector);template <typename T>
 List<T> toList_Stream(void* _ref);template <typename T>
-Stream<T> filter_Stream(void* _ref, Predicate<T> predicate);template <typename R, typename T>
+Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate);template <typename R, typename T>
 Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);public RangeHead_RangeHead(void* _ref, int length);Option<Integer> next_RangeHead(void* _ref);template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper);template <typename R, typename T, typename X>
 Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper);public State_State(void* _ref, char* input);int isShallow_State(void* _ref);int isLevel_State(void* _ref);State append_State(void* _ref, char next);Option<char> pop_State(void* _ref);State advance_State(void* _ref);State enter_State(void* _ref);State exit_State(void* _ref);Stream<char*> stream_State(void* _ref);Option<Tuple<State, char>> popAndAppendToTuple_State(void* _ref);Option<State> popAndAppendToOption_State(void* _ref);Option<char> peek_State(void* _ref);char* generate_PointerType(void* _ref);char* toBaseName_PointerType(void* _ref);char* generate_TemplateType(void* _ref);char* toBaseName_TemplateType(void* _ref);char* generate_Identifier(void* _ref);char* toBaseName_Identifier(void* _ref);char* generate_Placeholder(void* _ref);char* toBaseName_Placeholder(void* _ref);char* generate_Constructor(void* _ref);public Declaration_Declaration(void* _ref, char* type, char* name);char* generate_Declaration(void* _ref);Declaration mapName_Declaration(void* _ref, F1R<char*, char*> mapper);Declaration mapTypeParameters_Declaration(void* _ref, F1R<List<char*>, List<char*>> mapper);char* generate_F1RDeclaration(void* _ref);char* generate_EmptyStructMember(void* _ref);State apply_EscapedFolder(void* _ref, State state, char next);State apply_ValueFolder(void* _ref, State state, char next);template <typename R, typename T>
@@ -822,13 +822,13 @@ List<T> toList_Stream(void* _ref){
 	return _this->collect(new_ListCollector<T>());
 }
 auto lambda2(void* _ref, auto element){
-	if (predicate.test(element)) {
+	if (predicate.apply(element)) {
 		return new_Stream<T>(new_SingleHead<T>(element));
 	}
 	return new_Stream<T>(new_EmptyHead<T>());
 }
 template <typename T>
-Stream<T> filter_Stream(void* _ref, Predicate<T> predicate){
+Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate){
 	Stream<T>* _this = (Stream<T>*) _ref;
 	return _this->flatMap(lambda2);
 }
@@ -1374,7 +1374,7 @@ int createInitial_AnyMatch(void* _ref){
 template <typename T>
 int fold_AnyMatch(void* _ref, int aBoolean, T t){
 	AnyMatch<T>* _this = (AnyMatch<T>*) _ref;
-	return aBoolean || this.predicate.test(t);
+	return aBoolean || this.predicate.apply(t);
 }
 Collector<char*, char*> toCollector_Joiner(void* _ref){
 	Joiner _this = *((Joiner*) _ref);

@@ -6,7 +6,6 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -193,9 +192,9 @@ public class Main {
 			return this.collect(new ListCollector<T>());
 		}
 
-		public Stream<T> filter(Predicate<T> predicate) {
+		public Stream<T> filter(F1R<T, Boolean> predicate) {
 			return this.flatMap(element -> {
-				if (predicate.test(element)) {
+				if (predicate.apply(element)) {
 					return new Stream<T>(new SingleHead<T>(element));
 				}
 				return new Stream<T>(new EmptyHead<T>());
@@ -728,7 +727,7 @@ public class Main {
 		}
 	}
 
-	private record AnyMatch<T>(Predicate<T> predicate) implements Collector<T, Boolean> {
+	private record AnyMatch<T>(F1R<T, Boolean> predicate) implements Collector<T, Boolean> {
 		@Override
 		public Boolean createInitial() {
 			return false;
@@ -736,7 +735,7 @@ public class Main {
 
 		@Override
 		public Boolean fold(Boolean aBoolean, T t) {
-			return aBoolean || this.predicate.test(t);
+			return aBoolean || this.predicate.apply(t);
 		}
 	}
 
