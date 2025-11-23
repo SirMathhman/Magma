@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -56,6 +57,10 @@ public class Main {
 		List<T> subList(int start, int end);
 
 		List<T> clear();
+
+		List<T> removeLast();
+
+		List<T> mapLast(Function<T, T> mapper);
 	}
 
 	private interface Path {
@@ -336,6 +341,23 @@ public class Main {
 		@Override
 		public List<T> clear() {
 			this.nativeList.clear();
+			return this;
+		}
+
+		@Override
+		public List<T> removeLast() {
+			this.nativeList.removeLast();
+			return this;
+		}
+
+		@Override
+		public List<T> mapLast(Function<T, T> mapper) {
+			if (!this.nativeList.isEmpty()) {
+				final var last = this.nativeList.getLast();
+				final var newLast = mapper.apply(last);
+				this.nativeList.set(this.nativeList.size() - 1, newLast);
+			}
+
 			return this;
 		}
 	}
@@ -1379,7 +1401,9 @@ public class Main {
 
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final var inputContent = withBraces.substring(1, withBraces.length() - 1);
+			this.environment = this.environment.addLast(new JavaList<JDeclaration>());
 			maybeCompiled = new Some<String>(this.compileMethodsSegments(inputContent, 1));
+			this.environment = this.environment.removeLast();
 		}
 
 		String outputContent;
@@ -1637,8 +1661,10 @@ public class Main {
 			final var assignable = this.parseAssignable(destination);
 			final var maybeSource = this.parseExpression(substring1);
 
-			if (maybeSource instanceof Some<JExpression>(var source)) return new Some<String>(
-					this.transformAssignable(assignable, source).generate() + " = " + source.toAssignable().generate());
+			if (maybeSource instanceof Some<JExpression>(var source)) {
+				final var cAssignable = this.transformAssignable(assignable, source);
+				return new Some<String>(cAssignable.generate() + " = " + source.toAssignable().generate());
+			}
 		}
 
 		return new None<String>();
@@ -1650,6 +1676,7 @@ public class Main {
 				if (jDeclaration.type.equals(JPrimitiveType.Var))
 					yield jDeclaration.withType(this.resolveExpression(source)).toCAssignable();
 
+				this.environment = this.environment.mapLast(last -> last.addLast(jDeclaration));
 				yield jDeclaration.toCAssignable();
 			}
 
@@ -1670,7 +1697,6 @@ public class Main {
 			case JMemberAccess jMemberAccess -> {
 				final var instanceType = this.resolveExpression(jMemberAccess.instance);
 				if (instanceType.equals(JPrimitiveType.String)) {
-
 				}
 
 				yield new Placeholder("Not a valid member access: " + instanceType);
@@ -2020,10 +2046,6 @@ public class Main {
 			i++;
 		}
 		return typeSeparator;
-	}
-
-	private String compileType(String input) {
-		return transformType(this.parseType(input)).generate();
 	}
 
 	private JType parseType(String input) {
