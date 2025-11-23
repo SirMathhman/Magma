@@ -49,7 +49,7 @@ public class Main {
 
 		List<T> addFirst(T element);
 
-		List<T> addAll(List<T> elements);
+		List<T> addAllLast(List<T> elements);
 
 		int size();
 
@@ -110,7 +110,7 @@ public class Main {
 
 	private sealed interface JMethodDeclaration permits JConstructor, JDeclaration, Placeholder {}
 
-	private sealed interface CStructMember permits EmptyStructMember, CField, F1RDeclaration, Placeholder {
+	private sealed interface CStructMember permits EmptyStructMember, CField, FunctionDeclaration, Placeholder {
 		String generate();
 	}
 
@@ -169,6 +169,10 @@ public class Main {
 
 	private sealed interface JCaller permits JConstruction, JExpression {
 		CExpression toExpression();
+	}
+
+	private interface CDefinable {
+		String generate();
 	}
 
 	@Actual
@@ -323,7 +327,7 @@ public class Main {
 		}
 
 		@Override
-		public List<T> addAll(List<T> elements) {
+		public List<T> addAllLast(List<T> elements) {
 			return elements.iter().fold(this, JavaList::addLast);
 		}
 
@@ -569,11 +573,13 @@ public class Main {
 		}
 	}
 
-	private record F1RDeclaration(CType type, String name, List<CType> parameterTypes) implements CStructMember {
+	private record FunctionDeclaration(CType type, String name, List<CType> parameterTypes)
+			implements CDefinable, CStructMember {
 		@Override
 		public String generate() {
 			final var joinedParameterTypes =
 					"(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")";
+
 			return this.type.generate() + " (*" + this.name + ")" + joinedParameterTypes;
 		}
 	}
@@ -727,7 +733,7 @@ public class Main {
 		}
 	}
 
-	private record CField(CDeclaration declaration) implements CStructMember {
+	private record CField(CDefinable declaration) implements CStructMember {
 		@Override
 		public String generate() {
 			return Main.generateStatement(1, this.declaration.generate());
@@ -877,7 +883,7 @@ public class Main {
 	}
 
 	private record CDeclaration(List<String> typeParameters, CType type, String name)
-			implements CFunctionDeclaration, CAssignable {
+			implements CFunctionDeclaration, CAssignable, CDefinable {
 		public CDeclaration(CType type, String name) {
 			this(Lists.empty(), type, name);
 		}
@@ -1040,7 +1046,7 @@ public class Main {
 		}
 
 		public Frame defineAll(List<JDeclaration> declarations) {
-			return new Frame(this.maybeName, this.definitions.addAll(declarations));
+			return new Frame(this.maybeName, this.definitions.addAllLast(declarations));
 		}
 
 		public Option<JDeclaration> resolve(String identifier) {
@@ -1082,6 +1088,15 @@ public class Main {
 		}
 	}
 
+	public record CStructure(List<String> typeParameters, String name, List<CDefinable> fields) {
+		private String generate() {
+			final var joinedFields = this.fields().iter().map(CField::new).map(CField::generate).collect(new Joiner());
+
+			return generateTemplateString(this.typeParameters()) + "struct " + this.name() + " {" + joinedFields +
+						 System.lineSeparator() + "};" + System.lineSeparator();
+		}
+	}
+
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
 		final var methods = Lists.of(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)),
@@ -1093,7 +1108,6 @@ public class Main {
 
 		return new JObjectType("String", methods);
 	});
-
 	private Environment environment = new Environment();
 	private List<String> functionDeclarations;
 	private List<String> globals;
@@ -1260,6 +1274,10 @@ public class Main {
 	}
 
 	private Option<CStructMember> compileStructure(String type, String stripped) {
+		return this.getCStructMemberOption(type, stripped);
+	}
+
+	private Option<CStructMember> getCStructMemberOption(String type, String stripped) {
 		final var i = stripped.indexOf(type + " ");
 		if (i < 0) return new None<CStructMember>();
 		final var beforeType = stripped.substring(0, i).strip();
@@ -1347,19 +1365,13 @@ public class Main {
 		final var templateString = generateTemplateString(typeParameters);
 		final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
-		var fields = StringBuilders.empty();
 		var dependencies = StringBuilders.empty();
 		this.functions = implementees
 				.iter()
 				.map(implementee -> this.getString(implementee, name, joinedTypeParameters, templateString))
 				.fold(this.functions, List::addLast);
 
-		final var joinedRecordFields = recordFields
-				.iter()
-				.map(JDeclaration::toCDeclaration)
-				.map(CDeclaration::generate)
-				.map(this::generateStatement)
-				.collect(new Joiner());
+		var fields = recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList();
 
 		var finalTypeParameters = typeParameters;
 		var finalVariants = variants;
@@ -1398,39 +1410,38 @@ public class Main {
 					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
 					System.lineSeparator();
 
-			final var s = name + "Variant variant";
-			final var s1 = name + "Data" + joinedTypeParameters + " data";
-			final var generatedFields = this.generateStatement(s) + this.generateStatement(s1);
-			fields = fields.appendString(generatedFields);
+			final var s = name + "Variant";
+			final var s1 = name + "Data" + joinedTypeParameters;
+			fields = fields
+					.addLast(new CDeclaration(new Identifier(s), "variant"))
+					.addLast(new CDeclaration(new Identifier(s1), "data"));
 
 			dependencies = dependencies.appendString(generatedEnum).appendString(generatedUnion);
 		} else if (type.equals("interface")) {
-			final var table = this.generateStatement(name + "Table" + joinedTypeParameters + " table");
-			final var data = this.generateStatement("void* data");
-
 			final var tableMembers =
 					members.iter().map(CStructMember::generate).map(this::generateStatement).collect(new Joiner(""));
 			final var vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" +
 												 System.lineSeparator();
 
 			dependencies = dependencies.appendString(vTable);
-			fields = fields.appendString(table).appendString(data);
+			fields = fields
+					.addLast(new CDeclaration(new Identifier(name + "Table" + joinedTypeParameters), "table"))
+					.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "data"));
 		} else {
-			final var joinedMembers = members
-					.iter()
-					.filter(member -> !(member instanceof F1RDeclaration))
-					.map(CStructMember::generate)
-					.collect(new Joiner());
-
-			fields = fields.appendString(joinedMembers);
+			final var joinedMembers = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
+			fields = fields.addAllLast(joinedMembers);
 		}
 
-		final var generated =
-				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
-				"};" + System.lineSeparator();
+		final var s = new CStructure(typeParameters, name, fields).generate();
+		final var generated = dependencies + s;
 
 		this.structures = this.structures.addLast(generated);
 		return new Some<CStructMember>(new EmptyStructMember());
+	}
+
+	private Option<CDefinable> retainDefinables(CStructMember member) {
+		if (member instanceof CDefinable definable) return new Some<CDefinable>(definable);
+		else return new None<CDefinable>();
 	}
 
 	private String getString(CType implementee, String name, String joinedTypeParameters, String templateString) {
@@ -1610,7 +1621,7 @@ public class Main {
 		};
 
 		final var mapped = modifiedMethodDeclaration
-				.mapTypeParameters(typeParameters0 -> typeParameters0.addAll(typeParameters))
+				.mapTypeParameters(typeParameters0 -> typeParameters0.addAllLast(typeParameters))
 				.mapName(name -> name + "_" + structName);
 
 		final var header = mapped.generate() + "(" + compiledParameters + ")";
@@ -1625,7 +1636,7 @@ public class Main {
 			case JConstructor _ -> new Some<CStructMember>(new EmptyStructMember());
 			case JDeclaration member -> {
 				final var cDeclaration = member.toCDeclaration();
-				final var f1RDeclaration = new F1RDeclaration(cDeclaration.type, cDeclaration.name, parameterTypes);
+				final var f1RDeclaration = new FunctionDeclaration(cDeclaration.type, cDeclaration.name, parameterTypes);
 				yield new Some<CStructMember>(f1RDeclaration);
 			}
 			case Placeholder placeholder -> new Some<CStructMember>(placeholder);
