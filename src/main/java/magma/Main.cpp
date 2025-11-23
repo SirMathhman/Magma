@@ -976,7 +976,8 @@ R fold_Stream(void* _ref, R initial, F2R<R, T, R> folder){
 	while (true) {
 		/*current*/ finalCurrent = current;
 		/*(*_this).head.next().map(lambda1).toTuple(lambda0)*/ tuple = (*_this).head.next().map(lambda1).toTuple(lambda0);
-		/*(tuple.left)*/ current = tuple.right;
+		if (tuple.left) 
+			current = tuple.right;
 		return current;
 	}
 }
@@ -991,7 +992,8 @@ List<T> toList_Stream(void* _ref){
 	return (*_this).collect(new_ListCollector<T>());
 }
 auto lambda2(void* _ref, auto element){
-	/*if (predicate.apply(element)) return new Stream<T>(new SingleHead<T>(element))*/;
+	if (predicate.apply(element)) 
+		return new_Stream<T>(new_SingleHead<T>(element));
 	return new_Stream<T>(new_EmptyHead<T>());
 }
 template <typename T>
@@ -1122,7 +1124,8 @@ Option<State> popAndAppendToOption_State(void* _ref){
 }
 Option<char> peek_State(void* _ref){
 	State* _this = (State*) _ref;
-	/*if (this.index < this.input.length()) return new Some<Character>(this.input.charAt(this.index))*/;
+	if ((*_this).index < (*_this).input.length()) 
+		return new_Some<char>((*_this).input.charAt((*_this).index));
 	return new_None<char>();
 }
 CType toCType_CPointerType(void* _ref){
@@ -1307,7 +1310,8 @@ Folder toFolder_EscapedFolder(void* _ref){
 	return { EscapedFolderVariant, data };
 }
 auto lambda5(void* _ref, auto tuple){
-	/*if (tuple.right == '\\') return tuple.left.popAndAppendToOption().orElse(tuple.left)*/;
+	if (tuple.right == '\\') 
+		return tuple.left.popAndAppendToOption().orElse(tuple.left);
 	return tuple.left;
 }
 State apply_EscapedFolder(void* _ref, State state, char next){
@@ -1320,11 +1324,14 @@ State apply_EscapedFolder(void* _ref, State state, char next){
 		/*state.append(next)*/ current = state.append(next);
 		while (true) {
 			/*current.popAndAppendToTuple()*/ maybeTuple = current.popAndAppendToTuple();
-			/*value)))*/ break;
+			if (!(maybeTuple.variant = ?.SomeVariant)) 
+				break;
 			current = value.left;
 			/*value.right*/ right = value.right;
-			/*if (right == '\\') current = current.popAndAppendToOption().orElse(current)*/;
-			/*'\"')*/ break;
+			if (right == '\\') 
+				current = current.popAndAppendToOption().orElse(current);
+			if (right == '\"') 
+				break;
 		}
 		return current;
 	}
@@ -1338,16 +1345,19 @@ Folder toFolder_ValueFolder(void* _ref){
 }
 State apply_ValueFolder(void* _ref, State state, char next){
 	ValueFolder* _this = (ValueFolder*) _ref;
-	/*if (next == ',' && state.isLevel()) return state.advance()*/;
+	if (next == ',' && state.isLevel()) 
+		return state.advance();
 	/*state.append(next)*/ appended = state.append(next);
 	if (next == '-') {
 		/*appended.peek()*/ peeked = appended.peek();
-		/*if (peeked instanceof Some<Character>(var value) && value == '>')
-					return appended.popAndAppendToOption().orElse(appended)*/;
+		if (peeked.variant = ?.SomeVariant) 
+			return appended.popAndAppendToOption().orElse(appended);
 		return appended;
 	}
-	if(/*next == '<' || next == '(') return appended.enter(*/);
-	if(/*next == '>' || next == ')') return appended.exit(*/);
+	if (next == '<' || next == '(') 
+		return appended.enter();
+	if (next == '>' || next == ')') 
+		return appended.exit();
 	return appended;
 }
 template <typename T>
@@ -1443,9 +1453,11 @@ Folder toFolder_ConditionEndLocator(void* _ref){
 State apply_ConditionEndLocator(void* _ref, State state, char c){
 	ConditionEndLocator* _this = (ConditionEndLocator*) _ref;
 	/*state.append(c)*/ appended = state.append(c);
-	if(/*c == '(') return appended.enter(*/);
+	if (c == '(') 
+		return appended.enter();
 	if (c == ')') {
-		/*if (appended.isLevel()) return appended.advance()*/;
+		if (appended.isLevel()) 
+			return appended.advance();
 		return appended.exit();
 	}
 	return appended;
@@ -1504,7 +1516,8 @@ SingleHead<T> new_SingleHead(T value){
 template <typename T>
 Option<T> next_SingleHead(void* _ref){
 	SingleHead<T>* _this = (SingleHead<T>*) _ref;
-	/*if (this.retrieved) return new None<T>()*/;
+	if ((*_this).retrieved) 
+		return new_None<T>();
 	(*_this).retrieved = true;
 	return new_Some<T>((*_this).value);
 }
@@ -1529,10 +1542,12 @@ Option<R> next_FlatMapHead(void* _ref){
 	while (true) {
 		if ((*_this).maybeCurrent.variant = ?.SomeVariant) {
 			/*current.head.next()*/ next = current.head.next();
-			return next;
+			if (next.variant = ?.SomeVariant) 
+				return next;
 		}
 		/*(*_this).head.next()*/ maybeNext = (*_this).head.next();
-		/*if (maybeNext instanceof None<T>) return new None<R>()*/;
+		if (maybeNext.variant = ?.NoneVariant) 
+			return new_None<R>();
 		(*_this).maybeCurrent = maybeNext.map((*_this).mapper);
 	}
 }
@@ -1582,7 +1597,8 @@ char* createInitial_Joiner(void* _ref){
 }
 char* fold_Joiner(void* _ref, char* current, char* element){
 	Joiner* _this = (Joiner*) _ref;
-	return element;
+	if (current.isEmpty()) 
+		return element;
 	return current + (*_this).delimiter + element;
 }
 template <typename T>
@@ -1692,7 +1708,8 @@ auto lambda8(void* _ref, auto typeParam){
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters){
 	Main* _this = (Main*) _ref;
 	char* templateString;
-	/*(typeParameters.isEmpty())*/ templateString = "";
+	if (typeParameters.isEmpty()) 
+		templateString = "";
 	else {
 		/*typeParameters.iter().map(lambda8).collect(new_Joiner(", "))*/ typeNames = typeParameters.iter().map(lambda8).collect(new_Joiner(", "));
 		templateString = "template <" + typeNames + ">" + System.lineSeparator();
@@ -1706,7 +1723,8 @@ char* wrap_Main(void* _ref, char* input){
 }
 void main_Main(void* _ref, char** args){
 	Main* _this = (Main*) _ref;
-	if(/*new Main().run(*/).variant = ?.SomeVariant(value.display());
+	if (new_Main().run().variant = ?.SomeVariant) 
+		System.err.println(value.display());
 }
 char* generateStatement_Main(void* _ref, int depth, char* content){
 	Main* _this = (Main*) _ref;
@@ -1757,7 +1775,8 @@ Stream<char*> divide_Main(void* _ref, char* input, Folder folder){
 	/*new_State(input)*/ current = new_State(input);
 	while (true) {
 		/*current.pop()*/ maybeNext = current.pop();
-		/*value)))*/ break;
+		if (!(maybeNext.variant = ?.SomeVariant)) 
+			break;
 		char next;
 		next = value;
 		current = folder.apply(current, next);
@@ -1775,22 +1794,27 @@ State foldStatement_Main(void* _ref, State current, char next){
 				if (maybeTuple.variant = ?.SomeVariant) {
 					withoutLineCommentPrefix = tuple.left;
 					/*tuple.right*/ right = tuple.right;
-					/*if (right == '\r' || right == '\n') withoutLineCommentPrefix = withoutLineCommentPrefix.advance()*/;
+					if (right == '\r' || right == '\n') 
+						withoutLineCommentPrefix = withoutLineCommentPrefix.advance();
 				}
 				return withoutLineCommentPrefix;
 			}
 		}
 	}
 	/*current.append(next)*/ appended = current.append(next);
-	/*if (next == ';' && appended.isLevel()) return appended.advance()*/;
+	if (next == ';' && appended.isLevel()) 
+		return appended.advance();
 	if (next == '}' && appended.isShallow()) {
 		State appended1;
-		if(/*appended.peek(*/).variant = ?.SomeVariant(appended);
+		if (appended.peek().variant = ?.SomeVariant) 
+			appended1 = appended.popAndAppendToOption().orElse(appended);
 		else appended1 = appended;
 		return appended1.advance().exit();
 	}
-	if(/*next == '{' || next == '(') return appended.enter(*/);
-	if(/*next == '}' || next == ')') return appended.exit(*/);
+	if (next == '{' || next == '(') 
+		return appended.enter();
+	if (next == '}' || next == ')') 
+		return appended.exit();
 	return appended;
 }
 auto lambda9(void* _ref, auto ()){
@@ -1799,8 +1823,10 @@ auto lambda9(void* _ref, auto ()){
 char* compileRootSegment_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	/*input.strip()*/ stripped = input.strip();
-	/*if (stripped.isEmpty()) return ""*/;
-	/*if (stripped.startsWith("package ") || stripped.startsWith("import ")) return ""*/;
+	if (stripped.isEmpty()) 
+		return "";
+	if (stripped.startsWith("package ") || stripped.startsWith("import ")) 
+		return "";
 	return (*_this).compileStructure("class", stripped).map(F? { alloc(CStructMember), F?Table { generate }}).orElseGet(lambda9);
 }
 auto lambda10(void* _ref, auto input){
@@ -1836,7 +1862,8 @@ auto lambda19(void* _ref, auto member){
 Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripped){
 	Main* _this = (Main*) _ref;
 	/*stripped.indexOf(type + " ")*/ i = stripped.indexOf(type + " ");
-	/*if (i < 0) return new None<CStructMember>()*/;
+	if (i < 0) 
+		return new_None<CStructMember>();
 	/*stripped.substring(0, i).strip()*/ beforeType = stripped.substring(0, i).strip();
 	char* modifiers;
 	List<char*> annotations = Lists.empty();
@@ -1848,13 +1875,16 @@ Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripp
 		modifiers = substring1;
 	}
 	else modifiers = beforeType;
-	/*if (annotations.contains("Actual")) return new Some<CStructMember>(new EmptyStructMember())*/;
+	if (annotations.contains("Actual")) 
+		return new_Some<CStructMember>(new_EmptyStructMember());
 	/*stripped.substring(i + (type + " ").length()).strip()*/ afterKeyword = stripped.substring(i + (type + " ").length()).strip();
 	/*afterKeyword.indexOf("{")*/ i1 = afterKeyword.indexOf("{");
-	/*if (i1 < 0) return new None<CStructMember>()*/;
+	if (i1 < 0) 
+		return new_None<CStructMember>();
 	/*afterKeyword.substring(0, i1).strip()*/ beforeContent = afterKeyword.substring(0, i1).strip();
 	/*afterKeyword.substring(i1 + 1).strip()*/ withEnd = afterKeyword.substring(i1 + 1).strip();
-	/*if (!withEnd.endsWith("}")) return new None<CStructMember>()*/;
+	if (!withEnd.endsWith("}")) 
+		return new_None<CStructMember>();
 	/*withEnd.substring(0, withEnd.length() - 1)*/ inputContent = withEnd.substring(0, withEnd.length() - 1);
 	List<char*> variants = Lists.empty();
 	/*beforeContent.indexOf("permits ")*/ i2 = beforeContent.indexOf("permits ");
@@ -1889,7 +1919,8 @@ Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripp
 			typeParameters = (*_this).splitValues(substring);
 		}
 	}
-	/*if (!this.isIdentifier(beforeContent)) return new None<CStructMember>()*/;
+	if (!(*_this).isIdentifier(beforeContent)) 
+		return new_None<CStructMember>();
 	/*Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList()*/ modifiersList = Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList();
 	/*beforeContent.strip()*/ name = beforeContent.strip();
 	/*generateTemplateString(typeParameters)*/ templateString = generateTemplateString(typeParameters);
@@ -1943,7 +1974,8 @@ char* getString_Main(void* _ref, CType implementee, char* name, char* joinedType
 char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters){
 	Main* _this = (Main*) _ref;
 	char* joinedTypeParameters;
-	/*(typeParameters.isEmpty())*/ joinedTypeParameters = "";
+	if (typeParameters.isEmpty()) 
+		joinedTypeParameters = "";
 	else joinedTypeParameters = " < " + typeParameters.iter().collect(new_Joiner(", ")) + ">";
 	return joinedTypeParameters;
 }
@@ -1972,25 +2004,32 @@ int isIdentifier_Main(void* _ref, char* input){
 Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
 	Main* _this = (Main*) _ref;
 	/*input.strip()*/ stripped = input.strip();
-	/*if (stripped.isEmpty()) return new None<CStructMember>()*/;
+	if (stripped.isEmpty()) 
+		return new_None<CStructMember>();
 	/*(*_this).compileStructure("enum", input)*/ maybeEnum = (*_this).compileStructure("enum", input);
-	return maybeEnum;
+	if (maybeEnum.variant = ?.SomeVariant) 
+		return maybeEnum;
 	/*(*_this).compileStructure("interface", input)*/ maybeInterface = (*_this).compileStructure("interface", input);
-	return maybeInterface;
+	if (maybeInterface.variant = ?.SomeVariant) 
+		return maybeInterface;
 	/*(*_this).compileStructure("record", input)*/ maybeRecord = (*_this).compileStructure("record", input);
-	return maybeRecord;
+	if (maybeRecord.variant = ?.SomeVariant) 
+		return maybeRecord;
 	/*(*_this).compileStructure("class", input)*/ maybeClass = (*_this).compileStructure("class", input);
-	return maybeClass;
+	if (maybeClass.variant = ?.SomeVariant) 
+		return maybeClass;
 	/*(*_this).compileEnumValues(input, structName)*/ maybeEnumValues = (*_this).compileEnumValues(input, structName);
-	return maybeEnumValues;
+	if (maybeEnumValues.variant = ?.SomeVariant) 
+		return maybeEnumValues;
 	if (stripped.endsWith(";")) {
 		/*stripped.substring(0, stripped.length() - 1)*/ substring = stripped.substring(0, stripped.length() - 1);
 		/*(*_this).parseDeclaration(substring)*/ maybeDeclaration = (*_this).parseDeclaration(substring);
-		/*if (maybeDeclaration instanceof Some<JDeclaration>(var declaration))
-				return new Some<CStructMember>(new CField(declaration.toCDeclaration()))*/;
+		if (maybeDeclaration.variant = ?.SomeVariant) 
+			return new_Some<CStructMember>(new_CField(declaration.toCDeclaration()));
 	}
 	/*(*_this).compileMethod(structName, typeParameters, variants, stripped)*/ maybeMethod = (*_this).compileMethod(structName, typeParameters, variants, stripped);
-	return maybeMethod;
+	if (maybeMethod.variant = ?.SomeVariant) 
+		return maybeMethod;
 	return new_Some<CStructMember>(new_Placeholder(stripped));
 }
 auto lambda22(void* _ref, auto slice){
@@ -2028,11 +2067,13 @@ auto lambda29(void* _ref, auto typeParameters0){
 Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
 	Main* _this = (Main*) _ref;
 	/*input.indexOf("(")*/ i = input.indexOf("(");
-	/*if (i < 0) return new None<CStructMember>()*/;
+	if (i < 0) 
+		return new_None<CStructMember>();
 	/*input.substring(0, i)*/ declarationString = input.substring(0, i);
 	/*input.substring(i + 1)*/ substring1 = input.substring(i + 1);
 	/*substring1.indexOf(")")*/ i1 = substring1.indexOf(")");
-	/*if (i1 < 0) return new None<CStructMember>()*/;
+	if (i1 < 0) 
+		return new_None<CStructMember>();
 	/*substring1.substring(0, i1)*/ parametersString = substring1.substring(0, i1);
 	/*substring1.substring(i1 + 1).strip()*/ withBraces = substring1.substring(i1 + 1).strip();
 	/*(*_this).divide(parametersString, lambda23).map(F? { alloc(String), F?Table { strip }}).filter(lambda22).toList().iter().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).toList()*/ parameters = (*_this).divide(parametersString, lambda23).map(F? { alloc(String), F?Table { strip }}).filter(lambda22).toList().iter().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).toList();
@@ -2074,7 +2115,8 @@ Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char
 }
 CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParameters){
 	Main* _this = (Main*) _ref;
-	/*if (base.isEmpty()) return new Identifier(base)*/;
+	if (base.isEmpty()) 
+		return new_Identifier(base);
 	/*final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList()*/;
 	return new_CTemplateType(base, typeArguments);
 }
@@ -2106,11 +2148,13 @@ JMethodDeclaration toInterface_Main(void* _ref, JDeclaration value){
 Option<JMethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
 	/*declaration.strip()*/ stripped = declaration.strip();
-	/*if (stripped.equals(structName)) return new Some<JMethodDeclaration>(new JConstructor(structName))*/;
+	if (stripped.equals(structName)) 
+		return new_Some<JMethodDeclaration>(new_JConstructor(structName));
 	/*stripped.lastIndexOf(" ")*/ i = stripped.lastIndexOf(" ");
 	if (i >= 0) {
 		/*stripped.substring(i + 1).strip()*/ substring = stripped.substring(i + 1).strip();
-		/*if (substring.equals(structName)) return new Some<JMethodDeclaration>(new JConstructor(structName))*/;
+		if (substring.equals(structName)) 
+			return new_Some<JMethodDeclaration>(new_JConstructor(structName));
 	}
 	return new_None<JMethodDeclaration>();
 }
@@ -2132,13 +2176,15 @@ auto lambda37(void* _ref, auto option){
 Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* structName){
 	Main* _this = (Main*) _ref;
 	/*input.strip()*/ stripped = input.strip();
-	/*if (!stripped.endsWith(";")) return new None<CStructMember>()*/;
+	if (!stripped.endsWith(";")) 
+		return new_None<CStructMember>();
 	/*(*_this).divide(stripped.substring(0, stripped.length() - 1), lambda34).map(F? { alloc(String), F?Table { strip }}).filter(lambda33).toList()*/ enumValues = (*_this).divide(stripped.substring(0, stripped.length() - 1), lambda34).map(F? { alloc(String), F?Table { strip }}).filter(lambda33).toList();
 	if (!enumValues.isEmpty()) {
 		/*enumValues.iter().map(lambda35)*/ optionStream = enumValues.iter().map(lambda35);
 		/*final var areAnyInvalid =
 					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>))*/;
-		/*if (areAnyInvalid) return new None<CStructMember>()*/;
+		if (areAnyInvalid) 
+			return new_None<CStructMember>();
 	}
 	return new_Some<CStructMember>(new_EmptyStructMember());
 }
@@ -2149,7 +2195,8 @@ Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* 
 		/*substring.indexOf("(")*/ i = substring.indexOf("(");
 		if (i >= 0) {
 			/*substring.substring(0, i)*/ name = substring.substring(0, i);
-			/*if (!this.isIdentifier(name)) return new None<CStructMember>()*/;
+			if (!(*_this).isIdentifier(name)) 
+				return new_None<CStructMember>();
 			/*substring.substring(i + 1)*/ substring2 = substring.substring(i + 1);
 			/*structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator()*/ generated = structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator();
 			(*_this).globals = (*_this).globals.addLast(generated);
@@ -2161,15 +2208,18 @@ Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* 
 char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	Main* _this = (Main*) _ref;
 	/*input.strip()*/ stripped = input.strip();
-	/*if (stripped.isEmpty()) return ""*/;
+	if (stripped.isEmpty()) 
+		return "";
+	/*(*_this).compileConditional("if", indent, stripped)*/ maybeIf = (*_this).compileConditional("if", indent, stripped);
+	if (maybeIf.variant = ?.SomeVariant) 
+		return result;
+	/*(*_this).compileConditional("while", indent, stripped)*/ maybeWhile = (*_this).compileConditional("while", indent, stripped);
+	if (maybeWhile.variant = ?.SomeVariant) 
+		return result;
 	if (stripped.endsWith(";")) {
 		/*stripped.substring(0, stripped.length() - 1)*/ substring = stripped.substring(0, stripped.length() - 1);
 		return generateIndent(indent) + (*_this).compileMethodStatement(substring) + ";";
 	}
-	/*(*_this).compileConditional("if", indent, stripped)*/ maybeIf = (*_this).compileConditional("if", indent, stripped);
-	return result;
-	/*(*_this).compileConditional("while", indent, stripped)*/ maybeWhile = (*_this).compileConditional("while", indent, stripped);
-	return result;
 	if (stripped.startsWith("else ")) {
 		/*stripped.substring("else ".length()).strip()*/ substring = stripped.substring("else ".length()).strip();
 		if (substring.startsWith("{") && substring.endsWith("}")) {
@@ -2178,7 +2228,8 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 		}
 		/*else return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent)*/;
 	}
-	/*+*/ stripped;
+	if (stripped.startsWith("//")) 
+		return generateIndent(indent) + stripped;
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
 auto lambda38(void* _ref, auto slice){
@@ -2191,15 +2242,18 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 		if (substring.startsWith("(")) {
 			/*substring.substring(1).strip()*/ afterConditionStart = substring.substring(1).strip();
 			/*(*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda38).toList()*/ divisions = (*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda38).toList();
-			/*if (divisions.size() < 2) return new None<String>()*/;
+			if (divisions.size() < 2) 
+				return new_None<char*>();
 			/*divisions.getFirst()*/ first = divisions.getFirst();
-			/*(*_this).joinStrings("", divisions.subList(1, divisions.size()))*/ last = (*_this).joinStrings("", divisions.subList(1, divisions.size()));
-			if(/*!first.endsWith(")")) return new None<String>(*/);
+			/*(*_this).joinStrings("", divisions.subList(1, divisions.size()))*/ maybeWithBraces = (*_this).joinStrings("", divisions.subList(1, divisions.size()));
+			if (!first.endsWith(")")) 
+				return new_None<char*>();
 			/*first.substring(0, first.length() - 1)*/ condition = first.substring(0, first.length() - 1);
-			if (last.startsWith("{") && last.endsWith("}")) {
-				/*last.substring(1, last.length() - 1)*/ content = last.substring(1, last.length() - 1);
+			if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
+				/*maybeWithBraces.substring(1, maybeWithBraces.length() - 1)*/ content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 				return new_Some<char*>(generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" + (*_this).compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 			}
+			return new_Some<char*>(generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") " + (*_this).compileMethodSegment(maybeWithBraces, indent + 1));
 		}
 	}
 	return new_None<char*>();
@@ -2207,19 +2261,25 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 char* compileMethodStatement_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	/*input.strip()*/ stripped = input.strip();
-	/*if (stripped.equals("break")) return "break"*/;
-	/*if (stripped.startsWith("return "))
-			return "return " + this.compileExpressionOrPlaceholder(stripped.substring("return ".length()))*/;
+	if (stripped.equals("break")) 
+		return "break";
+	if (stripped.startsWith("return ")) 
+		return "return " + (*_this).compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 	/*(*_this).compileAssignment(stripped)*/ maybeAssignment = (*_this).compileAssignment(stripped);
-	return assignment;
+	if (maybeAssignment.variant = ?.SomeVariant) 
+		return assignment;
 	/*(*_this).compileInvokable(stripped)*/ maybeInvokable = (*_this).compileInvokable(stripped);
-	return value;
+	if (maybeInvokable.variant = ?.SomeVariant) 
+		return value;
 	/*(*_this).post(stripped, "++")*/ instance = (*_this).post(stripped, "++");
-	return x;
+	if (instance.variant = ?.SomeVariant) 
+		return x;
 	/*(*_this).post(stripped, "--")*/ instance0 = (*_this).post(stripped, "--");
-	return x;
+	if (instance0.variant = ?.SomeVariant) 
+		return x;
 	/*(*_this).parseDeclaration(input)*/ maybeDeclaration = (*_this).parseDeclaration(input);
-	/*if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) return declaration.toCDeclaration().generate()*/;
+	if (maybeDeclaration.variant = ?.SomeVariant) 
+		return declaration.toCDeclaration().generate();
 	return wrap(stripped);
 }
 Option<char*> compileAssignment_Main(void* _ref, char* stripped){
@@ -2230,8 +2290,8 @@ Option<char*> compileAssignment_Main(void* _ref, char* stripped){
 		/*stripped.substring(index + 1)*/ substring1 = stripped.substring(index + 1);
 		/*(*_this).parseAssignable(destination)*/ assignable = (*_this).parseAssignable(destination);
 		/*(*_this).parseCExpression(substring1)*/ maybeSource = (*_this).parseCExpression(substring1);
-		/*if (maybeSource instanceof Some<CExpression>(var source))
-				return new Some<String>(this.transformAssignable(assignable, source).generate() + " */ = " + source.generate(/*)*/);
+		if (maybeSource.variant = ?.SomeVariant) 
+			return new_Some<char*>((*_this).transformAssignable(assignable, source).generate() + " = " + source.generate());
 	}
 	return new_None<char*>();
 }
@@ -2342,8 +2402,10 @@ auto lambda62(void* _ref, auto ()){
 Option<char*> getStringOption_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	/*input.strip()*/ stripped = input.strip();
-	/*if (stripped.equals("this")) return new Some<String>("(*_this)")*/;
-	/*if (stripped.startsWith("switch ")) return new Some<String>("_switch")*/;
+	if (stripped.equals("this")) 
+		return new_Some<char*>("(*_this)");
+	if (stripped.startsWith("switch ")) 
+		return new_Some<char*>("_switch");
 	/*stripped.lastIndexOf("::")*/ i2 = stripped.lastIndexOf("::");
 	if (i2 >= 0) {
 		/*stripped.substring(0, i2)*/ substring = stripped.substring(0, i2);
@@ -2354,9 +2416,11 @@ Option<char*> getStringOption_Main(void* _ref, char* input){
 			return new_Some<char*>(functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name + " }}");
 		}
 	}
-	/*if (stripped.startsWith("'") && stripped.endsWith("'")) return new Some<String>(stripped)*/;
+	if (stripped.startsWith("'") && stripped.endsWith("'")) 
+		return new_Some<char*>(stripped);
 	/*(*_this).compileLambda(stripped)*/ maybeLambda = (*_this).compileLambda(stripped);
-	return maybeLambda;
+	if (maybeLambda.variant = ?.SomeVariant) 
+		return maybeLambda;
 	/*stripped.indexOf(".variant = ?."Variant)*/ i3 = stripped.indexOf(".variant = ?."Variant);
 	if (i3 >= 0) {
 		/*stripped.substring(0, i3)*/ substring = stripped.substring(0, i3);
@@ -2365,7 +2429,8 @@ Option<char*> getStringOption_Main(void* _ref, char* input){
 		if (maybeInstance.variant = ?.SomeVariant) {
 			/*substring1.indexOf(" < ")*/ i4 = substring1.indexOf(" < ");
 			char* substring2;
-			/*if (i4 >= 0) substring2 = substring1.substring(0, i4)*/;
+			if (i4 >= 0) 
+				substring2 = substring1.substring(0, i4);
 			else substring2 = substring1;
 			return new_Some<char*>(instance + ".variant = ?." + substring2 + "Variant");
 		}
@@ -2380,24 +2445,31 @@ Option<char*> getStringOption_Main(void* _ref, char* input){
 				char* instance;
 				instance = value;
 				char* generated;
-				/*(instance.equals("this"))*/ generated = "_this->" + memberName;
+				if (instance.equals("this")) 
+					generated = "_this->" + memberName;
 				else generated = instance + "." + memberName;
 				return new_Some<char*>(generated);
 			}
 		}
 	}
 	/*(*_this).compileInvokable(stripped)*/ maybeInvokable = (*_this).compileInvokable(stripped);
-	return maybeInvokable;
+	if (maybeInvokable.variant = ?.SomeVariant) 
+		return maybeInvokable;
 	/*(*_this).compileOperator(stripped, " == ").or(lambda62).or(lambda61).or(lambda60).or(lambda59).or(lambda58).or(lambda57).or(lambda56)*/ maybeOperator = (*_this).compileOperator(stripped, " == ").or(lambda62).or(lambda61).or(lambda60).or(lambda59).or(lambda58).or(lambda57).or(lambda56);
-	return maybeOperator;
-	/*if (this.isIdentifier(stripped)) return new Some<String>(stripped)*/;
+	if (maybeOperator.variant = ?.SomeVariant) 
+		return maybeOperator;
+	if ((*_this).isIdentifier(stripped)) 
+		return new_Some<char*>(stripped);
 	if (stripped.startsWith("!")) {
 		/*stripped.substring(1)*/ substring = stripped.substring(1);
 		/*(*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }})*/ maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
-		/*if (maybeInstance instanceof Some<String>(var instance)) return new Some<String>("!" + instance)*/;
+		if (maybeInstance.variant = ?.SomeVariant) 
+			return new_Some<char*>("!" + instance);
 	}
-	/*if (this.isNumber(stripped)) return new Some<String>(stripped)*/;
-	/*if (stripped.startsWith("\"") && stripped.endsWith("\"")) return new Some<String>(stripped)*/;
+	if ((*_this).isNumber(stripped)) 
+		return new_Some<char*>(stripped);
+	if (stripped.startsWith("\"") && stripped.endsWith("\"")) 
+		return new_Some<char*>(stripped);
 	return new_None<char*>();
 }
 auto lambda63(void* _ref, auto slice){
@@ -2409,11 +2481,13 @@ auto lambda64(void* _ref, auto param){
 Option<char*> compileLambda_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	/*input.indexOf("->")*/ index = input.indexOf("->");
-	/*if (index < 0) return new None<String>()*/;
+	if (index < 0) 
+		return new_None<char*>();
 	/*input.substring(0, index).strip()*/ beforeContent = input.substring(0, index).strip();
 	/*input.substring(index + 2).strip()*/ maybeWithBraces = input.substring(index + 2).strip();
 	List<char*> params;
-	/*(this.isIdentifier(beforeContent))*/ params = Lists.of(beforeContent);
+	if ((*_this).isIdentifier(beforeContent)) 
+		params = Lists.of(beforeContent);
 	else 
 	if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
 		/*beforeContent.substring(1, beforeContent.length() - 1)*/ substring = beforeContent.substring(1, beforeContent.length() - 1);
@@ -2443,25 +2517,32 @@ char* generateName_Main(void* _ref){
 }
 Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 	Main* _this = (Main*) _ref;
-	/*if (input.length() < 3) return new None<String>()*/;
-	/*if (!input.contains(operator)) return new None<String>()*/;
+	if (input.length() < 3) 
+		return new_None<char*>();
+	if (!input.contains(operator)) 
+		return new_None<char*>();
 	/*-1*/ i1 = -1;
 	/*0*/ depth = 0;
 	/*0*/ i = 0;
 	while (i < input.length() - 1) {
 		/*input.charAt(i)*/ c = input.charAt(i);
-	/*if (c == operator.charAt(0)) if (depth == 0) {
+		if (c == operator.charAt(0)) 
+			if (depth == 0) {
 				i1 = i;
 				break;
-			}*/
-		/*if (c == '(') depth*/++;
-		/*if (c == ')') depth*/--;
+			}
+		if (c == '(') 
+			depth++;
+		if (c == ')') 
+			depth--;
 		i++;
 	}
 	if (i1 >= 0) {
 		/*input.substring(0, i1)*/ leftString = input.substring(0, i1);
 		/*input.substring(i1 + operator.length())*/ right = input.substring(i1 + operator.length());
-		if(F? { alloc(/*this.parseCExpression(leftString).map(CExpression*/), F?Table { generate }}).variant = ?.SomeVariant(leftCompiled + " " + operator + " " + rightCompiled);
+		if ((*_this).parseCExpression(leftString).map(F? { alloc(CExpression), F?Table { generate }}).variant = ?.SomeVariant) 
+			if ((*_this).parseCExpression(right).map(F? { alloc(CExpression), F?Table { generate }}).variant = ?.SomeVariant) 
+				return new_Some<char*>(leftCompiled + " " + operator + " " + rightCompiled);
 	}
 	return new_None<char*>();
 }
@@ -2475,8 +2556,8 @@ Option<char*> compileInvokable_Main(void* _ref, char* stripped){
 			/*withoutEnd.substring(callerStart + 1)*/ arguments = withoutEnd.substring(callerStart + 1);
 			/*(*_this).divide(arguments, new_EscapedFolder(new_ValueFolder())).map(F? { alloc((*_this)), F?Table { compileExpressionOrPlaceholder }}).collect(new_Joiner(", "))*/ joinedArguments = (*_this).divide(arguments, new_EscapedFolder(new_ValueFolder())).map(F? { alloc((*_this)), F?Table { compileExpressionOrPlaceholder }}).collect(new_Joiner(", "));
 			/*(*_this).compileCaller(callerString)*/ maybeCaller = (*_this).compileCaller(callerString);
-			/*if (maybeCaller instanceof Some<String>(var value))
-					return new Some<String>(value + "(" + joinedArguments + ")")*/;
+			if (maybeCaller.variant = ?.SomeVariant) 
+				return new_Some<char*>(value + "(" + joinedArguments + ")");
 		}
 	}
 	return new_None<char*>();
@@ -2489,17 +2570,20 @@ int findCallerStart_Main(void* _ref, char* withoutEnd){
 	while (i < withoutEnd.length()) {
 		/*withoutEnd.charAt(i)*/ c = withoutEnd.charAt(i);
 		if (c == '(') {
-			/*=*/ i;
+			if (depth == 0) 
+				callerStart = i;
 			depth++;
 		}
-		/*if (c == ')') depth*/--;
+		if (c == ')') 
+			depth--;
 		i++;
 	}
 	return callerStart;
 }
 int isNumber_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*if (input.startsWith("-")) return this.allDigits(input.substring(1))*/;
+	if (input.startsWith(" - ")) 
+		return (*_this).allDigits(input.substring(1));
 	return (*_this).allDigits(input);
 }
 int allDigits_Main(void* _ref, char* input){
@@ -2510,7 +2594,8 @@ Option<char*> compileCaller_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	/*input.strip()*/ stripped = input.strip();
 	/*(*_this).parseCExpression(stripped).map(F? { alloc(CExpression), F?Table { generate }})*/ maybeExpression = (*_this).parseCExpression(stripped).map(F? { alloc(CExpression), F?Table { generate }});
-	return maybeExpression;
+	if (maybeExpression.variant = ?.SomeVariant) 
+		return maybeExpression;
 	if (stripped.startsWith("new ")) {
 		/*stripped.substring("new ".length())*/ type = stripped.substring("new ".length());
 		return new_Some<char*>("new_" + (*_this).compileType(type));
@@ -2525,7 +2610,8 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 		/*stripped.substring(0, nameSeparator).strip()*/ beforeName = stripped.substring(0, nameSeparator).strip();
 		/*stripped.substring(nameSeparator + 1).strip()*/ name = stripped.substring(nameSeparator + 1).strip();
 		/*(*_this).findTypeSeparator(beforeName)*/ typeSeparator = (*_this).findTypeSeparator(beforeName);
-		/*if (!this.isIdentifier(name)) return new None<JDeclaration>()*/;
+		if (!(*_this).isIdentifier(name)) 
+			return new_None<JDeclaration>();
 		if (typeSeparator < 0) {
 			/*(*_this).parseType(beforeName)*/ type = (*_this).parseType(beforeName);
 			return new_Some<JDeclaration>(new_JDeclaration(type, name));
@@ -2572,9 +2658,12 @@ int findTypeSeparator_Main(void* _ref, char* beforeName){
 	/*0*/ i = 0;
 	while (i < beforeName.length()) {
 		/*beforeName.charAt(i)*/ c = beforeName.charAt(i);
-		/*=*/ i;
-		/*if (c == '<') depth*/++;
-		/*if (c == '>') depth*/--;
+		if (c == ' ' && depth == 0) 
+			typeSeparator = i;
+		if (c == '<') 
+			depth++;
+		if (c == '>') 
+			depth--;
 		i++;
 	}
 	return typeSeparator;
@@ -2621,6 +2710,7 @@ JType parseType_Main(void* _ref, char* input){
 			return new_JGenericType(base, list);
 		}
 	}
-	/*if (this.isIdentifier(stripped)) return new Identifier(stripped)*/;
+	if ((*_this).isIdentifier(stripped)) 
+		return new_Identifier(stripped);
 	return new_Placeholder(stripped);
 }

@@ -1227,7 +1227,6 @@ public class Main {
 																										List<String> typeParameters,
 																										List<String> variants) {
 		final var stripped = input.strip();
-
 		if (stripped.isEmpty()) return new None<CStructMember>();
 
 		final var maybeEnum = this.compileStructure("enum", input);
@@ -1463,16 +1462,16 @@ public class Main {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) return "";
 
-		if (stripped.endsWith(";")) {
-			final var substring = stripped.substring(0, stripped.length() - 1);
-			return generateIndent(indent) + this.compileMethodStatement(substring) + ";";
-		}
-
 		final var maybeIf = this.compileConditional("if", indent, stripped);
 		if (maybeIf instanceof Some<String>(var result)) return result;
 
 		final var maybeWhile = this.compileConditional("while", indent, stripped);
 		if (maybeWhile instanceof Some<String>(var result)) return result;
+
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			return generateIndent(indent) + this.compileMethodStatement(substring) + ";";
+		}
 
 		if (stripped.startsWith("else ")) {
 			final var substring = stripped.substring("else ".length()).strip();
@@ -1503,17 +1502,21 @@ public class Main {
 				if (divisions.size() < 2) return new None<String>();
 
 				final var first = divisions.getFirst();
-				final var last = this.joinStrings("", divisions.subList(1, divisions.size()));
+				final var maybeWithBraces = this.joinStrings("", divisions.subList(1, divisions.size()));
 
 				if (!first.endsWith(")")) return new None<String>();
 				final var condition = first.substring(0, first.length() - 1);
 
-				if (last.startsWith("{") && last.endsWith("}")) {
-					final var content = last.substring(1, last.length() - 1);
+				if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
+					final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 					return new Some<String>(
 							generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
 							this.compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 				}
+
+				return new Some<String>(
+						generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") " +
+						this.compileMethodSegment(maybeWithBraces, indent + 1));
 			}
 		}
 
@@ -1946,7 +1949,6 @@ public class Main {
 		}
 
 		if (this.isIdentifier(stripped)) return new Identifier(stripped);
-
 		return new Placeholder(stripped);
 	}
 }
