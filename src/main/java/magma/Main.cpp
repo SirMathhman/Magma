@@ -454,9 +454,7 @@ char* generate_Identifier(void* _ref);
 char* toBaseName_Identifier(void* _ref);
 char* generate_Placeholder(void* _ref);
 char* toBaseName_Placeholder(void* _ref);
-CFunctionDeclaration toCDeclaration_JConstructor(void* _ref);
 JDeclaration new_JDeclaration_JDeclaration(char* type, char* name);
-CDeclaration toCDeclaration_JDeclaration(void* _ref);
 char* generate_JDeclaration(void* _ref);
 JDeclaration mapName_JDeclaration(void* _ref, F1R<char*, char*> mapper);
 JDeclaration mapTypeParameters_JDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
@@ -500,11 +498,11 @@ Stream<char> fromCharArray_Streams(void* _ref, char* array);
 template <typename T, typename R>
 Option<R> next_MapHead(void* _ref);
 template <typename T>
-SingleHead new_SingleHead_SingleHead(T value);
+SingleHead<T> new_SingleHead_SingleHead(T value);
 template <typename T>
 Option<T> next_SingleHead(void* _ref);
 template <typename T, typename R>
-FlatMapHead new_FlatMapHead_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper);
+FlatMapHead<T, R> new_FlatMapHead_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper);
 template <typename T, typename R>
 Option<R> next_FlatMapHead(void* _ref);
 template <typename T>
@@ -1172,10 +1170,6 @@ JMethodDeclaration toJMethodDeclaration_JConstructor(void* _ref){
 	data.JConstructor = _this;
 	return { JConstructorVariant, data };
 }
-CFunctionDeclaration toCDeclaration_JConstructor(void* _ref){
-	JConstructor* _this = (JConstructor*) _ref;
-	return new_CDeclaration((*_this).type, "new_" + (*_this).type);
-}
 JMethodDeclaration toJMethodDeclaration_JDeclaration(void* _ref){
 	JDeclaration _this = *((JDeclaration*) _ref);
 	JMethodDeclarationData data;
@@ -1192,10 +1186,6 @@ JDeclaration new_JDeclaration_JDeclaration(char* type, char* name){
 	JDeclaration _this;
 	(*_this)(Lists.empty(), Lists.empty(), new_None<char*>(), type, name);
 	return _this;
-}
-CDeclaration toCDeclaration_JDeclaration(void* _ref){
-	JDeclaration* _this = (JDeclaration*) _ref;
-	return new_CDeclaration((*_this).typeParameters, (*_this).type, (*_this).name);
 }
 char* generate_JDeclaration(void* _ref){
 	JDeclaration* _this = (JDeclaration*) _ref;
@@ -1447,7 +1437,7 @@ Head<T> toHead_SingleHead(void* _ref){
 	return { SingleHeadVariant, data };
 }
 template <typename T>
-SingleHead new_SingleHead_SingleHead(T value){
+SingleHead<T> new_SingleHead_SingleHead(T value){
 	SingleHead _this;
 	(*_this).value = value;
 	(*_this).retrieved = false;
@@ -1470,7 +1460,7 @@ Head<R> toHead_FlatMapHead(void* _ref){
 	return { FlatMapHeadVariant, data };
 }
 template <typename T, typename R>
-FlatMapHead new_FlatMapHead_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper){
+FlatMapHead<T, R> new_FlatMapHead_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper){
 	FlatMapHead _this;
 	(*_this).head = head;
 	(*_this).mapper = mapper;

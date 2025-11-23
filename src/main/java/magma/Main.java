@@ -459,20 +459,12 @@ public class Main {
 		}
 	}
 
-	private record JConstructor(String type) implements JMethodDeclaration {
-		public CFunctionDeclaration toCDeclaration() {
-			return new CDeclaration(this.type, "new_" + this.type);
-		}
-	}
+	private record JConstructor(String type) implements JMethodDeclaration {}
 
 	private record JDeclaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
 															String type, String name) implements JMethodDeclaration, StructMember {
 		public JDeclaration(String type, String name) {
 			this(Lists.empty(), Lists.empty(), new None<String>(), type, name);
-		}
-
-		private CDeclaration toCDeclaration() {
-			return new CDeclaration(this.typeParameters, this.type, this.name);
 		}
 
 		@Override
@@ -1362,8 +1354,11 @@ public class Main {
 		final var compiledParameters = parameters.stream().map(JDeclaration::generate).collect(new Joiner(", "));
 
 		final var modifiedMethodDeclaration = switch (methodDeclaration) {
-			case JConstructor constructor -> constructor.toCDeclaration();
-			case JDeclaration declaration -> declaration.toCDeclaration();
+			case JConstructor constructor ->
+					(CFunctionDeclaration) new CDeclaration(constructor.type + this.joinTypeParameters(typeParameters),
+																									"new_" + constructor.type);
+			case JDeclaration declaration -> new CDeclaration(declaration.typeParameters, declaration.type,
+																												declaration.name);
 			case Placeholder placeholder -> placeholder;
 		};
 
