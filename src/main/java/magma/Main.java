@@ -1826,17 +1826,16 @@ public class Main {
 				yield new Placeholder("Undefined identifier: " + value);
 			}
 
-			case JMemberAccess jMemberAccess -> {
-				final var instanceType = this.resolveExpression(jMemberAccess.instance);
+			case JMemberAccess access -> {
+				final var instanceType = this.resolveExpression(access.instance);
 				if (instanceType.equals(JPrimitiveType.String)) {
 				}
 
 				if (instanceType instanceof JObjectType type) yield type
-						.resolve(jMemberAccess.memberName)
-						.orElseGet(() -> new Placeholder(
-								"Member '" + jMemberAccess.memberName + "' not defined in " + jMemberAccess.instance));
+						.resolve(access.memberName)
+						.orElseGet(() -> new Placeholder("Member '" + access.memberName + "' not defined in " + access.instance));
 
-				yield new Placeholder("Not a valid member access: " + instanceType);
+				yield new Placeholder("Cannot access member '" + access.memberName + "' in '" + instanceType + "'");
 			}
 
 			case JExpressionWrapper jExpressionWrapper ->

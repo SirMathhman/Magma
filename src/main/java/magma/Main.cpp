@@ -1112,7 +1112,7 @@ R fold_Iter(void* _ref, R initial, F2R<R, T, R> folder){
 	R current = (*_this);
 	while ((*_this)) {
 		R finalCurrent = (*_this);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Member 'head' not defined in ]]]]]]*/ tuple = _this->head.next((*_this)).map(lambda0).toTuple(lambda1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'toTuple' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'next' in 'Placeholder[input=Member 'head' not defined in ]']]']]']*/ tuple = _this->head.next((*_this)).map(lambda0).toTuple(lambda1);
 		if ((*_this).left) 
 			(*_this) = (*_this).right;
 		return current;
@@ -1223,7 +1223,7 @@ State append_State(void* _ref, char next){
 Option<char> pop_State(void* _ref){
 	State* _this = (State*) _ref;
 	if (_this->index < (*_this).input.length((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ value = _this->input.charAt(_this->index);
+		/*Not a functional type: Placeholder[input=Cannot access member 'charAt' in 'String']*/ value = _this->input.charAt(_this->index);
 		_this->index++;
 		return new_Some<char>((*_this));
 	}
@@ -1292,7 +1292,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref){
 	CTemplateType* _this = (CTemplateType*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Member 'list' not defined in ]]]]]]*/ typeArguments = _this->list.iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
+	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Member 'list' not defined in ]']]']]']*/ typeArguments = _this->list.iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
 	return _this->base + " < " + (*_this) + ">";
 }
 char* toBaseName_CTemplateType(void* _ref){
@@ -1491,17 +1491,17 @@ auto lambda5(void* _ref, auto tuple){
 State apply_EscapedFolder(void* _ref, State state, char next){
 	EscapedFolder* _this = (EscapedFolder*) _ref;
 	if ((*_this) == '\'') {
-		/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ appended = (*_this).append((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'append' in '']*/ appended = (*_this).append((*_this));
 		return (*_this).popAndAppendToTuple((*_this)).map(lambda5).flatMap(F? { alloc((*_this)), F?Table { popAndAppendToOption }}).orElse((*_this));
 	}
 	if ((*_this) == '\"') {
-		/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ current = (*_this).append((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'append' in '']*/ current = (*_this).append((*_this));
 		while ((*_this)) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: ]]]*/ maybeTuple = (*_this).popAndAppendToTuple((*_this));
+			/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToTuple' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in '']]']*/ maybeTuple = (*_this).popAndAppendToTuple((*_this));
 			if (!(*_this)((*_this).variant = ?.SomeVariant)) 
 				break;
 			(*_this) = (*_this).left;
-			/*Not a valid member access: Placeholder[input=Undefined identifier: value]*/ right = (*_this).right;
+			/*Cannot access member 'right' in 'Placeholder[input=Undefined identifier: value]'*/ right = (*_this).right;
 			if ((*_this) == '\\') 
 				(*_this) = (*_this).popAndAppendToOption((*_this)).orElse((*_this));
 			if ((*_this) == '\"') 
@@ -1521,9 +1521,9 @@ State apply_ValueFolder(void* _ref, State state, char next){
 	ValueFolder* _this = (ValueFolder*) _ref;
 	if ((*_this) == ',' && (*_this).isLevel((*_this))) 
 		return (*_this).advance((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ appended = (*_this).append((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'append' in '']*/ appended = (*_this).append((*_this));
 	if ((*_this) == '-') {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: ]]]*/ peeked = (*_this).peek((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'peek' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in '']]']*/ peeked = (*_this).peek((*_this));
 		if ((*_this).variant = ?.SomeVariant) 
 			return (*_this).popAndAppendToOption((*_this)).orElse((*_this));
 		return appended;
@@ -1626,7 +1626,7 @@ Folder toFolder_ConditionEndLocator(void* _ref){
 }
 State apply_ConditionEndLocator(void* _ref, State state, char c){
 	ConditionEndLocator* _this = (ConditionEndLocator*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ appended = (*_this).append((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'append' in '']*/ appended = (*_this).append((*_this));
 	if ((*_this) == '(') 
 		return (*_this).enter((*_this));
 	if ((*_this) == ')') {
@@ -1715,11 +1715,11 @@ Option<R> next_FlatMapHead(void* _ref){
 	FlatMapHead<T, R>* _this = (FlatMapHead<T, R>*) _ref;
 	while ((*_this)) {
 		if (_this->maybeCurrent.variant = ?.SomeVariant) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: current]]]*/ next = (*_this).head.next((*_this));
+			/*Not a functional type: Placeholder[input=Cannot access member 'next' in 'Placeholder[input=Cannot access member 'head' in 'Placeholder[input=Undefined identifier: current]']']*/ next = (*_this).head.next((*_this));
 			if ((*_this).variant = ?.SomeVariant) 
 				return (*_this);
 		}
-		/*Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=Head, typeArguments=magma.Main$JavaList@3498ed]]*/ maybeNext = _this->head.next((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'next' in 'JGenericType[base=Head, typeArguments=magma.Main$JavaList@3498ed]']*/ maybeNext = _this->head.next((*_this));
 		if ((*_this).variant = ?.NoneVariant) 
 			return new_None<R>((*_this));
 		_this->maybeCurrent = (*_this).map(_this->mapper);
@@ -1870,7 +1870,7 @@ JType toJType_JGenericType(void* _ref){
 }
 CType toCType_JGenericType(void* _ref){
 	JGenericType* _this = (JGenericType*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Member 'typeArguments' not defined in ]]]]]]*/ newTypeArguments = _this->typeArguments.iter((*_this)).map(F? { alloc((*_this)), F?Table { transformType }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Member 'typeArguments' not defined in ]']]']]']*/ newTypeArguments = _this->typeArguments.iter((*_this)).map(F? { alloc((*_this)), F?Table { transformType }}).toList((*_this));
 	return new_CTemplateType(_this->base, (*_this));
 }
 CExpression toCExpression_CPointerAccess(void* _ref){
@@ -1901,7 +1901,7 @@ JExpression toJExpression_JMemberAccess(void* _ref){
 }
 CExpression toExpression_JMemberAccess(void* _ref){
 	JMemberAccess* _this = (JMemberAccess*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Member 'instance' not defined in ]]*/ cExpression = _this->instance.toExpression((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toExpression' in 'Placeholder[input=Member 'instance' not defined in ]']*/ cExpression = _this->instance.toExpression((*_this));
 	if (_this->instance.variant = ?.Identifier(var value) && value.equals("this")Variant) 
 		return new_CPointerAccess(new_Identifier("_this"), _this->memberName);
 	/*else return new CFieldAccess(cExpression, this.memberName)*/;
@@ -1924,7 +1924,7 @@ CExpression toCExpression_CInvocation(void* _ref){
 }
 char* generate_CInvocation(void* _ref){
 	CInvocation* _this = (CInvocation*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'cArguments' not defined in ]]]]]]]*/ joinedArguments = _this->cArguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
+	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'cArguments' not defined in ]]']]']]']*/ joinedArguments = _this->cArguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
 	return _this->expression((*_this)).generate((*_this)) + "(" + joinedArguments + ")";
 }
 JExpression toJExpression_JInvokable(void* _ref){
@@ -1935,8 +1935,8 @@ JExpression toJExpression_JInvokable(void* _ref){
 }
 CExpression toExpression_JInvokable(void* _ref){
 	JInvokable* _this = (JInvokable*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'arguments' not defined in ]]]]]]]*/ cArguments = _this->arguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { toExpression }}).toList((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'caller' not defined in ]]]*/ expression = _this->caller((*_this)).toExpression((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'arguments' not defined in ]]']]']]']*/ cArguments = _this->arguments((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { toExpression }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toExpression' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'caller' not defined in ]]']*/ expression = _this->caller((*_this)).toExpression((*_this));
 	return new_CInvocation((*_this), (*_this));
 }
 JType toJType_JFunctionalType(void* _ref){
@@ -1958,7 +1958,7 @@ template <typename T>
 Tuple<Environment, T> withinScoped_Environment(void* _ref, F1R<Environment, Tuple<Environment, T>> supplier){
 	Environment* _this = (Environment*) _ref;
 	_this->frames = _this->frames.addLast(new_Frame((*_this)));
-	/*Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=F1R, typeArguments=magma.Main$JavaList@1a407d53]]*/ result = (*_this).apply((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'apply' in 'JGenericType[base=F1R, typeArguments=magma.Main$JavaList@1a407d53]']*/ result = (*_this).apply((*_this));
 	_this->frames = _this->frames.removeLast((*_this));
 	return (*_this);
 }
@@ -1974,7 +1974,7 @@ template <typename T>
 Tuple<Environment, T> within_Environment(void* _ref, Supplier<T> supplier){
 	Environment* _this = (Environment*) _ref;
 	_this->frames = _this->frames.addLast(new_Frame((*_this)));
-	/*Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=Supplier, typeArguments=magma.Main$JavaList@3d8c7aca]]*/ result = (*_this).get((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'get' in 'JGenericType[base=Supplier, typeArguments=magma.Main$JavaList@3d8c7aca]']*/ result = (*_this).get((*_this));
 	_this->frames = _this->frames.removeLast((*_this));
 	return new_Tuple<Environment, T>((*_this), (*_this));
 }
@@ -2071,14 +2071,14 @@ char* generateTemplateString_Main(void* _ref, List<char*> typeParameters){
 	if ((*_this).isEmpty((*_this))) 
 		(*_this) = "";
 	else {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@5ebec15]]]]]]*/ typeNames = (*_this).iter((*_this)).map(lambda15).collect(new_Joiner(", "));
+		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'JGenericType[base=List, typeArguments=magma.Main$JavaList@5ebec15]']]']]']*/ typeNames = (*_this).iter((*_this)).map(lambda15).collect(new_Joiner(", "));
 		(*_this) = "template <" + (*_this) + ">" + (*_this).lineSeparator((*_this));
 	}
 	return (*_this);
 }
 char* wrap_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ replaced = (*_this).replace("/*", "start").replace("*/", "end");
+	/*Not a functional type: Placeholder[input=Cannot access member 'replace' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'replace' in 'String']]']*/ replaced = (*_this).replace("/*", "start").replace("*/", "end");
 	return "/*" + (*_this) + "*/";
 }
 void main_Main(void* _ref, char** args){
@@ -2104,9 +2104,9 @@ CType transformPrimitiveType_Main(void* _ref, JPrimitiveType type){
 }
 Option<IOError> run_Main(void* _ref){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Paths]]*/ source = (*_this).get(".", "src", "main", "java", "magma", "Main.java");
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Paths]]]]*/ target = (*_this).resolveSibling("Main.cpp");
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Paths]]]]]]*/ input = (*_this).readString((*_this)).mapValue(F? { alloc((*_this)), F?Table { compile }});
+	/*Not a functional type: Placeholder[input=Cannot access member 'get' in 'Placeholder[input=Undefined identifier: Paths]']*/ source = (*_this).get(".", "src", "main", "java", "magma", "Main.java");
+	/*Not a functional type: Placeholder[input=Cannot access member 'resolveSibling' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'get' in 'Placeholder[input=Undefined identifier: Paths]']]']*/ target = (*_this).resolveSibling("Main.cpp");
+	/*Not a functional type: Placeholder[input=Cannot access member 'mapValue' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'readString' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'get' in 'Placeholder[input=Undefined identifier: Paths]']]']]']*/ input = (*_this).readString((*_this)).mapValue(F? { alloc((*_this)), F?Table { compile }});
 	return _switch;
 }
 char* compile_Main(void* _ref, char* input){
@@ -2134,7 +2134,7 @@ Iter<char*> divide_Main(void* _ref, char* input, Folder folder){
 	Main* _this = (Main*) _ref;
 	State current = new_State((*_this));
 	while ((*_this)) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ maybeNext = (*_this).pop((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'pop' in '']*/ maybeNext = (*_this).pop((*_this));
 		if (!(*_this)((*_this).variant = ?.SomeVariant)) 
 			break;
 		char next;
@@ -2146,14 +2146,14 @@ Iter<char*> divide_Main(void* _ref, char* input, Folder folder){
 State foldStatement_Main(void* _ref, State current, char next){
 	Main* _this = (Main*) _ref;
 	if ((*_this) == '/' && (*_this).isLevel((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ maybePeeked = (*_this).peek((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'peek' in '']*/ maybePeeked = (*_this).peek((*_this));
 		if ((*_this).variant = ?.SomeVariant) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: ]]]]]*/ withoutLineCommentPrefix = (*_this).append('/').popAndAppendToOption((*_this)).orElse((*_this));
+			/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in '']]']]']*/ withoutLineCommentPrefix = (*_this).append('/').popAndAppendToOption((*_this)).orElse((*_this));
 			while ((*_this)) {
-				/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: ]]]]]]]*/ maybeTuple = (*_this).popAndAppendToTuple((*_this));
+				/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToTuple' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in '']]']]']]']*/ maybeTuple = (*_this).popAndAppendToTuple((*_this));
 				if ((*_this).variant = ?.SomeVariant) {
 					(*_this) = (*_this).left;
-					/*Not a valid member access: Placeholder[input=Undefined identifier: tuple]*/ right = (*_this).right;
+					/*Cannot access member 'right' in 'Placeholder[input=Undefined identifier: tuple]'*/ right = (*_this).right;
 					if ((*_this) == '\r' || right == '\n') 
 						(*_this) = (*_this).advance((*_this));
 				}
@@ -2161,7 +2161,7 @@ State foldStatement_Main(void* _ref, State current, char next){
 			}
 		}
 	}
-	/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ appended = (*_this).append((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'append' in '']*/ appended = (*_this).append((*_this));
 	if ((*_this) == ';' && (*_this).isLevel((*_this))) 
 		return (*_this).advance((*_this));
 	if ((*_this) == '}' && (*_this).isShallow((*_this))) {
@@ -2182,7 +2182,7 @@ auto lambda16(void* _ref, auto ()){
 }
 char* compileRootSegment_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
 	if ((*_this).isEmpty((*_this))) 
 		return "";
 	if ((*_this).startsWith("package ") || (*_this).startsWith("import ")) 
@@ -2224,87 +2224,87 @@ auto lambda26(void* _ref, auto member){
 }
 Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripped){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ i = (*_this).indexOf((*_this) + " ");
+	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'String']*/ i = (*_this).indexOf((*_this) + " ");
 	if ((*_this) < 0) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ beforeType = (*_this).substring(0, (*_this)).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ beforeType = (*_this).substring(0, (*_this)).strip((*_this));
 	char* modifiers;
 	List<char*> annotations = (*_this).empty((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ i5 = (*_this).lastIndexOf("\n");
+	/*Not a functional type: Placeholder[input=Cannot access member 'lastIndexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']*/ i5 = (*_this).lastIndexOf("\n");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ substring = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ substring1 = (*_this).substring((*_this) + 1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']*/ substring = (*_this).substring(0, (*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']*/ substring1 = (*_this).substring((*_this) + 1);
 		(*_this) = _this->collectAnnotations((*_this));
 		(*_this) = (*_this);
 	}
 	else modifiers = (*_this);
 	if ((*_this).contains("Actual")) 
 		return new_Some<CStructMember>(new_EmptyStructMember((*_this)));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ afterKeyword = (*_this).substring((*_this) + (*_this)((*_this) + " ").length((*_this))).strip((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ i1 = (*_this).indexOf("{");
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ afterKeyword = (*_this).substring((*_this) + (*_this)((*_this) + " ").length((*_this))).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']*/ i1 = (*_this).indexOf("{");
 	if ((*_this) < 0) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ beforeContent = (*_this).substring(0, (*_this)).strip((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ withEnd = (*_this).substring((*_this) + 1).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']*/ beforeContent = (*_this).substring(0, (*_this)).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']*/ withEnd = (*_this).substring((*_this) + 1).strip((*_this));
 	if (!(*_this).endsWith("}")) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ inputContent = (*_this).substring(0, (*_this).length((*_this)) - 1);
+	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']]']*/ inputContent = (*_this).substring(0, (*_this).length((*_this)) - 1);
 	List<char*> variants = (*_this).empty((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ i2 = (*_this).indexOf("permits ");
+	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']]']*/ i2 = (*_this).indexOf("permits ");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ substring1 = (*_this).substring((*_this) + "permits ".length((*_this)));
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']]']*/ substring1 = (*_this).substring((*_this) + "permits ".length((*_this)));
 		(*_this) = (*_this).substring(0, (*_this));
 		(*_this) = _this->splitValues((*_this));
 	}
 	List<CType> implementees = (*_this).empty((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ i4 = (*_this).indexOf("implements ");
+	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']]']*/ i4 = (*_this).indexOf("implements ");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ implementeesString = (*_this).substring((*_this) + "implements ".length((*_this)));
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']]']*/ implementeesString = (*_this).substring((*_this) + "implements ".length((*_this)));
 		(*_this) = (*_this).substring(0, (*_this)).strip((*_this));
 		(*_this) = _this->divide((*_this), lambda17).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda18).map(lambda19).toList((*_this));
 	}
 	List<JDeclaration> recordFields = (*_this).empty((*_this));
 	if ((*_this).endsWith(")")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ i3 = (*_this).indexOf("(");
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']]']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']*/ i3 = (*_this).indexOf("(");
 		if ((*_this) >= 0) {
 			(*_this) = (*_this).substring(0, (*_this));
 			(*_this) = _this->divide((*_this).substring((*_this) + 1), lambda20).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
 		}
 	}
 	List<char*> typeParameters = (*_this).empty((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ i3 = (*_this).indexOf(" < ");
+	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']]']*/ i3 = (*_this).indexOf(" < ");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]]]*/ substring1 = (*_this).substring((*_this) + 1).strip((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']]']]']*/ substring1 = (*_this).substring((*_this) + 1).strip((*_this));
 		if ((*_this).endsWith(">")) {
 			(*_this) = (*_this).substring(0, (*_this));
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
 			(*_this) = _this->splitValues((*_this));
 		}
 	}
 	if (!(*_this).isIdentifier((*_this))) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Streams]]]]]]]]*/ modifiersList = (*_this).fromObjArray((*_this).split((*_this).quote(" "))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda21).toList((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ name = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'fromObjArray' in 'Placeholder[input=Undefined identifier: Streams]']]']]']]']*/ modifiersList = (*_this).fromObjArray((*_this).split((*_this).quote(" "))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda21).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']]']*/ name = (*_this).strip((*_this));
 	/*Not a functional type: Placeholder[input=Undefined identifier: generateTemplateString]*/ templateString = (*_this)((*_this));
 	/*Not a functional type: Placeholder[input=Member 'joinTypeParameters' not defined in ]*/ joinedTypeParameters = _this->joinTypeParameters((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: StringBuilders]]*/ fields = (*_this).empty((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: StringBuilders]]*/ dependencies = (*_this).empty((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'empty' in 'Placeholder[input=Undefined identifier: StringBuilders]']*/ fields = (*_this).empty((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'empty' in 'Placeholder[input=Undefined identifier: StringBuilders]']*/ dependencies = (*_this).empty((*_this));
 	_this->functions = (*_this).iter((*_this)).map(lambda22).fold(_this->functions, F? { alloc((*_this)), F?Table { addLast }});
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@668bc3d5]]]]]]]]]]*/ joinedRecordFields = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { toCDeclaration }}).map(F? { alloc((*_this)), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner((*_this)));
+	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'JGenericType[base=List, typeArguments=magma.Main$JavaList@668bc3d5]']]']]']]']]']*/ joinedRecordFields = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { toCDeclaration }}).map(F? { alloc((*_this)), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner((*_this)));
 	List<char*> finalTypeParameters = (*_this);
 	List<char*> finalVariants = (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Member 'environment' not defined in ]]*/ within = _this->environment.withinScoped(lambda23);
+	/*Not a functional type: Placeholder[input=Cannot access member 'withinScoped' in 'Placeholder[input=Member 'environment' not defined in ]']*/ within = _this->environment.withinScoped(lambda23);
 	_this->environment = (*_this).left;
-	/*Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Member 'environment' not defined in ]]]*/ members = (*_this).right;
+	/*Cannot access member 'right' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'withinScoped' in 'Placeholder[input=Member 'environment' not defined in ]']]'*/ members = (*_this).right;
 	if ((*_this).contains("sealed")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@3cda1055]]]]]]*/ enumFields = (*_this).iter((*_this)).map(lambda24).collect(new_Joiner(","));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: "enum " + (*_this) + "Variant {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]]*/ generatedEnum = "enum " + (*_this) + "Variant {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@3cda1055]]]]]]*/ unionFields = (*_this).iter((*_this)).map(lambda25).collect(new_Joiner((*_this)));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this) + "union " + (*_this) + "Data {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]]*/ generatedUnion = (*_this) + "union " + (*_this) + "Data {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'JGenericType[base=List, typeArguments=magma.Main$JavaList@3cda1055]']]']]']*/ enumFields = (*_this).iter((*_this)).map(lambda24).collect(new_Joiner(","));
+		/*Not a functional type: Placeholder[input=Cannot access member 'lineSeparator' in 'Placeholder[input=Unwrapped expression: "enum " + (*_this) + "Variant {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]']*/ generatedEnum = "enum " + (*_this) + "Variant {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'JGenericType[base=List, typeArguments=magma.Main$JavaList@3cda1055]']]']]']*/ unionFields = (*_this).iter((*_this)).map(lambda25).collect(new_Joiner((*_this)));
+		/*Not a functional type: Placeholder[input=Cannot access member 'lineSeparator' in 'Placeholder[input=Unwrapped expression: (*_this) + "union " + (*_this) + "Data {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]']*/ generatedUnion = (*_this) + "union " + (*_this) + "Data {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
 		/*Unwrapped expression: (*_this) + "Variant variant"*/ s = (*_this) + "Variant variant";
 		/*Unwrapped expression: (*_this) + "Data" + (*_this) + " data"*/ s1 = (*_this) + "Data" + (*_this) + " data";
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: _this->generateStatement((*_this)) + (*_this)]]*/ generatedFields = _this->generateStatement((*_this)) + (*_this).generateStatement((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Unwrapped expression: _this->generateStatement((*_this)) + (*_this)]']*/ generatedFields = _this->generateStatement((*_this)) + (*_this).generateStatement((*_this));
 		(*_this) = (*_this).appendString((*_this));
 		(*_this) = (*_this).appendString((*_this)).appendString((*_this));
 	}
@@ -2312,22 +2312,22 @@ Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripp
 	if ((*_this).equals("interface")) {
 		/*Not a functional type: Placeholder[input=Member 'generateStatement' not defined in ]*/ table = _this->generateStatement((*_this) + "Table" + (*_this) + " table");
 		/*Not a functional type: Placeholder[input=Member 'generateStatement' not defined in ]*/ data = _this->generateStatement("void* data");
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Member 'environment' not defined in ]]]]]]]]]]]*/ tableMembers = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this) + "struct " + (*_this) + "Table {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]]*/ vTable = (*_this) + "struct " + (*_this) + "Table {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'right' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'withinScoped' in 'Placeholder[input=Member 'environment' not defined in ]']]']']]']]']]']*/ tableMembers = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""));
+		/*Not a functional type: Placeholder[input=Cannot access member 'lineSeparator' in 'Placeholder[input=Unwrapped expression: (*_this) + "struct " + (*_this) + "Table {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]']*/ vTable = (*_this) + "struct " + (*_this) + "Table {" + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
 		(*_this) = (*_this).appendString((*_this));
 		(*_this) = (*_this).appendString((*_this)).appendString((*_this));
 	}
 	else {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Member 'environment' not defined in ]]]]]]]]]]]*/ joinedMembers = (*_this).iter((*_this)).filter(lambda26).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner((*_this)));
+		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'right' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'withinScoped' in 'Placeholder[input=Member 'environment' not defined in ]']]']']]']]']]']*/ joinedMembers = (*_this).iter((*_this)).filter(lambda26).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner((*_this)));
 		(*_this) = (*_this).appendString((*_this));
 	}
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this) + (*_this) + "struct " + (*_this) + " {" + (*_this) + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]]*/ generated = (*_this) + (*_this) + "struct " + (*_this) + " {" + (*_this) + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'lineSeparator' in 'Placeholder[input=Unwrapped expression: (*_this) + (*_this) + "struct " + (*_this) + " {" + (*_this) + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this)]']*/ generated = (*_this) + (*_this) + "struct " + (*_this) + " {" + (*_this) + (*_this) + (*_this).lineSeparator((*_this)) + "};" + (*_this).lineSeparator((*_this));
 	_this->structures = _this->structures.addLast((*_this));
 	return new_Some<CStructMember>(new_EmptyStructMember((*_this)));
 }
 char* getString_Main(void* _ref, CType implementee, char* name, char* joinedTypeParameters, char* templateString){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ identifier = (*_this).toBaseName((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toBaseName' in '']*/ identifier = (*_this).toBaseName((*_this));
 	/*Unwrapped expression: (*_this) + (*_this)*/ thisType = (*_this) + (*_this);
 	/*Not a functional type: Placeholder[input=Member 'generateStatement' not defined in ]*/ s = _this->generateStatement((*_this) + " _this = *((" + thisType + "*) _ref)");
 	/*Not a functional type: Placeholder[input=Member 'generateStatement' not defined in ]*/ s1 = _this->generateStatement((*_this) + "Data" + (*_this) + " data");
@@ -2353,22 +2353,22 @@ auto lambda27(void* _ref, auto slice){
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ segments = (*_this).split((*_this).quote(","));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Arrays]]]]]]]]*/ list = (*_this).stream((*_this)).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda27).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'split' in 'String']*/ segments = (*_this).split((*_this).quote(","));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]']]']]']]']*/ list = (*_this).stream((*_this)).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda27).toList((*_this));
 	return new_JavaList<char*>((*_this));
 }
 auto lambda28(void* _ref, auto i){
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ c = (*_this).charAt((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'charAt' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ c = (*_this).charAt((*_this));
 	return (*_this).isLetter((*_this)) || (*_this)((*_this) != 0 && (*_this).isDigit((*_this)));
 }
 int isIdentifier_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
 	return (*_this).range(0, (*_this).length((*_this))).allMatch(lambda28);
 }
 Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
 	if ((*_this).isEmpty((*_this))) 
 		return new_None<CStructMember>((*_this));
 	/*Not a functional type: Placeholder[input=Member 'compileStructure' not defined in ]*/ maybeEnum = _this->compileStructure("enum", (*_this));
@@ -2387,7 +2387,7 @@ Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* st
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
 	if ((*_this).endsWith(";")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
 		/*Not a functional type: Placeholder[input=Member 'parseDeclaration' not defined in ]*/ maybeDeclaration = _this->parseDeclaration((*_this));
 		if ((*_this).variant = ?.SomeVariant) {
 			_this->environment = _this->environment.define((*_this));
@@ -2419,12 +2419,12 @@ auto lambda34(void* _ref, auto variant){
 }
 auto lambda35(void* _ref){
 	if ((*_this).isEmpty((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ joinedParameters = (*_this).subList(1, (*_this).size((*_this))).iter((*_this)).map(lambda33).toList((*_this)).addFirst("_this->data").iter((*_this)).collect(new_Joiner(", "));
+		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'addFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'subList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']]']]']]']]']]']]']]']]']]']]']]']]']]']]']*/ joinedParameters = (*_this).subList(1, (*_this).size((*_this))).iter((*_this)).map(lambda33).toList((*_this)).addFirst("_this->data").iter((*_this)).collect(new_Joiner(", "));
 		return _this->generateStatement("return _this->table." + (*_this).name + "(" + joinedParameters + ")");
 	}
 	else {
 		/*Not a functional type: Placeholder[input=Member 'generateStatement' not defined in ]*/ returnValueDefinition = _this->generateStatement((*_this)((*_this).type).generate((*_this)) + " _ret");
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@3fb6a447]]]]]]*/ cases = (*_this).iter((*_this)).map(lambda34).collect(new_Joiner((*_this)));
+		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'JGenericType[base=List, typeArguments=magma.Main$JavaList@3fb6a447]']]']]']*/ cases = (*_this).iter((*_this)).map(lambda34).collect(new_Joiner((*_this)));
 		return (*_this) + (*_this)(1) + "switch (" + "_this->variant" + ") {" + (*_this) + (*_this)(1) + "}" + (*_this).generateStatement("return _ret");
 	}
 }
@@ -2436,35 +2436,35 @@ auto lambda37(void* _ref, auto name){
 }
 Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ i = (*_this).indexOf("(");
+	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'String']*/ i = (*_this).indexOf("(");
 	if ((*_this) < 0) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ declarationString = (*_this).substring(0, (*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring1 = (*_this).substring((*_this) + 1);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ i1 = (*_this).indexOf(")");
+	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']*/ declarationString = (*_this).substring(0, (*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']*/ substring1 = (*_this).substring((*_this) + 1);
+	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ i1 = (*_this).indexOf(")");
 	if ((*_this) < 0) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ parametersString = (*_this).substring(0, (*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ withBraces = (*_this).substring((*_this) + 1).strip((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]]]]]]]]]*/ parameters = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda29).toList((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]]]]]]]]]]]]]]]*/ cParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { toCDeclaration }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ parametersString = (*_this).substring(0, (*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']*/ withBraces = (*_this).substring((*_this) + 1).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']]']]']]']]']*/ parameters = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda29).toList((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']]']]']]']]']]']]']]']*/ cParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { toCDeclaration }}).toList((*_this));
 	/*Not a functional type: Placeholder[input=Member 'parseMethodDeclaration' not defined in ]*/ methodDeclaration = _this->parseMethodDeclaration((*_this), (*_this));
 	Option<char*> maybeCompiled = new_None<char*>((*_this));
 	if ((*_this).variant = ?.JDeclaration declaration && declaration.annotations.contains("Actual")Variant) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ compiledParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: declaration]]]]*/ modifiedMethodDeclaration = (*_this).mapName(lambda30).toCDeclaration((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']]']]']]']]']]']]']]']]']]']]']*/ compiledParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
+		/*Not a functional type: Placeholder[input=Cannot access member 'toCDeclaration' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'mapName' in 'Placeholder[input=Undefined identifier: declaration]']]']*/ modifiedMethodDeclaration = (*_this).mapName(lambda30).toCDeclaration((*_this));
 		_this->functionDeclarations = _this->functionDeclarations.addLast((*_this).generate((*_this)) + "(" + compiledParameters + ");" + (*_this).lineSeparator((*_this)));
 		return new_Some<CStructMember>(new_EmptyStructMember((*_this)));
 	}
 	if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ inputContent = (*_this).substring(1, (*_this).length((*_this)) - 1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Member 'environment' not defined in ]]*/ within = _this->environment.withinScoped(lambda32);
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']*/ inputContent = (*_this).substring(1, (*_this).length((*_this)) - 1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'withinScoped' in 'Placeholder[input=Member 'environment' not defined in ]']*/ within = _this->environment.withinScoped(lambda32);
 		_this->environment = (*_this).left;
 		(*_this) = (*_this).right;
 	}
 	char* outputContent;
 	if ((*_this).variant = ?.JConstructorVariant) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=Option, typeArguments=magma.Main$JavaList@7a5d012c]]*/ compiled = (*_this).orElse("?");
+		/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'JGenericType[base=Option, typeArguments=magma.Main$JavaList@7a5d012c]']*/ compiled = (*_this).orElse("?");
 		(*_this) = _this->generateStatement((*_this) + " _this") + (*_this) + (*_this).generateStatement("return " + "_this");
 	}
 	else 
@@ -2472,18 +2472,18 @@ Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char
 		(*_this) = (*_this).addFirst(new_CDeclaration(new_CPointerType((*_this).Void), "_ref"));
 		/*Not a functional type: Placeholder[input=Member 'joinTypeParameters' not defined in ]*/ joinedTypeParameters = _this->joinTypeParameters((*_this));
 		/*Not a functional type: Placeholder[input=Member 'generateStatement' not defined in ]*/ thisInitialization = _this->generateStatement((*_this) + (*_this) + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]]]]]]]]]]]]]]]*/ finalParameters = (*_this);
+		/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']]']]']]']]']]']]']]']*/ finalParameters = (*_this);
 		(*_this) = (*_this) + (*_this).orElseGet(lambda35);
 	}
 	else outputContent = "?";
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ compiledParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
+	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']]']]']]']]']]']]']]']]']]']]']*/ compiledParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
 	/*Unwrapped expression: _switch*/ modifiedMethodDeclaration = _switch;
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: declaration]]]]]]]]*/ mapped = (*_this).mapTypeParameters(lambda36).mapName(lambda37);
+	/*Not a functional type: Placeholder[input=Cannot access member 'mapName' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'mapTypeParameters' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toCDeclaration' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'mapName' in 'Placeholder[input=Undefined identifier: declaration]']]']]']]']*/ mapped = (*_this).mapTypeParameters(lambda36).mapName(lambda37);
 	/*Unwrapped expression: (*_this).generate((*_this)) + "(" + compiledParameters + ")"*/ header = (*_this).generate((*_this)) + "(" + compiledParameters + ")";
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this) + "{" + (*_this) + (*_this).lineSeparator((*_this)) + "}" + (*_this)]]*/ generated = (*_this) + "{" + (*_this) + (*_this).lineSeparator((*_this)) + "}" + (*_this).lineSeparator((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'lineSeparator' in 'Placeholder[input=Unwrapped expression: (*_this) + "{" + (*_this) + (*_this).lineSeparator((*_this)) + "}" + (*_this)]']*/ generated = (*_this) + "{" + (*_this) + (*_this).lineSeparator((*_this)) + "}" + (*_this).lineSeparator((*_this));
 	_this->functionDeclarations = _this->functionDeclarations.addLast((*_this) + ";" + (*_this).lineSeparator((*_this)));
 	_this->functions = _this->functions.addLast((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]]]]]]]]]]]]]]]]]]]]]*/ parameterTypes = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { type }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']]']]']]']]']]']]']]']]']]']]']*/ parameterTypes = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { type }}).toList((*_this));
 	return _switch;
 }
 CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParameters){
@@ -2520,12 +2520,12 @@ JMethodDeclaration toInterface_Main(void* _ref, JDeclaration value){
 }
 Option<JMethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
 	if ((*_this).equals((*_this))) 
 		return new_Some<JMethodDeclaration>(new_JConstructor((*_this)));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ i = (*_this).lastIndexOf(" ");
+	/*Not a functional type: Placeholder[input=Cannot access member 'lastIndexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ i = (*_this).lastIndexOf(" ");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ substring = (*_this).substring((*_this) + 1).strip((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ substring = (*_this).substring((*_this) + 1).strip((*_this));
 		if ((*_this).equals((*_this))) 
 			return new_Some<JMethodDeclaration>(new_JConstructor((*_this)));
 	}
@@ -2542,12 +2542,12 @@ auto lambda43(void* _ref, auto enumValue){
 }
 Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* structName){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
 	if (!(*_this).endsWith(";")) 
 		return new_None<CStructMember>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]*/ enumValues = _this->divide((*_this).substring(0, (*_this).length((*_this)) - 1), lambda41).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda42).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']*/ enumValues = _this->divide((*_this).substring(0, (*_this).length((*_this)) - 1), lambda41).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda42).toList((*_this));
 	if (!(*_this).isEmpty((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]]]]]*/ optionStream = (*_this).iter((*_this)).map(lambda43);
+		/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']]']]']*/ optionStream = (*_this).iter((*_this)).map(lambda43);
 		/*final var areAnyInvalid =
 					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>))*/;
 		if ((*_this)) 
@@ -2558,14 +2558,14 @@ Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* stru
 Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue){
 	Main* _this = (Main*) _ref;
 	if ((*_this).endsWith(")")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ i = (*_this).indexOf("(");
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ i = (*_this).indexOf("(");
 		if ((*_this) >= 0) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ name = (*_this).substring(0, (*_this));
+			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ name = (*_this).substring(0, (*_this));
 			if (!(*_this).isIdentifier((*_this))) 
 				return new_None<CStructMember>((*_this));
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring2 = (*_this).substring((*_this) + 1);
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this) + " " + (*_this) + (*_this) + " = " + "new_" + (*_this) + "(" + substring2 + ")" + ";" + (*_this)]]*/ generated = (*_this) + " " + (*_this) + (*_this) + " = " + "new_" + (*_this) + "(" + substring2 + ")" + ";" + (*_this).lineSeparator((*_this));
+			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ substring2 = (*_this).substring((*_this) + 1);
+			/*Not a functional type: Placeholder[input=Cannot access member 'lineSeparator' in 'Placeholder[input=Unwrapped expression: (*_this) + " " + (*_this) + (*_this) + " = " + "new_" + (*_this) + "(" + substring2 + ")" + ";" + (*_this)]']*/ generated = (*_this) + " " + (*_this) + (*_this) + " = " + "new_" + (*_this) + "(" + substring2 + ")" + ";" + (*_this).lineSeparator((*_this));
 			_this->globals = _this->globals.addLast((*_this));
 			return new_Some<CStructMember>(new_EmptyStructMember((*_this)));
 		}
@@ -2574,7 +2574,7 @@ Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* 
 }
 char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
 	if ((*_this).isEmpty((*_this))) 
 		return "";
 	/*Not a functional type: Placeholder[input=Member 'compileConditional' not defined in ]*/ maybeIf = _this->compileConditional("if", (*_this), (*_this));
@@ -2584,13 +2584,13 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
 	if ((*_this).endsWith(";")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
 		return (*_this)((*_this)) + _this->compileMethodStatement((*_this)) + ";";
 	}
 	if ((*_this).startsWith("else ")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ substring = (*_this).substring("else ".length((*_this))).strip((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ substring = (*_this).substring("else ".length((*_this))).strip((*_this));
 		if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ substring1 = (*_this).substring(1, (*_this).length((*_this)) - 1);
+			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ substring1 = (*_this).substring(1, (*_this).length((*_this)) - 1);
 			return (*_this)((*_this)) + "else {" + _this->compileMethodsSegments((*_this), (*_this) + 1) + (*_this)((*_this)) + "}";
 		}
 		/*else return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent)*/;
@@ -2605,19 +2605,19 @@ auto lambda44(void* _ref, auto slice){
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input){
 	Main* _this = (Main*) _ref;
 	if ((*_this).startsWith((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring((*_this).length((*_this))).strip((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ substring = (*_this).substring((*_this).length((*_this))).strip((*_this));
 		if ((*_this).startsWith("(")) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ afterConditionStart = (*_this).substring(1).strip((*_this));
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]*/ divisions = _this->divide((*_this), new_EscapedFolder(new_ConditionEndLocator((*_this)))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda44).toList((*_this));
+			/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']]']*/ afterConditionStart = (*_this).substring(1).strip((*_this));
+			/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']*/ divisions = _this->divide((*_this), new_EscapedFolder(new_ConditionEndLocator((*_this)))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda44).toList((*_this));
 			if ((*_this).size((*_this)) < 2) 
 				return new_None<char*>((*_this));
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]]]*/ first = (*_this).getFirst((*_this));
+			/*Not a functional type: Placeholder[input=Cannot access member 'getFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']]']*/ first = (*_this).getFirst((*_this));
 			/*Not a functional type: Placeholder[input=Member 'joinStrings' not defined in ]*/ maybeWithBraces = _this->joinStrings("", (*_this).subList(1, (*_this).size((*_this))));
 			if (!(*_this).endsWith(")")) 
 				return new_None<char*>((*_this));
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]]]]]*/ condition = (*_this).substring(0, (*_this).length((*_this)) - 1);
+			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'getFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']]']]']*/ condition = (*_this).substring(0, (*_this).length((*_this)) - 1);
 			if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
-				/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'joinStrings' not defined in ]]]*/ content = (*_this).substring(1, (*_this).length((*_this)) - 1);
+				/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'joinStrings' not defined in ]]']*/ content = (*_this).substring(1, (*_this).length((*_this)) - 1);
 				return new_Some<char*>((*_this)((*_this)) + (*_this) + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" + _this->compileMethodsSegments((*_this), (*_this) + 1) + (*_this)((*_this)) + "}");
 			}
 			return new_Some<char*>((*_this)((*_this)) + (*_this) + " (" + this.compileExpressionOrPlaceholder(condition) + ") " + (*_this).compileMethodSegment((*_this), (*_this) + 1));
@@ -2627,7 +2627,7 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 }
 char* compileMethodStatement_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
 	if ((*_this).equals("break")) 
 		return "break";
 	if ((*_this).startsWith("return ")) 
@@ -2651,10 +2651,10 @@ char* compileMethodStatement_Main(void* _ref, char* input){
 }
 Option<char*> compileAssignment_Main(void* _ref, char* stripped){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ index = (*_this).indexOf("=");
+	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'String']*/ index = (*_this).indexOf("=");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ destination = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring1 = (*_this).substring((*_this) + 1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']*/ destination = (*_this).substring(0, (*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']*/ substring1 = (*_this).substring((*_this) + 1);
 		/*Not a functional type: Placeholder[input=Member 'parseAssignable' not defined in ]*/ assignable = _this->parseAssignable((*_this));
 		/*Not a functional type: Placeholder[input=Member 'parseExpression' not defined in ]*/ maybeSource = _this->parseExpression((*_this));
 		if ((*_this).variant = ?.SomeVariant) {
@@ -2693,7 +2693,7 @@ JAssignable parseAssignable_Main(void* _ref, char* input){
 Option<char*> post_Main(void* _ref, char* stripped, char* slice){
 	Main* _this = (Main*) _ref;
 	if ((*_this).endsWith((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ instance = (*_this).substring(0, (*_this).length((*_this)) - 2);
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']*/ instance = (*_this).substring(0, (*_this).length((*_this)) - 2);
 		return new_Some<char*>(_this->compileExpressionOrPlaceholder((*_this)) + (*_this));
 	}
 	return new_None<char*>((*_this));
@@ -2732,13 +2732,13 @@ auto lambda52(void* _ref, auto ()){
 }
 Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
 	if ((*_this).startsWith("switch ")) 
 		return new_Some<char*>("_switch").map(F? { alloc((*_this)), F?Table { new }});
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ i2 = (*_this).lastIndexOf("::");
+	/*Not a functional type: Placeholder[input=Cannot access member 'lastIndexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ i2 = (*_this).lastIndexOf("::");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ name = (*_this).substring((*_this) + 2).strip((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ substring = (*_this).substring(0, (*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ name = (*_this).substring((*_this) + 2).strip((*_this));
 		if (_this->isIdentifier((*_this))) {
 			/*Not a functional type: Placeholder[input=Member 'compileExpressionOrPlaceholder' not defined in ]*/ compiled = _this->compileExpressionOrPlaceholder((*_this));
 			/*Unwrapped expression: "F?"*/ functionalInterfaceName = "F?";
@@ -2750,13 +2750,13 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	/*Not a functional type: Placeholder[input=Member 'compileLambda' not defined in ]*/ maybeLambda = _this->compileLambda((*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this).map(F? { alloc((*_this)), F?Table { new }});
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ i3 = (*_this).indexOf(".variant = ?."Variant);
+	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ i3 = (*_this).indexOf(".variant = ?."Variant);
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ substring1 = (*_this).substring((*_this) + ".variant = ?.".length()Variant).strip((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'parseCExpression' not defined in ]]]*/ maybeInstance = _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }});
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ substring = (*_this).substring(0, (*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ substring1 = (*_this).substring((*_this) + ".variant = ?.".length()Variant).strip((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'parseCExpression' not defined in ]]']*/ maybeInstance = _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }});
 		if ((*_this).variant = ?.SomeVariant) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]*/ i4 = (*_this).indexOf(" < ");
+			/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']]']*/ i4 = (*_this).indexOf(" < ");
 			char* substring2;
 			if ((*_this) >= 0) 
 				(*_this) = (*_this).substring(0, (*_this));
@@ -2764,10 +2764,10 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 			return new_Some<char*>((*_this) + ".variant = ?." + (*_this) + "Variant").map(F? { alloc((*_this)), F?Table { new }});
 		}
 	}
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ i = (*_this).lastIndexOf(".");
+	/*Not a functional type: Placeholder[input=Cannot access member 'lastIndexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ i = (*_this).lastIndexOf(".");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ instanceString = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ memberName = (*_this).substring((*_this) + 1).strip((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ instanceString = (*_this).substring(0, (*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ memberName = (*_this).substring((*_this) + 1).strip((*_this));
 		if (_this->isIdentifier((*_this))) {
 			/*Not a functional type: Placeholder[input=Member 'parseExpression' not defined in ]*/ maybeInstance = _this->parseExpression((*_this));
 			if ((*_this).variant = ?.Some(var value)Variant) 
@@ -2777,14 +2777,14 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	/*Not a functional type: Placeholder[input=Member 'parseInvokable' not defined in ]*/ maybeInvokable = _this->parseInvokable((*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'compileOperator' not defined in ]]]]]]]]]]]]]]]*/ maybeOperator = _this->compileOperator((*_this), " == ").or(lambda46).or(lambda47).or(lambda48).or(lambda49).or(lambda50).or(lambda51).or(lambda52);
+	/*Not a functional type: Placeholder[input=Cannot access member 'or' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'or' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'or' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'or' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'or' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'or' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'or' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'compileOperator' not defined in ]]']]']]']]']]']]']]']*/ maybeOperator = _this->compileOperator((*_this), " == ").or(lambda46).or(lambda47).or(lambda48).or(lambda49).or(lambda50).or(lambda51).or(lambda52);
 	if ((*_this).variant = ?.SomeVariant) 
 		return (*_this).map(F? { alloc((*_this)), F?Table { new }});
 	if (_this->isIdentifier((*_this))) 
 		return new_Some<JExpression>(new_Identifier((*_this)));
 	if ((*_this).startsWith("!")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring(1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'parseCExpression' not defined in ]]]*/ maybeInstance = _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }});
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ substring = (*_this).substring(1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'parseCExpression' not defined in ]]']*/ maybeInstance = _this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }});
 		if ((*_this).variant = ?.SomeVariant) 
 			return new_Some<char*>("!" + (*_this)).map(F? { alloc((*_this)), F?Table { new }});
 	}
@@ -2802,25 +2802,25 @@ auto lambda54(void* _ref, auto param){
 }
 Option<char*> compileLambda_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ index = (*_this).indexOf("->");
+	/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'String']*/ index = (*_this).indexOf("->");
 	if ((*_this) < 0) 
 		return new_None<char*>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ beforeContent = (*_this).substring(0, (*_this)).strip((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ maybeWithBraces = (*_this).substring((*_this) + 2).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ beforeContent = (*_this).substring(0, (*_this)).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ maybeWithBraces = (*_this).substring((*_this) + 2).strip((*_this));
 	List<char*> params;
 	if (_this->isIdentifier((*_this))) 
 		(*_this) = (*_this).of((*_this));
 	else 
 	if ((*_this).startsWith("(") && beforeContent.endsWith(")")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ substring = (*_this).substring(1, (*_this).length((*_this)) - 1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']*/ substring = (*_this).substring(1, (*_this).length((*_this)) - 1);
 		(*_this) = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda53).toList((*_this));
 	}
 	/*else return new None<String>()*/;
 	if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ content = (*_this).substring(1, (*_this).length((*_this)) - 1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']]']*/ content = (*_this).substring(1, (*_this).length((*_this)) - 1);
 		/*Not a functional type: Placeholder[input=Member 'compileMethodsSegments' not defined in ]*/ compiled = _this->compileMethodsSegments((*_this), 1);
 		/*Not a functional type: Placeholder[input=Member 'generateName' not defined in ]*/ generatedName = _this->generateName((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: params]]]]]]]]*/ paramList = (*_this).iter((*_this)).map(lambda54).toList((*_this)).addFirst("void* _ref");
+		/*Not a functional type: Placeholder[input=Cannot access member 'addFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]']]']]']]']*/ paramList = (*_this).iter((*_this)).map(lambda54).toList((*_this)).addFirst("void* _ref");
 		/*Not a functional type: Placeholder[input=Member 'joinStrings' not defined in ]*/ joined = _this->joinStrings(", ", (*_this));
 		_this->functions = _this->functions.addLast("auto " + (*_this) + "(" + joined + "){" + (*_this) + (*_this).lineSeparator((*_this)) + "}" + (*_this).lineSeparator((*_this)));
 		return new_Some<char*>((*_this));
@@ -2833,7 +2833,7 @@ Option<char*> compileLambda_Main(void* _ref, char* input){
 }
 char* generateName_Main(void* _ref){
 	Main* _this = (Main*) _ref;
-	/*Not a valid member access: Placeholder[input=Unwrapped expression: "lambda" + (*_this)]*/ generatedName = "lambda" + (*_this).counter;
+	/*Cannot access member 'counter' in 'Placeholder[input=Unwrapped expression: "lambda" + (*_this)]'*/ generatedName = "lambda" + (*_this).counter;
 	_this->counter++;
 	return (*_this);
 }
@@ -2847,7 +2847,7 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 	/*Unwrapped expression: 0*/ depth = 0;
 	/*Unwrapped expression: 0*/ i = 0;
 	while ((*_this) < (*_this).length((*_this)) - 1) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ c = (*_this).charAt((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'charAt' in 'String']*/ c = (*_this).charAt((*_this));
 		if ((*_this) == (*_this).charAt(0)) 
 			if ((*_this) == 0) {
 				(*_this) = (*_this);
@@ -2860,8 +2860,8 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 		(*_this)++;
 	}
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ leftString = (*_this).substring(0, (*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ right = (*_this).substring((*_this) + (*_this).length((*_this)));
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']*/ leftString = (*_this).substring(0, (*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']*/ right = (*_this).substring((*_this) + (*_this).length((*_this)));
 		if (_this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).variant = ?.SomeVariant) 
 			if (_this->parseCExpression((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).variant = ?.SomeVariant) 
 				return new_Some<char*>((*_this) + " " + (*_this) + " " + (*_this));
@@ -2873,17 +2873,17 @@ Option<JExpression> parseInvokable_Main(void* _ref, char* stripped){
 	if (!(*_this).endsWith(")")) 
 		return new_None<JExpression>((*_this));
 	char* stripped1 = (*_this);
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ length = (*_this).length((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ withoutEnd = (*_this).substring(0, (*_this) - 1);
+	/*Not a functional type: Placeholder[input=Cannot access member 'length' in 'String']*/ length = (*_this).length((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']*/ withoutEnd = (*_this).substring(0, (*_this) - 1);
 	/*Not a functional type: Placeholder[input=Member 'findCallerStart' not defined in ]*/ callerStart = _this->findCallerStart((*_this));
 	if ((*_this) < 0) 
 		return new_None<JExpression>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ callerString = (*_this).substring(0, (*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ argumentsString = (*_this).substring((*_this) + 1);
+	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ callerString = (*_this).substring(0, (*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'String']]']*/ argumentsString = (*_this).substring((*_this) + 1);
 	/*Not a functional type: Placeholder[input=Member 'parseCaller' not defined in ]*/ maybeCaller = _this->parseCaller((*_this));
 	if (!(*_this)((*_this).variant = ?.Some(var value)Variant)) 
 		return new_None<JExpression>((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]]]*/ arguments = _this->divide((*_this), new_EscapedFolder(new_ValueFolder((*_this)))).map(F? { alloc((*_this)), F?Table { parseExpression }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']]']*/ arguments = _this->divide((*_this), new_EscapedFolder(new_ValueFolder((*_this)))).map(F? { alloc((*_this)), F?Table { parseExpression }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
 	return new_Some<JExpression>(new_JInvokable((*_this), (*_this)));
 }
 int findCallerStart_Main(void* _ref, char* withoutEnd){
@@ -2892,7 +2892,7 @@ int findCallerStart_Main(void* _ref, char* withoutEnd){
 	/*Unwrapped expression: 0*/ depth = 0;
 	/*Unwrapped expression: 0*/ i = 0;
 	while ((*_this) < (*_this).length((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ c = (*_this).charAt((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'charAt' in 'String']*/ c = (*_this).charAt((*_this));
 		if ((*_this) == '(') {
 			if ((*_this) == 0) 
 				(*_this) = (*_this);
@@ -2916,12 +2916,12 @@ int allDigits_Main(void* _ref, char* input){
 }
 Option<JCaller> parseCaller_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
 	/*Not a functional type: Placeholder[input=Member 'parseExpression' not defined in ]*/ maybeExpression = _this->parseExpression((*_this));
 	if ((*_this).variant = ?.SomeVariant) 
 		return new_Some<JCaller>((*_this));
 	if ((*_this).startsWith("new ")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ type = (*_this).substring("new ".length((*_this)));
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ type = (*_this).substring("new ".length((*_this)));
 		/*Not a functional type: Placeholder[input=Member 'parseType' not defined in ]*/ jType = _this->parseType((*_this));
 		return new_Some<JCaller>(new_JConstruction((*_this)));
 	}
@@ -2929,11 +2929,11 @@ Option<JCaller> parseCaller_Main(void* _ref, char* input){
 }
 Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
-	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ nameSeparator = (*_this).lastIndexOf(" ");
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'lastIndexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ nameSeparator = (*_this).lastIndexOf(" ");
 	if ((*_this) >= 0) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ beforeName = (*_this).substring(0, (*_this)).strip((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ name = (*_this).substring((*_this) + 1).strip((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ beforeName = (*_this).substring(0, (*_this)).strip((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ name = (*_this).substring((*_this) + 1).strip((*_this));
 		/*Not a functional type: Placeholder[input=Member 'findTypeSeparator' not defined in ]*/ typeSeparator = _this->findTypeSeparator((*_this));
 		if (!(*_this).isIdentifier((*_this))) 
 			return new_None<JDeclaration>((*_this));
@@ -2941,19 +2941,19 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 			/*Not a functional type: Placeholder[input=Member 'parseType' not defined in ]*/ type = _this->parseType((*_this));
 			return new_Some<JDeclaration>(new_JDeclaration((*_this), (*_this)));
 		}
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]*/ beforeType = (*_this).substring(0, (*_this)).strip((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']]']]']*/ beforeType = (*_this).substring(0, (*_this)).strip((*_this));
 		List<char*> copy = (*_this).empty((*_this));
 		if ((*_this).endsWith(">")) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]]]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]]]]]*/ i = (*_this).indexOf(" < ");
+			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']]']]']]']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+			/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']]']]']]']]']*/ i = (*_this).indexOf(" < ");
 			if ((*_this) >= 0) {
-				/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]]]]]*/ substring2 = (*_this).substring((*_this) + 1);
+				/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']]']]']]']]']*/ substring2 = (*_this).substring((*_this) + 1);
 				(*_this) = _this->splitValues((*_this));
 				(*_this) = (*_this).substring(0, (*_this));
 			}
 		}
 		List<char*> annotations = (*_this).empty((*_this));
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]]]]]]]*/ i = (*_this).lastIndexOf("\n");
+		/*Not a functional type: Placeholder[input=Cannot access member 'lastIndexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']]']]']]']*/ i = (*_this).lastIndexOf("\n");
 		if ((*_this) >= 0) {
 			(*_this) = _this->collectAnnotations((*_this).substring(0, (*_this)));
 			(*_this) = (*_this).substring((*_this) + 1).strip((*_this));
@@ -2982,7 +2982,7 @@ int findTypeSeparator_Main(void* _ref, char* beforeName){
 	/*Unwrapped expression: 0*/ depth = 0;
 	/*Unwrapped expression: 0*/ i = 0;
 	while ((*_this) < (*_this).length((*_this))) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ c = (*_this).charAt((*_this));
+		/*Not a functional type: Placeholder[input=Cannot access member 'charAt' in 'String']*/ c = (*_this).charAt((*_this));
 		if ((*_this) == ' ' && (*_this) == 0) 
 			(*_this) = (*_this);
 		if ((*_this) == '<') 
@@ -2995,7 +2995,7 @@ int findTypeSeparator_Main(void* _ref, char* beforeName){
 }
 JType parseType_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = (*_this).strip((*_this));
+	/*Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']*/ stripped = (*_this).strip((*_this));
 	/*switch (stripped) {
 			case "boolean", "Boolean" -> {
 				return JPrimitiveType.Boolean;
@@ -3017,17 +3017,17 @@ JType parseType_Main(void* _ref, char* input){
 			}
 		}*/
 	if ((*_this).endsWith("[]")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ slice = (*_this).substring(0, (*_this).length((*_this)) - 2);
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ slice = (*_this).substring(0, (*_this).length((*_this)) - 2);
 		/*Not a functional type: Placeholder[input=Member 'parseType' not defined in ]*/ type = _this->parseType((*_this));
 		return new_JArrayType((*_this));
 	}
 	if ((*_this).endsWith(">")) {
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
-		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ i = (*_this).indexOf(" < ");
+		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']*/ substring = (*_this).substring(0, (*_this).length((*_this)) - 1);
+		/*Not a functional type: Placeholder[input=Cannot access member 'indexOf' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ i = (*_this).indexOf(" < ");
 		if ((*_this) >= 0) {
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ base = (*_this).substring(0, (*_this));
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ parameters = (*_this).substring((*_this) + 1);
-			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]]]]*/ list = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { parseType }}).toList((*_this));
+			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ base = (*_this).substring(0, (*_this));
+			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'strip' in 'String']]']]']*/ parameters = (*_this).substring((*_this) + 1);
+			/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in ]]']]']*/ list = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { parseType }}).toList((*_this));
 			return new_JGenericType((*_this), (*_this));
 		}
 	}
