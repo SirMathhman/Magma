@@ -1126,6 +1126,35 @@ public class Main {
 		}
 	}
 
+	private record JObjectPrototype(String type, List<String> annotations, List<String> modifiersList, String name,
+																	List<String> typeParameters, List<JDeclaration> recordFields,
+																	List<CType> implementees, List<String> variants, String inputContent) {
+		private List<CDefinable> collectCFields() {
+			return this.recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList();
+		}
+
+		private List<String> createConversionFunctions() {
+			return this.implementees().iter().map(this::createConversionType).toList();
+		}
+
+		// TODO: This return type needs to be a CFunction
+		private String createConversionType(CType implementee) {
+			var joinedTypeParameters = Main.joinTypeParameters(this.typeParameters());
+			var templateString = generateTemplateString(this.typeParameters());
+			//TODO: turn this into proper AST generation
+
+			final var identifier = implementee.toBaseName();
+			final var thisType = this.name + joinedTypeParameters;
+			final var s = Main.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
+			final var s1 = Main.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
+			final var s2 = Main.generateStatement("data." + this.name + " = _this");
+			final var s3 = Main.generateStatement("return { " + this.name + "Variant, data }");
+			final var conversionF1RContent = s + s1 + s2 + s3;
+			return templateString + implementee.generate() + " to" + identifier + "_" + this.name + "(void* _ref){" +
+						 conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
+		}
+	}
+
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
 		final var methods = Lists.of(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)),
@@ -1210,6 +1239,14 @@ public class Main {
 	}
 
 	private static String generateStatement(String content) {return generateStatement(1, content);}
+
+	private static String joinTypeParameters(List<String> typeParameters) {
+		final String joinedTypeParameters;
+		if (typeParameters.isEmpty()) joinedTypeParameters = "";
+		else joinedTypeParameters = "<" + typeParameters.iter().collect(new Joiner(", ")) + ">";
+
+		return joinedTypeParameters;
+	}
 
 	private Option<IOError> run() {
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -1305,12 +1342,12 @@ public class Main {
 	}
 
 	private Option<CStructMember> compileStructure(String type, String stripped) {
-		return this.getCStructMemberOption(type, stripped);
+		return this.partiallyParseObject(type, stripped).flatMap(this::transformObject);
 	}
 
-	private Option<CStructMember> getCStructMemberOption(String type, String stripped) {
+	private Option<JObjectPrototype> partiallyParseObject(String type, String stripped) {
 		final var i = stripped.indexOf(type + " ");
-		if (i < 0) return new None<CStructMember>();
+		if (i < 0) return new None<JObjectPrototype>();
 		final var beforeType = stripped.substring(0, i).strip();
 
 		final String modifiers;
@@ -1324,16 +1361,14 @@ public class Main {
 			modifiers = substring1;
 		} else modifiers = beforeType;
 
-		if (annotations.contains("Actual")) return new Some<CStructMember>(new EmptyStructMember());
-
 		final var afterKeyword = stripped.substring(i + (type + " ").length()).strip();
 
 		final var i1 = afterKeyword.indexOf("{");
-		if (i1 < 0) return new None<CStructMember>();
+		if (i1 < 0) return new None<JObjectPrototype>();
 		var beforeContent = afterKeyword.substring(0, i1).strip();
 
 		final var withEnd = afterKeyword.substring(i1 + 1).strip();
-		if (!withEnd.endsWith("}")) return new None<CStructMember>();
+		if (!withEnd.endsWith("}")) return new None<JObjectPrototype>();
 		final var inputContent = withEnd.substring(0, withEnd.length() - 1);
 
 		List<String> variants = Lists.empty();
@@ -1351,7 +1386,7 @@ public class Main {
 			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
 			beforeContent = beforeContent.substring(0, i4).strip();
 			implementees = this
-					.divide(implementeesString, (state, character) -> new ValueFolder().apply(state, character))
+					.divide(implementeesString, new ValueFolder())
 					.map(String::strip)
 					.filter(slice -> !slice.isEmpty())
 					.map(input -> transformType(this.parseType(input)))
@@ -1365,7 +1400,7 @@ public class Main {
 			if (i3 >= 0) {
 				beforeContent = substring.substring(0, i3);
 				recordFields = this
-						.divide(substring.substring(i3 + 1), (state, character) -> new ValueFolder().apply(state, character))
+						.divide(substring.substring(i3 + 1), new ValueFolder())
 						.map(this::parseDeclaration)
 						.flatMap(Option::iter)
 						.toList();
@@ -1383,7 +1418,7 @@ public class Main {
 			}
 		}
 
-		if (!this.isIdentifier(beforeContent)) return new None<CStructMember>();
+		if (!this.isIdentifier(beforeContent)) return new None<JObjectPrototype>();
 
 		var modifiersList = Streams
 				.fromObjArray(modifiers.split(Pattern.quote(" ")))
@@ -1393,29 +1428,37 @@ public class Main {
 
 		var name = beforeContent.strip();
 
-		final var templateString = generateTemplateString(typeParameters);
-		final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
+		final var object = new JObjectPrototype(type,
+																						annotations,
+																						modifiersList,
+																						name,
+																						typeParameters,
+																						recordFields,
+																						implementees,
+																						variants,
+																						inputContent);
+		return new Some<JObjectPrototype>(object);
+	}
+
+	private Option<CStructMember> transformObject(JObjectPrototype object) {
+		if (object.annotations.contains("Actual")) return new Some<CStructMember>(new EmptyStructMember());
 
 		List<CRootSegment> dependencies = new JavaList<CRootSegment>();
-		this.functions = implementees
-				.iter()
-				.map(implementee -> this.generate(implementee, name, joinedTypeParameters, templateString))
-				.fold(this.functions, List::addLast);
+		this.functions = object.createConversionFunctions().iter().fold(this.functions, List::addLast);
 
-		var fields = recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList();
-
-		var finalTypeParameters = typeParameters;
-		var finalVariants = variants;
+		var fields = object.collectCFields();
+		var finalTypeParameters = object.typeParameters();
+		var finalVariants = object.variants();
 
 		final var within = this.environment.withinScoped((env) -> {
-			final var withName = env.withName(name);
+			final var withName = env.withName(object.name());
 
 			// Note that withName is not used by members here, but should be accessible because Environment has a de facto
 			// mutable implementation
 			// But if environment becomes immutable, then we have to pass withName as a parameter here eventually
 			final var members = this
-					.divide(inputContent, new EscapedFolder(this::foldStatement))
-					.map(slice -> this.compileClassSegment(slice, name, finalTypeParameters, finalVariants))
+					.divide(object.inputContent, new EscapedFolder(this::foldStatement))
+					.map(slice -> this.compileClassSegment(slice, object.name(), finalTypeParameters, finalVariants))
 					.flatMap(Option::iter)
 					.toList();
 
@@ -1425,44 +1468,45 @@ public class Main {
 		this.environment = within.left;
 		var members = within.right;
 
-		if (type.equals("interface")) if (modifiersList.contains("sealed")) {
-			final var elements = this.flattenSealedStructure(name, typeParameters, variants);
+		if (object.type().equals("interface")) if (object.modifiersList().contains("sealed")) {
+			final var elements = this.flattenSealedStructure(object.name(), object.typeParameters(), object.variants());
 
 			fields = fields
-					.addLast(new CDeclaration(new Identifier(name + "Variant"), "variant"))
-					.addLast(new CDeclaration(new Identifier(name + "Data" + joinedTypeParameters), "data"));
+					.addLast(new CDeclaration(new Identifier(object.name() + "Variant"), "variant"))
+					.addLast(new CDeclaration(new Identifier(
+							object.name() + "Data" + Main.joinTypeParameters(object.typeParameters())), "data"));
 
 			dependencies = dependencies.addAllLast(elements);
 		} else {
 			final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
-			final var cStructure = new CStructure(typeParameters, name + "Table", list);
+			final var cStructure = new CStructure(object.typeParameters(), object.name() + "Table", list);
 
 			dependencies = dependencies.addLast(cStructure);
 			fields = fields
-					.addLast(new CDeclaration(new Identifier(name + "Table" + joinedTypeParameters), "table"))
+					.addLast(new CDeclaration(new Identifier(
+							object.name() + "Table" + Main.joinTypeParameters(object.typeParameters())), "table"))
 					.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "data"));
 		}
-		else {
-			final var joinedMembers = members
-					.iter()
-					.map(this::retainDefinables)
-					.flatMap(Option::iter)
-					.filter(member -> !(member instanceof CFunctionDeclaration declaration))
-					.toList();
+		else fields = fields.addAllLast(this.retainFields(members));
 
-			fields = fields.addAllLast(joinedMembers);
-		}
-
-		final var s = new CStructure(typeParameters, name, fields);
-		final var elements = dependencies.addLast(s);
+		final var elements = dependencies.addLast(new CStructure(object.typeParameters(), object.name(), fields));
 		this.rootSegments = this.rootSegments.addAllLast(elements);
 		return new Some<CStructMember>(new EmptyStructMember());
+	}
+
+	private List<CDefinable> retainFields(List<CStructMember> members) {
+		return members
+				.iter()
+				.map(this::retainDefinables)
+				.flatMap(Option::iter)
+				.filter(member -> !(member instanceof CFunctionDeclaration))
+				.toList();
 	}
 
 	private List<CRootSegment> flattenSealedStructure(String name, List<String> typeParameters, List<String> variants) {
 		final var jEnum = new CEnum(name, variants);
 
-		final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
+		final var joinedTypeParameters = Main.joinTypeParameters(typeParameters);
 		final var unionMembers = variants.iter().map(variant -> variant + joinedTypeParameters + " " + variant).toList();
 		final var union = new JUnion(typeParameters, name, unionMembers);
 		return Lists.of(jEnum, union);
@@ -1471,26 +1515,6 @@ public class Main {
 	private Option<CDefinable> retainDefinables(CStructMember member) {
 		if (member instanceof CDefinable definable) return new Some<CDefinable>(definable);
 		else return new None<CDefinable>();
-	}
-
-	private String generate(CType implementee, String name, String joinedTypeParameters, String templateString) {
-		final var identifier = implementee.toBaseName();
-		final var thisType = name + joinedTypeParameters;
-		final var s = Main.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
-		final var s1 = Main.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
-		final var s2 = Main.generateStatement("data." + name + " = _this");
-		final var s3 = Main.generateStatement("return { " + name + "Variant, data }");
-		final var conversionF1RContent = s + s1 + s2 + s3;
-		return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _ref){" +
-					 conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
-	}
-
-	private String joinTypeParameters(List<String> typeParameters) {
-		final String joinedTypeParameters;
-		if (typeParameters.isEmpty()) joinedTypeParameters = "";
-		else joinedTypeParameters = "<" + typeParameters.iter().collect(new Joiner(", ")) + ">";
-
-		return joinedTypeParameters;
 	}
 
 	private List<String> splitValues(String input) {
@@ -1605,7 +1629,7 @@ public class Main {
 		} else if (methodDeclaration instanceof JDeclaration declaration) {
 			cParameters = cParameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
-			final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
+			final var joinedTypeParameters = Main.joinTypeParameters(typeParameters);
 
 			final var thisInitialization = Main.generateStatement(
 					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
