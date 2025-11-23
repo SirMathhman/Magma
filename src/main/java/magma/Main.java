@@ -142,19 +142,25 @@ public class Main {
 		String generate();
 	}
 
-	private sealed interface JType permits Identifier, JArrayType, JGenericType, JPrimitiveType, Placeholder {}
+	private sealed interface JType
+			permits Identifier, JArrayType, JFunctionalType, JGenericType, JPrimitiveType, Placeholder {}
 
 	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
 
-	sealed private interface JExpression extends JAssignable permits Identifier, JExpressionWrapper, JMemberAccess {
-		default CAssignable toCAssignable() {
-			return this.toCExpression();
+	sealed private interface JExpression extends JCaller, JAssignable
+			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess {
+		default CAssignable toAssignable() {
+			return this.toExpression();
 		}
 
-		CExpression toCExpression();
+		CExpression toExpression();
 	}
 
 	private interface CExpression extends CAssignable {}
+
+	private sealed interface JCaller permits JConstruction, JExpression {
+		CExpression toExpression();
+	}
 
 	@Actual
 	private record JavaIOError(IOException e) implements IOError {
@@ -470,7 +476,7 @@ public class Main {
 		}
 
 		@Override
-		public CExpression toCExpression() {
+		public CExpression toExpression() {
 			return this;
 		}
 	}
@@ -857,12 +863,12 @@ public class Main {
 
 	private record JExpressionWrapper(String content) implements JExpression, JAssignable {
 		@Override
-		public CExpression toCExpression() {
+		public CExpression toExpression() {
 			return new CExpressionWrapper(this.content);
 		}
 
 		@Override
-		public CAssignable toCAssignable() {
+		public CAssignable toAssignable() {
 			return new CExpressionWrapper(this.content);
 		}
 	}
@@ -903,13 +909,39 @@ public class Main {
 
 	private record JMemberAccess(JExpression instance, String memberName) implements JExpression {
 		@Override
-		public CExpression toCExpression() {
-			final var cExpression = this.instance.toCExpression();
+		public CExpression toExpression() {
+			final var cExpression = this.instance.toExpression();
 			if (this.instance instanceof Identifier(var value) && value.equals("this"))
 				return new CPointerAccess(new Identifier("_this"), this.memberName);
 			else return new CFieldAccess(cExpression, this.memberName);
 		}
 	}
+
+	private record JConstruction(JType jType) implements JCaller {
+		@Override
+		public CExpression toExpression() {
+			return new Identifier("new_" + transformType(this.jType).generate());
+		}
+	}
+
+	private record CInvocation(CExpression expression, List<CExpression> cArguments) implements CExpression {
+		@Override
+		public String generate() {
+			final var joinedArguments = this.cArguments().iter().map(CAssignable::generate).collect(new Joiner(", "));
+			return this.expression().generate() + "(" + joinedArguments + ")";
+		}
+	}
+
+	private record JInvokable(JCaller caller, List<JExpression> arguments) implements JExpression {
+		@Override
+		public CExpression toExpression() {
+			final var cArguments = this.arguments().iter().map(JExpression::toExpression).toList();
+			final var expression = this.caller().toExpression();
+			return new CInvocation(expression, cArguments);
+		}
+	}
+
+	private record JFunctionalType(List<JType> parameterTypes, JType returnType) implements JType {}
 
 	private List<List<JDeclaration>> environment = new JavaList<List<JDeclaration>>();
 	private List<String> functionDeclarations;
@@ -965,6 +997,7 @@ public class Main {
 			case JGenericType jGenericType -> jGenericType.toCType();
 			case JPrimitiveType jPrimitiveType -> transformPrimitiveType(jPrimitiveType);
 			case Placeholder placeholder -> placeholder.toCType();
+			case JFunctionalType jFunctionalType -> new Placeholder(jFunctionalType.toString());
 		};
 	}
 
@@ -1581,8 +1614,8 @@ public class Main {
 		final var maybeAssignment = this.compileAssignment(stripped);
 		if (maybeAssignment instanceof Some<String>(var assignment)) return assignment;
 
-		final var maybeInvokable = this.compileInvokable(stripped);
-		if (maybeInvokable instanceof Some<String>(var value)) return value;
+		final var maybeInvokable = this.parseInvokable(stripped);
+		if (maybeInvokable instanceof Some(var value)) return value.toExpression().generate();
 
 		final var instance = this.post(stripped, "++");
 		if (instance instanceof Some<String>(var x)) return x;
@@ -1605,7 +1638,7 @@ public class Main {
 			final var maybeSource = this.parseExpression(substring1);
 
 			if (maybeSource instanceof Some<JExpression>(var source)) return new Some<String>(
-					this.transformAssignable(assignable, source).generate() + " = " + source.toCAssignable().generate());
+					this.transformAssignable(assignable, source).generate() + " = " + source.toAssignable().generate());
 		}
 
 		return new None<String>();
@@ -1620,7 +1653,7 @@ public class Main {
 				yield jDeclaration.toCAssignable();
 			}
 
-			case JExpression jExpression -> jExpression.toCAssignable();
+			case JExpression jExpression -> jExpression.toAssignable();
 			case Placeholder placeholder -> placeholder.toCAssignable();
 		};
 	}
@@ -1633,16 +1666,32 @@ public class Main {
 				if (maybeFound instanceof Some<JType>(var found)) yield found;
 				yield new Placeholder("Undefined identifier: " + value);
 			}
+
 			case JMemberAccess jMemberAccess -> {
 				final var instanceType = this.resolveExpression(jMemberAccess.instance);
 				if (instanceType.equals(JPrimitiveType.String)) {
 
 				}
 
-				yield new Placeholder("Not a valid member access" + instanceType);
+				yield new Placeholder("Not a valid member access: " + instanceType);
 			}
 
-			case JExpressionWrapper jExpressionWrapper -> new Placeholder(jExpressionWrapper.content);
+			case JExpressionWrapper jExpressionWrapper ->
+					new Placeholder("Unwrapped expression: " + jExpressionWrapper.content);
+			case JInvokable jInvokable -> {
+				yield this.resolveCaller(jInvokable.caller);
+			}
+		};
+	}
+
+	private JType resolveCaller(JCaller caller) {
+		return switch (caller) {
+			case JConstruction jConstruction -> jConstruction.jType;
+			case JExpression jExpression -> {
+				final var jType = this.resolveExpression(jExpression);
+				if (jType instanceof JFunctionalType functionalType) yield functionalType.returnType;
+				yield new Placeholder("Not a functional type: " + jType);
+			}
 		};
 	}
 
@@ -1677,7 +1726,7 @@ public class Main {
 	}
 
 	private Option<CExpression> parseCExpression(String input) {
-		return this.parseExpression(input).map(JExpression::toCExpression);
+		return this.parseExpression(input).map(JExpression::toExpression);
 	}
 
 	private Option<JExpression> parseExpression(String input) {
@@ -1731,8 +1780,8 @@ public class Main {
 			}
 		}
 
-		final var maybeInvokable = this.compileInvokable(stripped);
-		if (maybeInvokable instanceof Some<String>) return maybeInvokable.map(JExpressionWrapper::new);
+		final var maybeInvokable = this.parseInvokable(stripped);
+		if (maybeInvokable instanceof Some<JExpression>) return maybeInvokable;
 
 		final var maybeOperator = this
 				.compileOperator(stripped, "==")
@@ -1839,40 +1888,28 @@ public class Main {
 		return new None<String>();
 	}
 
-	private Option<String> compileInvokable(String stripped) {
-		return getStringOption(stripped);
-	}
-
-	private Option<String> getStringOption(String stripped) {
-		if (!stripped.endsWith(")")) return new None<String>();
+	private Option<JExpression> parseInvokable(String stripped) {
+		if (!stripped.endsWith(")")) return new None<JExpression>();
 
 		final var stripped1 = stripped;
-		final var length = stripped.length();
+		final var length = stripped1.length();
 		final var withoutEnd = stripped1.substring(0, length - 1);
 
 		final var callerStart = this.findCallerStart(withoutEnd);
 
-		if (callerStart >= 0) {
-			final var callerString = withoutEnd.substring(0, callerStart);
-			final var argumentsString = withoutEnd.substring(callerStart + 1);
-			final var arguments = this
-					.divide(argumentsString, new EscapedFolder(new ValueFolder()))
-					.map(this::parseExpression)
-					.flatMap(Option::iter)
-					.toList();
+		if (callerStart < 0) return new None<JExpression>();
+		final var callerString = withoutEnd.substring(0, callerStart);
+		final var argumentsString = withoutEnd.substring(callerStart + 1);
 
-			final var cArguments = arguments.iter().map(JExpression::toCExpression).toList();
+		final var maybeCaller = this.parseCaller(callerString);
+		if (!(maybeCaller instanceof Some(var value))) return new None<JExpression>();
+		final var arguments = this
+				.divide(argumentsString, new EscapedFolder(new ValueFolder()))
+				.map(this::parseExpression)
+				.flatMap(Option::iter)
+				.toList();
 
-			final var joinedArguments = cArguments
-					.iter()
-					.map(CAssignable::generate)
-					.collect(new Joiner(", "));
-
-			final var maybeCaller = this.compileCaller(callerString);
-			if (maybeCaller instanceof Some<String>(var value)) return new Some<String>(value + "(" + joinedArguments + ")");
-		}
-
-		return new None<String>();
+		return new Some<JExpression>(new JInvokable(value, arguments));
 	}
 
 	private int findCallerStart(String withoutEnd) {
@@ -1901,17 +1938,18 @@ public class Main {
 		return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isDigit);
 	}
 
-	private Option<String> compileCaller(String input) {
+	private Option<JCaller> parseCaller(String input) {
 		final var stripped = input.strip();
-		final var maybeExpression = this.parseCExpression(stripped).map(CExpression::generate);
-		if (maybeExpression instanceof Some<String>) return maybeExpression;
+		final var maybeExpression = this.parseExpression(stripped);
+		if (maybeExpression instanceof Some<JExpression>(var expression)) return new Some<JCaller>(expression);
 
 		if (stripped.startsWith("new ")) {
 			final var type = stripped.substring("new ".length());
-			return new Some<String>("new_" + this.compileType(type));
+			final var jType = this.parseType(type);
+			return new Some<JCaller>(new JConstruction(jType));
 		}
 
-		return new None<String>();
+		return new None<JCaller>();
 	}
 
 	private Option<JDeclaration> parseDeclaration(String input) {

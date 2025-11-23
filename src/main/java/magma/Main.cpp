@@ -191,6 +191,7 @@ struct CAssignable {
 enum JTypeVariant {
 	IdentifierVariant,
 	JArrayTypeVariant,
+	JFunctionalTypeVariant,
 	JGenericTypeVariant,
 	JPrimitiveTypeVariant,
 	PlaceholderVariant
@@ -198,6 +199,7 @@ enum JTypeVariant {
 union JTypeData {
 	Identifier Identifier;
 	JArrayType JArrayType;
+	JFunctionalType JFunctionalType;
 	JGenericType JGenericType;
 	JPrimitiveType JPrimitiveType;
 	Placeholder Placeholder;
@@ -221,6 +223,18 @@ union JAssignableData {
 struct JAssignable {
 	JAssignableVariant variant;
 	JAssignableData data;
+};
+enum JCallerVariant {
+	JConstructionVariant,
+	JExpressionVariant
+};
+union JCallerData {
+	JConstruction JConstruction;
+	JExpression JExpression;
+};
+struct JCaller {
+	JCallerVariant variant;
+	JCallerData data;
 };
 struct StringBuilders {
 };
@@ -367,6 +381,21 @@ struct JMemberAccess {
 	JExpression instance;
 	char* memberName;
 };
+struct JConstruction {
+	JType jType;
+};
+struct CInvocation {
+	CExpression expression;
+	List<CExpression> cArguments;
+};
+struct JInvokable {
+	JCaller caller;
+	List<JExpression> arguments;
+};
+struct JFunctionalType {
+	List<JType> parameterTypes;
+	JType returnType;
+};
 struct Main {/*private interface CExpression extends CAssignable {}*//*private List<List<JDeclaration>> environment = new JavaList<List<JDeclaration>>*/
 	List<char*> functionDeclarations;
 	List<char*> globals;
@@ -416,7 +445,7 @@ Option<R> flatMap_Option(void* _ref, F1R<T, Option<R>> mapper);
 template <typename T>
 T orElseGet_Option(void* _ref, FR<T> other);
 template <typename T>
-Stream<T> stream_Option(void* _ref);
+Stream<T> iter_Option(void* _ref);
 template <typename T>
 Option<T> or_Option(void* _ref, FR<Option<T>> other);
 template <typename T>
@@ -440,7 +469,8 @@ CFunctionDeclaration mapTypeParameters_CFunctionDeclaration(void* _ref, F1R<List
 CFunctionDeclaration mapName_CFunctionDeclaration(void* _ref, F1R<char*, char*> mapper);
 char* generate_CFunctionDeclaration(void* _ref);
 char* generate_CAssignable(void* _ref);
-CAssignable toCAssignable_Main(void* _ref);
+CAssignable toAssignable_Main(void* _ref);
+CExpression toExpression_JCaller(void* _ref);
 StringBuilder empty_StringBuilders(void* _ref);
 StringBuilder appendChar_StringBuilder(void* _ref, char next);
 StringBuilder clear_StringBuilder(void* _ref);
@@ -494,7 +524,7 @@ char* generate_Identifier(void* _ref);
 char* toString_Identifier(void* _ref);
 char* toBaseName_Identifier(void* _ref);
 CType toCType_Identifier(void* _ref);
-CExpression toCExpression_Identifier(void* _ref);
+CExpression toExpression_Identifier(void* _ref);
 char* generate_Placeholder(void* _ref);
 char* toBaseName_Placeholder(void* _ref);
 CAssignable toCAssignable_Placeholder(void* _ref);
@@ -517,7 +547,7 @@ Option<R> flatMap_Some(void* _ref, F1R<T, Option<R>> mapper);
 template <typename T>
 T orElseGet_Some(void* _ref, FR<T> other);
 template <typename T>
-Stream<T> stream_Some(void* _ref);
+Stream<T> iter_Some(void* _ref);
 template <typename T>
 Option<T> or_Some(void* _ref, FR<Option<T>> other);
 template <typename T>
@@ -531,7 +561,7 @@ Option<R> flatMap_None(void* _ref, F1R<T, Option<R>> mapper);
 template <typename T>
 T orElseGet_None(void* _ref, FR<T> other);
 template <typename T>
-Stream<T> stream_None(void* _ref);
+Stream<T> iter_None(void* _ref);
 template <typename T>
 Option<T> or_None(void* _ref, FR<Option<T>> other);
 template <typename T>
@@ -569,14 +599,17 @@ CDeclaration<> new_CDeclaration(CType type, char* name);
 CFunctionDeclaration mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper);
 CFunctionDeclaration mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
 char* generate_CDeclaration(void* _ref);
-CExpression toCExpression_JExpressionWrapper(void* _ref);
-CAssignable toCAssignable_JExpressionWrapper(void* _ref);
+CExpression toExpression_JExpressionWrapper(void* _ref);
+CAssignable toAssignable_JExpressionWrapper(void* _ref);
 char* generate_CExpressionWrapper(void* _ref);
 CType toCType_JArrayType(void* _ref);
 CType toCType_JGenericType(void* _ref);
 char* generate_CPointerAccess(void* _ref);
 char* generate_CFieldAccess(void* _ref);
-CExpression toCExpression_JMemberAccess(void* _ref);
+CExpression toExpression_JMemberAccess(void* _ref);
+CExpression toExpression_JConstruction(void* _ref);
+char* generate_CInvocation(void* _ref);
+CExpression toExpression_JInvokable(void* _ref);
 /*private List<List<JDeclaration>> environment = new JavaList<List<JDeclaration>>*/();
 Main<> new_Main();
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);
@@ -616,6 +649,7 @@ char* compileMethodStatement_Main(void* _ref, char* input);
 Option<char*> compileAssignment_Main(void* _ref, char* stripped);
 CAssignable transformAssignable_Main(void* _ref, JAssignable assignable, JExpression source);
 JType resolveExpression_Main(void* _ref, JExpression source);
+JType resolveCaller_Main(void* _ref, JCaller caller);
 Option<JType> resolveIdentifierInEnvironment_Main(void* _ref, char* identifier);
 JAssignable parseAssignable_Main(void* _ref, char* input);
 Option<char*> post_Main(void* _ref, char* stripped, char* slice);
@@ -625,11 +659,11 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input);
 Option<char*> compileLambda_Main(void* _ref, char* input);
 char* generateName_Main(void* _ref);
 Option<char*> compileOperator_Main(void* _ref, char* input, char* operator);
-Option<char*> compileInvokable_Main(void* _ref, char* stripped);
+Option<JExpression> parseInvokable_Main(void* _ref, char* stripped);
 int findCallerStart_Main(void* _ref, char* withoutEnd);
 int isNumber_Main(void* _ref, char* input);
 int allDigits_Main(void* _ref, char* input);
-Option<char*> compileCaller_Main(void* _ref, char* input);
+Option<JCaller> parseCaller_Main(void* _ref, char* input);
 Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input);
 List<char*> collectAnnotations_Main(void* _ref, char* input);
 int findTypeSeparator_Main(void* _ref, char* beforeName);
@@ -789,15 +823,15 @@ T orElseGet_Option(void* _ref, FR<T> other){
 	return _ret;
 }
 template <typename T>
-Stream<T> stream_Option(void* _ref){
+Stream<T> iter_Option(void* _ref){
 	Option<T>* _this = (Option<T>*) _ref;
 	Stream<T> _ret;
 	switch (_this->variant) {
 		case NoneVariant:
-			_ret = stream_None(&(_this->data.None));
+			_ret = iter_None(&(_this->data.None));
 			break;
 		case SomeVariant:
-			_ret = stream_Some(&(_this->data.Some));
+			_ret = iter_Some(&(_this->data.Some));
 			break;
 	}
 	return _ret;
@@ -951,12 +985,25 @@ char* generate_CAssignable(void* _ref){
 	CAssignable* _this = (CAssignable*) _ref;
 	return _this->table.generate(_this->data);
 }
-CAssignable toCAssignable_Main(void* _ref){
+CAssignable toAssignable_Main(void* _ref){
 	Main* _this = (Main*) _ref;
-	return (*_this).toCExpression();
+	return (*_this).toExpression();
 	/*}
 
-		CExpression toCExpression()*/;
+		CExpression toExpression()*/;
+}
+CExpression toExpression_JCaller(void* _ref){
+	JCaller* _this = (JCaller*) _ref;
+	CExpression _ret;
+	switch (_this->variant) {
+		case JConstructionVariant:
+			_ret = toExpression_JConstruction(&(_this->data.JConstruction));
+			break;
+		case JExpressionVariant:
+			_ret = toExpression_JExpression(&(_this->data.JExpression));
+			break;
+	}
+	return _ret;
 }
 StringBuilder empty_StringBuilders(void* _ref){
 	StringBuilders* _this = (StringBuilders*) _ref;
@@ -993,11 +1040,11 @@ Stream<R> map_Stream(void* _ref, F1R<T, R> mapper){
 	Stream<T>* _this = (Stream<T>*) _ref;
 	return new_Stream<R>(new_MapHead<T, R>((*_this).head, mapper));
 }
-auto lambda0(void* _ref, auto ()){
-	return finalCurrent;
-}
-auto lambda1(void* _ref, auto element){
+auto lambda0(void* _ref, auto element){
 	return folder.apply(finalCurrent, element);
+}
+auto lambda1(void* _ref, auto ()){
+	return finalCurrent;
 }
 template <typename R, typename T>
 R fold_Stream(void* _ref, R initial, F2R<R, T, R> folder){
@@ -1005,7 +1052,7 @@ R fold_Stream(void* _ref, R initial, F2R<R, T, R> folder){
 	R current = initial;
 	while (true) {
 		/*Undefined identifier: current*/ finalCurrent = current;
-		/*(*_this).head.next().map(lambda1).toTuple(lambda0)*/ tuple = (*_this).head.next().map(lambda1).toTuple(lambda0);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]*/ tuple = (*_this).head.next().map(lambda0).toTuple(lambda1);
 		if (tuple.left) 
 			current = tuple.right;
 		return current;
@@ -1056,7 +1103,7 @@ RangeHead<> new_RangeHead(int length){
 Option<int> next_RangeHead(void* _ref){
 	RangeHead* _this = (RangeHead*) _ref;
 	if ((*_this).counter < (*_this).length) {
-		/*Not a valid member accessPlaceholder[input=(*_this)]*/ value = (*_this).counter;
+		/*Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]*/ value = (*_this).counter;
 		(*_this).counter++;
 		return new_Some<int>(value);
 	}
@@ -1116,7 +1163,7 @@ State append_State(void* _ref, char next){
 Option<char> pop_State(void* _ref){
 	State* _this = (State*) _ref;
 	if ((*_this).index < (*_this).input.length()) {
-		/*(*_this).input.charAt((*_this).index)*/ value = (*_this).input.charAt((*_this).index);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]*/ value = (*_this).input.charAt((*_this).index);
 		(*_this).index++;
 		return new_Some<char>(value);
 	}
@@ -1143,7 +1190,7 @@ Stream<char*> stream_State(void* _ref){
 	return (*_this).segments.iter();
 }
 auto lambda3(void* _ref, auto popped){
-	/*(*_this).append(popped)*/ appended = (*_this).append(popped);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ appended = (*_this).append(popped);
 	return new_Tuple<State, char>(appended, popped);
 }
 Option<Tuple<State, char>> popAndAppendToTuple_State(void* _ref){
@@ -1185,7 +1232,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref){
 	CTemplateType* _this = (CTemplateType*) _ref;
-	/*(*_this).list.iter().map(F? { alloc(CType), F?Table { generate }}).collect(new_Joiner(", "))*/ typeArguments = (*_this).list.iter().map(F? { alloc(CType), F?Table { generate }}).collect(new_Joiner(", "));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]*/ typeArguments = (*_this).list.iter().map(F? { alloc(CType), F?Table { generate }}).collect(new_Joiner(", "));
 	return (*_this).base + " < " + typeArguments + ">";
 }
 char* toBaseName_CTemplateType(void* _ref){
@@ -1232,7 +1279,7 @@ CType toCType_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
 	return (*_this);
 }
-CExpression toCExpression_Identifier(void* _ref){
+CExpression toExpression_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
 	return (*_this);
 }
@@ -1341,7 +1388,7 @@ CStructMember toCStructMember_F1RDeclaration(void* _ref){
 }
 char* generate_F1RDeclaration(void* _ref){
 	F1RDeclaration* _this = (F1RDeclaration*) _ref;
-	/*"(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")"*/ joinedParameterTypes = "(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")";
+	/*Unwrapped expression: "(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")"*/ joinedParameterTypes = "(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")";
 	return (*_this).type.generate() + " (*" + this.name + ")" + joinedParameterTypes;
 }
 CStructMember toCStructMember_EmptyStructMember(void* _ref){
@@ -1368,17 +1415,17 @@ auto lambda5(void* _ref, auto tuple){
 State apply_EscapedFolder(void* _ref, State state, char next){
 	EscapedFolder* _this = (EscapedFolder*) _ref;
 	if (next == '\'') {
-		/*state.append(next)*/ appended = state.append(next);
+		/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ appended = state.append(next);
 		return appended.popAndAppendToTuple().map(lambda5).flatMap(F? { alloc(State), F?Table { popAndAppendToOption }}).orElse(appended);
 	}
 	if (next == '\"') {
-		/*state.append(next)*/ current = state.append(next);
+		/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ current = state.append(next);
 		while (true) {
-			/*current.popAndAppendToTuple()*/ maybeTuple = current.popAndAppendToTuple();
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: current]]*/ maybeTuple = current.popAndAppendToTuple();
 			if (!(maybeTuple.variant = ?.SomeVariant)) 
 				break;
 			current = value.left;
-			/*Not a valid member access*/ right = value.right;
+			/*Not a valid member access: */ right = value.right;
 			if (right == '\\') 
 				current = current.popAndAppendToOption().orElse(current);
 			if (right == '\"') 
@@ -1398,9 +1445,9 @@ State apply_ValueFolder(void* _ref, State state, char next){
 	ValueFolder* _this = (ValueFolder*) _ref;
 	if (next == ',' && state.isLevel()) 
 		return state.advance();
-	/*state.append(next)*/ appended = state.append(next);
+	/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ appended = state.append(next);
 	if (next == '-') {
-		/*appended.peek()*/ peeked = appended.peek();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: appended]]*/ peeked = appended.peek();
 		if (peeked.variant = ?.SomeVariant) 
 			return appended.popAndAppendToOption().orElse(appended);
 		return appended;
@@ -1439,7 +1486,7 @@ T orElseGet_Some(void* _ref, FR<T> other){
 	return (*_this).value;
 }
 template <typename T>
-Stream<T> stream_Some(void* _ref){
+Stream<T> iter_Some(void* _ref){
 	Some<T>* _this = (Some<T>*) _ref;
 	return Stream.of((*_this).value);
 }
@@ -1481,7 +1528,7 @@ T orElseGet_None(void* _ref, FR<T> other){
 	return other.apply();
 }
 template <typename T>
-Stream<T> stream_None(void* _ref){
+Stream<T> iter_None(void* _ref){
 	None<T>* _this = (None<T>*) _ref;
 	return Stream.empty();
 }
@@ -1503,7 +1550,7 @@ Folder toFolder_ConditionEndLocator(void* _ref){
 }
 State apply_ConditionEndLocator(void* _ref, State state, char c){
 	ConditionEndLocator* _this = (ConditionEndLocator*) _ref;
-	/*state.append(c)*/ appended = state.append(c);
+	/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ appended = state.append(c);
 	if (c == '(') 
 		return appended.enter();
 	if (c == ')') {
@@ -1592,11 +1639,11 @@ Option<R> next_FlatMapHead(void* _ref){
 	FlatMapHead<T, R>* _this = (FlatMapHead<T, R>*) _ref;
 	while (true) {
 		if ((*_this).maybeCurrent.variant = ?.SomeVariant) {
-			/*current.head.next()*/ next = current.head.next();
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: current]]]*/ next = current.head.next();
 			if (next.variant = ?.SomeVariant) 
 				return next;
 		}
-		/*(*_this).head.next()*/ maybeNext = (*_this).head.next();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]*/ maybeNext = (*_this).head.next();
 		if (maybeNext.variant = ?.NoneVariant) 
 			return new_None<R>();
 		(*_this).maybeCurrent = maybeNext.map((*_this).mapper);
@@ -1696,7 +1743,7 @@ CFunctionDeclaration mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>,
 }
 char* generate_CDeclaration(void* _ref){
 	CDeclaration* _this = (CDeclaration*) _ref;
-	/*generateTemplateString((*_this).typeParameters)*/ template = generateTemplateString((*_this).typeParameters);
+	/*Not a functional type: Placeholder[input=Undefined identifier: generateTemplateString]*/ template = generateTemplateString((*_this).typeParameters);
 	return template + (*_this).type.generate() + " " + (*_this).name;
 }
 JExpression toJExpression_JExpressionWrapper(void* _ref){
@@ -1711,11 +1758,11 @@ JAssignable toJAssignable_JExpressionWrapper(void* _ref){
 	data.JExpressionWrapper = _this;
 	return { JExpressionWrapperVariant, data };
 }
-CExpression toCExpression_JExpressionWrapper(void* _ref){
+CExpression toExpression_JExpressionWrapper(void* _ref){
 	JExpressionWrapper* _this = (JExpressionWrapper*) _ref;
 	return new_CExpressionWrapper((*_this).content);
 }
-CAssignable toCAssignable_JExpressionWrapper(void* _ref){
+CAssignable toAssignable_JExpressionWrapper(void* _ref){
 	JExpressionWrapper* _this = (JExpressionWrapper*) _ref;
 	return new_CExpressionWrapper((*_this).content);
 }
@@ -1747,7 +1794,7 @@ JType toJType_JGenericType(void* _ref){
 }
 CType toCType_JGenericType(void* _ref){
 	JGenericType* _this = (JGenericType*) _ref;
-	/*(*_this).typeArguments.iter().map(F? { alloc(Main), F?Table { transformType }}).toList()*/ newTypeArguments = (*_this).typeArguments.iter().map(F? { alloc(Main), F?Table { transformType }}).toList();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]*/ newTypeArguments = (*_this).typeArguments.iter().map(F? { alloc(Main), F?Table { transformType }}).toList();
 	return new_CTemplateType((*_this).base, newTypeArguments);
 }
 CExpression toCExpression_CPointerAccess(void* _ref){
@@ -1776,12 +1823,51 @@ JExpression toJExpression_JMemberAccess(void* _ref){
 	data.JMemberAccess = _this;
 	return { JMemberAccessVariant, data };
 }
-CExpression toCExpression_JMemberAccess(void* _ref){
+CExpression toExpression_JMemberAccess(void* _ref){
 	JMemberAccess* _this = (JMemberAccess*) _ref;
-	/*(*_this).instance.toCExpression()*/ cExpression = (*_this).instance.toCExpression();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]*/ cExpression = (*_this).instance.toExpression();
 	if ((*_this).instance.variant = ?.Identifier(var value) && value.equals("this")Variant) 
 		return new_CPointerAccess(new_Identifier("_this"), (*_this).memberName);
 	/*else return new CFieldAccess(cExpression, this.memberName)*/;
+}
+JCaller toJCaller_JConstruction(void* _ref){
+	JConstruction _this = *((JConstruction*) _ref);
+	JCallerData data;
+	data.JConstruction = _this;
+	return { JConstructionVariant, data };
+}
+CExpression toExpression_JConstruction(void* _ref){
+	JConstruction* _this = (JConstruction*) _ref;
+	return new_Identifier("new_" + transformType((*_this).jType).generate());
+}
+CExpression toCExpression_CInvocation(void* _ref){
+	CInvocation _this = *((CInvocation*) _ref);
+	CExpressionData data;
+	data.CInvocation = _this;
+	return { CInvocationVariant, data };
+}
+char* generate_CInvocation(void* _ref){
+	CInvocation* _this = (CInvocation*) _ref;
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]]*/ joinedArguments = (*_this).cArguments().iter().map(F? { alloc(CAssignable), F?Table { generate }}).collect(new_Joiner(", "));
+	return (*_this).expression().generate() + "(" + joinedArguments + ")";
+}
+JExpression toJExpression_JInvokable(void* _ref){
+	JInvokable _this = *((JInvokable*) _ref);
+	JExpressionData data;
+	data.JInvokable = _this;
+	return { JInvokableVariant, data };
+}
+CExpression toExpression_JInvokable(void* _ref){
+	JInvokable* _this = (JInvokable*) _ref;
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]]*/ cArguments = (*_this).arguments().iter().map(F? { alloc(JExpression), F?Table { toExpression }}).toList();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]*/ expression = (*_this).caller().toExpression();
+	return new_CInvocation(expression, cArguments);
+}
+JType toJType_JFunctionalType(void* _ref){
+	JFunctionalType _this = *((JFunctionalType*) _ref);
+	JTypeData data;
+	data.JFunctionalType = _this;
+	return { JFunctionalTypeVariant, data };
 }
 /*private List<List<JDeclaration>> environment = new JavaList<List<JDeclaration>>*/(){?
 }
@@ -1803,14 +1889,14 @@ char* generateTemplateString_Main(void* _ref, List<char*> typeParameters){
 	if (typeParameters.isEmpty()) 
 		templateString = "";
 	else {
-		/*typeParameters.iter().map(lambda8).collect(new_Joiner(", "))*/ typeNames = typeParameters.iter().map(lambda8).collect(new_Joiner(", "));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@45fe3ee3]]]]]]*/ typeNames = typeParameters.iter().map(lambda8).collect(new_Joiner(", "));
 		templateString = "template <" + typeNames + ">" + System.lineSeparator();
 	}
 	return templateString;
 }
 char* wrap_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.replace("start", "start").replace("end", "end")*/ replaced = input.replace("/*", "start").replace("*/", "end");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ replaced = input.replace("/*", "start").replace("*/", "end");
 	return "/*" + replaced + "*/";
 }
 void main_Main(void* _ref, char** args){
@@ -1836,18 +1922,18 @@ CType transformPrimitiveType_Main(void* _ref, JPrimitiveType type){
 }
 Option<IOError> run_Main(void* _ref){
 	Main* _this = (Main*) _ref;
-	/*Paths.get(".", "src", "main", "java", "magma", "Main.java")*/ source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-	/*source.resolveSibling("Main.cpp")*/ target = source.resolveSibling("Main.cpp");
-	/*source.readString().mapValue(F? { alloc((*_this)), F?Table { compile }})*/ input = source.readString().mapValue(F? { alloc((*_this)), F?Table { compile }});
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Paths]]*/ source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: source]]*/ target = source.resolveSibling("Main.cpp");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: source]]]]*/ input = source.readString().mapValue(F? { alloc((*_this)), F?Table { compile }});
 	return _switch;
 }
 char* compile_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*(*_this).compileStatements(input, F? { alloc((*_this)), F?Table { compileRootSegment }})*/ all = (*_this).compileStatements(input, F? { alloc((*_this)), F?Table { compileRootSegment }});
-	/*(*_this).joinStrings("", (*_this).structures)*/ joinedStructures = (*_this).joinStrings("", (*_this).structures);
-	/*(*_this).joinStrings("", (*_this).globals)*/ joinedGlobals = (*_this).joinStrings("", (*_this).globals);
-	/*(*_this).joinStrings("", (*_this).functionDeclarations)*/ joinedFunctionDeclarations = (*_this).joinStrings("", (*_this).functionDeclarations);
-	/*(*_this).joinStrings("", (*_this).functions)*/ joinedFunctions = (*_this).joinStrings("", (*_this).functions);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ all = (*_this).compileStatements(input, F? { alloc((*_this)), F?Table { compileRootSegment }});
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ joinedStructures = (*_this).joinStrings("", (*_this).structures);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ joinedGlobals = (*_this).joinStrings("", (*_this).globals);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ joinedFunctionDeclarations = (*_this).joinStrings("", (*_this).functionDeclarations);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ joinedFunctions = (*_this).joinStrings("", (*_this).functions);
 	return joinedStructures + joinedGlobals + joinedFunctionDeclarations + joinedFunctions + all;
 }
 char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures){
@@ -1864,9 +1950,9 @@ char* compileAll_Main(void* _ref, char* input, F1R<char*, char*> mapper, Folder 
 }
 Stream<char*> divide_Main(void* _ref, char* input, Folder folder){
 	Main* _this = (Main*) _ref;
-	/*new_State(input)*/ current = new_State(input);
+	State current = new_State(input);
 	while (true) {
-		/*current.pop()*/ maybeNext = current.pop();
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ maybeNext = current.pop();
 		if (!(maybeNext.variant = ?.SomeVariant)) 
 			break;
 		char next;
@@ -1878,14 +1964,14 @@ Stream<char*> divide_Main(void* _ref, char* input, Folder folder){
 State foldStatement_Main(void* _ref, State current, char next){
 	Main* _this = (Main*) _ref;
 	if (next == '/' && current.isLevel()) {
-		/*current.peek()*/ maybePeeked = current.peek();
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ maybePeeked = current.peek();
 		if (maybePeeked.variant = ?.SomeVariant) {
-			/*current.append('/').popAndAppendToOption().orElse(current)*/ withoutLineCommentPrefix = current.append('/').popAndAppendToOption().orElse(current);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]]]*/ withoutLineCommentPrefix = current.append('/').popAndAppendToOption().orElse(current);
 			while (true) {
-				/*withoutLineCommentPrefix.popAndAppendToTuple()*/ maybeTuple = withoutLineCommentPrefix.popAndAppendToTuple();
+				/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: withoutLineCommentPrefix]]*/ maybeTuple = withoutLineCommentPrefix.popAndAppendToTuple();
 				if (maybeTuple.variant = ?.SomeVariant) {
 					withoutLineCommentPrefix = tuple.left;
-					/*Not a valid member accessPlaceholder[input=Undefined identifier: tuple]*/ right = tuple.right;
+					/*Not a valid member access: Placeholder[input=Undefined identifier: tuple]*/ right = tuple.right;
 					if (right == '\r' || right == '\n') 
 						withoutLineCommentPrefix = withoutLineCommentPrefix.advance();
 				}
@@ -1893,7 +1979,7 @@ State foldStatement_Main(void* _ref, State current, char next){
 			}
 		}
 	}
-	/*current.append(next)*/ appended = current.append(next);
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ appended = current.append(next);
 	if (next == ';' && appended.isLevel()) 
 		return appended.advance();
 	if (next == '}' && appended.isShallow()) {
@@ -1914,21 +2000,21 @@ auto lambda9(void* _ref, auto ()){
 }
 char* compileRootSegment_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = input.strip();
 	if (stripped.isEmpty()) 
 		return "";
 	if (stripped.startsWith("package ") || stripped.startsWith("import ")) 
 		return "";
 	return (*_this).compileStructure("class", stripped).map(F? { alloc(CStructMember), F?Table { generate }}).orElseGet(lambda9);
 }
-auto lambda10(void* _ref, auto input){
-	return transformType((*_this).parseType(input));
+auto lambda10(void* _ref, auto (state, character)){
+	return new_ValueFolder().apply(state, character);
 }
 auto lambda11(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda12(void* _ref, auto (state, character)){
-	return new_ValueFolder().apply(state, character);
+auto lambda12(void* _ref, auto input){
+	return transformType((*_this).parseType(input));
 }
 auto lambda13(void* _ref, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
@@ -1953,114 +2039,114 @@ auto lambda19(void* _ref, auto member){
 }
 Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripped){
 	Main* _this = (Main*) _ref;
-	/*stripped.indexOf(type + " ")*/ i = stripped.indexOf(type + " ");
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ i = stripped.indexOf(type + " ");
 	if (i < 0) 
 		return new_None<CStructMember>();
-	/*stripped.substring(0, i).strip()*/ beforeType = stripped.substring(0, i).strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ beforeType = stripped.substring(0, i).strip();
 	char* modifiers;
 	List<char*> annotations = Lists.empty();
-	/*beforeType.lastIndexOf("\n")*/ i5 = beforeType.lastIndexOf("\n");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeType]]*/ i5 = beforeType.lastIndexOf("\n");
 	if (i5 >= 0) {
-		/*beforeType.substring(0, i5)*/ substring = beforeType.substring(0, i5);
-		/*beforeType.substring(i5 + 1)*/ substring1 = beforeType.substring(i5 + 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeType]]*/ substring = beforeType.substring(0, i5);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeType]]*/ substring1 = beforeType.substring(i5 + 1);
 		annotations = (*_this).collectAnnotations(substring);
 		modifiers = substring1;
 	}
 	else modifiers = beforeType;
 	if (annotations.contains("Actual")) 
 		return new_Some<CStructMember>(new_EmptyStructMember());
-	/*stripped.substring(i + (type + " ").length()).strip()*/ afterKeyword = stripped.substring(i + (type + " ").length()).strip();
-	/*afterKeyword.indexOf("{")*/ i1 = afterKeyword.indexOf("{");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ afterKeyword = stripped.substring(i + (type + " ").length()).strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: afterKeyword]]*/ i1 = afterKeyword.indexOf("{");
 	if (i1 < 0) 
 		return new_None<CStructMember>();
-	/*afterKeyword.substring(0, i1).strip()*/ beforeContent = afterKeyword.substring(0, i1).strip();
-	/*afterKeyword.substring(i1 + 1).strip()*/ withEnd = afterKeyword.substring(i1 + 1).strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: afterKeyword]]]]*/ beforeContent = afterKeyword.substring(0, i1).strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: afterKeyword]]]]*/ withEnd = afterKeyword.substring(i1 + 1).strip();
 	if (!withEnd.endsWith("}")) 
 		return new_None<CStructMember>();
-	/*withEnd.substring(0, withEnd.length() - 1)*/ inputContent = withEnd.substring(0, withEnd.length() - 1);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: withEnd]]*/ inputContent = withEnd.substring(0, withEnd.length() - 1);
 	List<char*> variants = Lists.empty();
-	/*beforeContent.indexOf("permits ")*/ i2 = beforeContent.indexOf("permits ");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeContent]]*/ i2 = beforeContent.indexOf("permits ");
 	if (i2 >= 0) {
-		/*beforeContent.substring(i2 + "permits ".length())*/ substring1 = beforeContent.substring(i2 + "permits ".length());
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeContent]]*/ substring1 = beforeContent.substring(i2 + "permits ".length());
 		beforeContent = beforeContent.substring(0, i2);
 		variants = (*_this).splitValues(substring1);
 	}
 	List<CType> implementees = Lists.empty();
-	/*beforeContent.indexOf("implements ")*/ i4 = beforeContent.indexOf("implements ");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeContent]]*/ i4 = beforeContent.indexOf("implements ");
 	if (i4 >= 0) {
-		/*beforeContent.substring(i4 + "implements ".length())*/ implementeesString = beforeContent.substring(i4 + "implements ".length());
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeContent]]*/ implementeesString = beforeContent.substring(i4 + "implements ".length());
 		beforeContent = beforeContent.substring(0, i4).strip();
-		implementees = (*_this).divide(implementeesString, lambda12).map(F? { alloc(String), F?Table { strip }}).filter(lambda11).map(lambda10).toList();
+		implementees = (*_this).divide(implementeesString, lambda10).map(F? { alloc(String), F?Table { strip }}).filter(lambda11).map(lambda12).toList();
 	}
 	List<JDeclaration> recordFields = Lists.empty();
 	if (beforeContent.endsWith(")")) {
-		/*beforeContent.substring(0, beforeContent.length() - 1)*/ substring = beforeContent.substring(0, beforeContent.length() - 1);
-		/*substring.indexOf("(")*/ i3 = substring.indexOf("(");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeContent]]*/ substring = beforeContent.substring(0, beforeContent.length() - 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]*/ i3 = substring.indexOf("(");
 		if (i3 >= 0) {
 			beforeContent = substring.substring(0, i3);
-			recordFields = (*_this).divide(substring.substring(i3 + 1), lambda13).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+			recordFields = (*_this).divide(substring.substring(i3 + 1), lambda13).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { iter }}).toList();
 		}
 	}
 	List<char*> typeParameters = Lists.empty();
-	/*beforeContent.indexOf(" < ")*/ i3 = beforeContent.indexOf(" < ");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeContent]]*/ i3 = beforeContent.indexOf(" < ");
 	if (i3 >= 0) {
-		/*beforeContent.substring(i3 + 1).strip()*/ substring1 = beforeContent.substring(i3 + 1).strip();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeContent]]]]*/ substring1 = beforeContent.substring(i3 + 1).strip();
 		if (substring1.endsWith(">")) {
 			beforeContent = beforeContent.substring(0, i3);
-			/*substring1.substring(0, substring1.length() - 1)*/ substring = substring1.substring(0, substring1.length() - 1);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring1]]*/ substring = substring1.substring(0, substring1.length() - 1);
 			typeParameters = (*_this).splitValues(substring);
 		}
 	}
 	if (!(*_this).isIdentifier(beforeContent)) 
 		return new_None<CStructMember>();
-	/*Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList()*/ modifiersList = Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList();
-	/*beforeContent.strip()*/ name = beforeContent.strip();
-	/*generateTemplateString(typeParameters)*/ templateString = generateTemplateString(typeParameters);
-	/*(*_this).joinTypeParameters(typeParameters)*/ joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
-	/*StringBuilders.empty()*/ fields = StringBuilders.empty();
-	/*StringBuilders.empty()*/ dependencies = StringBuilders.empty();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Streams]]]]]]]]*/ modifiersList = Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeContent]]*/ name = beforeContent.strip();
+	/*Not a functional type: Placeholder[input=Undefined identifier: generateTemplateString]*/ templateString = generateTemplateString(typeParameters);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: StringBuilders]]*/ fields = StringBuilders.empty();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: StringBuilders]]*/ dependencies = StringBuilders.empty();
 	(*_this).functions = implementees.iter().map(lambda15).fold((*_this).functions, F? { alloc(List), F?Table { addLast }});
-	/*recordFields.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).map(F? { alloc(CDeclaration), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner())*/ joinedRecordFields = recordFields.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).map(F? { alloc(CDeclaration), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner());
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: recordFields]]]]]]]]]]*/ joinedRecordFields = recordFields.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).map(F? { alloc(CDeclaration), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner());
 	List<char*> finalTypeParameters = typeParameters;
 	/*Undefined identifier: variants*/ finalVariants = variants;
-	/*(*_this).divide(inputContent, new_EscapedFolder(F? { alloc((*_this)), F?Table { foldStatement }})).map(lambda16).flatMap(F? { alloc(Option), F?Table { stream }}).toList()*/ members = (*_this).divide(inputContent, new_EscapedFolder(F? { alloc((*_this)), F?Table { foldStatement }})).map(lambda16).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]]*/ members = (*_this).divide(inputContent, new_EscapedFolder(F? { alloc((*_this)), F?Table { foldStatement }})).map(lambda16).flatMap(F? { alloc(Option), F?Table { iter }}).toList();
 	if (modifiersList.contains("sealed")) {
-		/*variants.iter().map(lambda17).collect(new_Joiner(","))*/ enumFields = variants.iter().map(lambda17).collect(new_Joiner(","));
-		/*"enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator()*/ generatedEnum = "enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
-		/*variants.iter().map(lambda18).collect(new_Joiner())*/ unionFields = variants.iter().map(lambda18).collect(new_Joiner());
-		/*templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator()*/ generatedUnion = templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
-		/*name + "Variant variant"*/ s = name + "Variant variant";
-		/*name + "Data" + joinedTypeParameters + " data"*/ s1 = name + "Data" + joinedTypeParameters + " data";
-		/*(*_this).generateStatement(s) + (*_this).generateStatement(s1)*/ generatedFields = (*_this).generateStatement(s) + (*_this).generateStatement(s1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: variants]]]]]]*/ enumFields = variants.iter().map(lambda17).collect(new_Joiner(","));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: "enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System]]*/ generatedEnum = "enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: variants]]]]]]*/ unionFields = variants.iter().map(lambda18).collect(new_Joiner());
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System]]*/ generatedUnion = templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
+		/*Unwrapped expression: name + "Variant variant"*/ s = name + "Variant variant";
+		/*Unwrapped expression: name + "Data" + joinedTypeParameters + " data"*/ s1 = name + "Data" + joinedTypeParameters + " data";
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this).generateStatement(s) + (*_this)]]*/ generatedFields = (*_this).generateStatement(s) + (*_this).generateStatement(s1);
 		fields = fields.appendString(generatedFields);
 		dependencies = dependencies.appendString(generatedEnum).appendString(generatedUnion);
 	}
 	else 
 	if (type.equals("interface")) {
-		/*(*_this).generateStatement(name + "Table" + joinedTypeParameters + " table")*/ table = (*_this).generateStatement(name + "Table" + joinedTypeParameters + " table");
-		/*(*_this).generateStatement("void* data")*/ data = (*_this).generateStatement("void* data");
-		/*members.iter().map(F? { alloc(CStructMember), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""))*/ tableMembers = members.iter().map(F? { alloc(CStructMember), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""));
-		/*templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator()*/ vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ table = (*_this).generateStatement(name + "Table" + joinedTypeParameters + " table");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ data = (*_this).generateStatement("void* data");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: members]]]]]]]]*/ tableMembers = members.iter().map(F? { alloc(CStructMember), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" + System]]*/ vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator();
 		dependencies = dependencies.appendString(vTable);
 		fields = fields.appendString(table).appendString(data);
 	}
 	else {
-		/*members.iter().filter(lambda19).map(F? { alloc(CStructMember), F?Table { generate }}).collect(new_Joiner())*/ joinedMembers = members.iter().filter(lambda19).map(F? { alloc(CStructMember), F?Table { generate }}).collect(new_Joiner());
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: members]]]]]]]]*/ joinedMembers = members.iter().filter(lambda19).map(F? { alloc(CStructMember), F?Table { generate }}).collect(new_Joiner());
 		fields = fields.appendString(joinedMembers);
 	}
-	/*dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator()*/ generated = dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System]]*/ generated = dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator();
 	(*_this).structures = (*_this).structures.addLast(generated);
 	return new_Some<CStructMember>(new_EmptyStructMember());
 }
 char* getString_Main(void* _ref, CType implementee, char* name, char* joinedTypeParameters, char* templateString){
 	Main* _this = (Main*) _ref;
-	/*implementee.toBaseName()*/ identifier = implementee.toBaseName();
-	/*name + joinedTypeParameters*/ thisType = name + joinedTypeParameters;
-	/*(*_this).generateStatement(thisType + " _this = *((" + thisType + "*) _ref)")*/ s = (*_this).generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
-	/*(*_this).generateStatement(identifier + "Data" + joinedTypeParameters + " data")*/ s1 = (*_this).generateStatement(identifier + "Data" + joinedTypeParameters + " data");
-	/*(*_this).generateStatement("data." + name + " = _this")*/ s2 = (*_this).generateStatement("data." + name + " = _this");
-	/*(*_this).generateStatement("return { " + name + "Variant, data }")*/ s3 = (*_this).generateStatement("return { " + name + "Variant, data }");
-	/*s + s1 + s2 + s3*/ conversionF1RContent = s + s1 + s2 + s3;
+	/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ identifier = implementee.toBaseName();
+	/*Unwrapped expression: name + joinedTypeParameters*/ thisType = name + joinedTypeParameters;
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ s = (*_this).generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ s1 = (*_this).generateStatement(identifier + "Data" + joinedTypeParameters + " data");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ s2 = (*_this).generateStatement("data." + name + " = _this");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ s3 = (*_this).generateStatement("return { " + name + "Variant, data }");
+	/*Unwrapped expression: s + s1 + s2 + s3*/ conversionF1RContent = s + s1 + s2 + s3;
 	return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _ref){" + conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
 }
 char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters){
@@ -2080,46 +2166,46 @@ auto lambda20(void* _ref, auto slice){
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.split(Pattern.quote(","))*/ segments = input.split(Pattern.quote(","));
-	/*Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda20).toList()*/ list = Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda20).toList();
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ segments = input.split(Pattern.quote(","));
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: Arrays]]]]]]]]*/ list = Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda20).toList();
 	return new_JavaList<char*>(list);
 }
 auto lambda21(void* _ref, auto i){
-	/*stripped.charAt(i)*/ c = stripped.charAt(i);
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ c = stripped.charAt(i);
 	return Character.isLetter(c) || (i != 0 && Character.isDigit(c));
 }
 int isIdentifier_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = input.strip();
 	return IntStream.range(0, stripped.length()).allMatch(lambda21);
 }
 Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = input.strip();
 	if (stripped.isEmpty()) 
 		return new_None<CStructMember>();
-	/*(*_this).compileStructure("enum", input)*/ maybeEnum = (*_this).compileStructure("enum", input);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeEnum = (*_this).compileStructure("enum", input);
 	if (maybeEnum.variant = ?.SomeVariant) 
 		return maybeEnum;
-	/*(*_this).compileStructure("interface", input)*/ maybeInterface = (*_this).compileStructure("interface", input);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeInterface = (*_this).compileStructure("interface", input);
 	if (maybeInterface.variant = ?.SomeVariant) 
 		return maybeInterface;
-	/*(*_this).compileStructure("record", input)*/ maybeRecord = (*_this).compileStructure("record", input);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeRecord = (*_this).compileStructure("record", input);
 	if (maybeRecord.variant = ?.SomeVariant) 
 		return maybeRecord;
-	/*(*_this).compileStructure("class", input)*/ maybeClass = (*_this).compileStructure("class", input);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeClass = (*_this).compileStructure("class", input);
 	if (maybeClass.variant = ?.SomeVariant) 
 		return maybeClass;
-	/*(*_this).compileEnumValues(input, structName)*/ maybeEnumValues = (*_this).compileEnumValues(input, structName);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeEnumValues = (*_this).compileEnumValues(input, structName);
 	if (maybeEnumValues.variant = ?.SomeVariant) 
 		return maybeEnumValues;
 	if (stripped.endsWith(";")) {
-		/*stripped.substring(0, stripped.length() - 1)*/ substring = stripped.substring(0, stripped.length() - 1);
-		/*(*_this).parseDeclaration(substring)*/ maybeDeclaration = (*_this).parseDeclaration(substring);
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring = stripped.substring(0, stripped.length() - 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeDeclaration = (*_this).parseDeclaration(substring);
 		if (maybeDeclaration.variant = ?.SomeVariant) 
 			return new_Some<CStructMember>(new_CField(declaration.toCDeclaration()));
 	}
-	/*(*_this).compileMethod(structName, typeParameters, variants, stripped)*/ maybeMethod = (*_this).compileMethod(structName, typeParameters, variants, stripped);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeMethod = (*_this).compileMethod(structName, typeParameters, variants, stripped);
 	if (maybeMethod.variant = ?.SomeVariant) 
 		return maybeMethod;
 	return new_Some<CStructMember>(new_Placeholder(stripped));
@@ -2138,70 +2224,70 @@ auto lambda25(void* _ref, auto variant){
 }
 auto lambda26(void* _ref){
 	if (variants.isEmpty()) {
-		/*finalParameters.subList(1, finalParameters.size()).iter().map(lambda24).toList().addFirst("_this->data").iter().collect(new_Joiner(", "))*/ joinedParameters = finalParameters.subList(1, finalParameters.size()).iter().map(lambda24).toList().addFirst("_this->data").iter().collect(new_Joiner(", "));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: finalParameters]]]]]]]]]]]]]]*/ joinedParameters = finalParameters.subList(1, finalParameters.size()).iter().map(lambda24).toList().addFirst("_this->data").iter().collect(new_Joiner(", "));
 		return (*_this).generateStatement("return _this->table." + declaration.name + "(" + joinedParameters + ")");
 	}
 	else {
-		/*(*_this).generateStatement(transformType(declaration.type).generate() + " _ret")*/ returnValueDefinition = (*_this).generateStatement(transformType(declaration.type).generate() + " _ret");
-		/*variants.iter().map(lambda25).collect(new_Joiner())*/ cases = variants.iter().map(lambda25).collect(new_Joiner());
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ returnValueDefinition = (*_this).generateStatement(transformType(declaration.type).generate() + " _ret");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: JGenericType[base=List, typeArguments=magma.Main$JavaList@4c98385c]]]]]]*/ cases = variants.iter().map(lambda25).collect(new_Joiner());
 		return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases + generateIndent(1) + "}" + (*_this).generateStatement("return _ret");
 	}
 }
-auto lambda27(void* _ref, auto name){
-	return name + "_" + structName;
-}
-auto lambda28(void* _ref, auto typeParameters0){
+auto lambda27(void* _ref, auto typeParameters0){
 	return typeParameters0.addAll(typeParameters);
+}
+auto lambda28(void* _ref, auto name){
+	return name + "_" + structName;
 }
 Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.indexOf("(")*/ i = input.indexOf("(");
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ i = input.indexOf("(");
 	if (i < 0) 
 		return new_None<CStructMember>();
-	/*input.substring(0, i)*/ declarationString = input.substring(0, i);
-	/*input.substring(i + 1)*/ substring1 = input.substring(i + 1);
-	/*substring1.indexOf(")")*/ i1 = substring1.indexOf(")");
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ declarationString = input.substring(0, i);
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring1 = input.substring(i + 1);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring1]]*/ i1 = substring1.indexOf(")");
 	if (i1 < 0) 
 		return new_None<CStructMember>();
-	/*substring1.substring(0, i1)*/ parametersString = substring1.substring(0, i1);
-	/*substring1.substring(i1 + 1).strip()*/ withBraces = substring1.substring(i1 + 1).strip();
-	/*(*_this).divide(parametersString, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda22).toList().iter().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList()*/ parameters = (*_this).divide(parametersString, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda22).toList().iter().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring1]]*/ parametersString = substring1.substring(0, i1);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring1]]]]*/ withBraces = substring1.substring(i1 + 1).strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]]]]]]]]]]*/ parameters = (*_this).divide(parametersString, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda22).toList().iter().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { iter }}).toList();
 	(*_this).environment = (*_this).environment.addLast(parameters);
-	/*parameters.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).toList()*/ cParameters = parameters.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).toList();
-	/*(*_this).parseMethodDeclaration(declarationString, structName)*/ methodDeclaration = (*_this).parseMethodDeclaration(declarationString, structName);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: parameters]]]]]]*/ cParameters = parameters.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).toList();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ methodDeclaration = (*_this).parseMethodDeclaration(declarationString, structName);
 	Option<char*> maybeCompiled = new_None<char*>();
 	if (methodDeclaration.variant = ?.JDeclaration declaration && declaration.annotations.contains("Actual")Variant) {
-		/*cParameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "))*/ compiledParameters = cParameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
-		/*declaration.mapName(lambda23).toCDeclaration()*/ modifiedMethodDeclaration = declaration.mapName(lambda23).toCDeclaration();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: cParameters]]]]]]*/ compiledParameters = cParameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: declaration]]]]*/ modifiedMethodDeclaration = declaration.mapName(lambda23).toCDeclaration();
 		(*_this).functionDeclarations = (*_this).functionDeclarations.addLast(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
 		return new_Some<CStructMember>(new_EmptyStructMember());
 	}
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-		/*withBraces.substring(1, withBraces.length() - 1)*/ inputContent = withBraces.substring(1, withBraces.length() - 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: withBraces]]*/ inputContent = withBraces.substring(1, withBraces.length() - 1);
 		maybeCompiled = new_Some<char*>((*_this).compileMethodsSegments(inputContent, 1));
 	}
 	char* outputContent;
 	if (methodDeclaration.variant = ?.JConstructorVariant) {
-		/*maybeCompiled.orElse("?")*/ compiled = maybeCompiled.orElse("?");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: maybeCompiled]]*/ compiled = maybeCompiled.orElse("?");
 		outputContent = (*_this).generateStatement(structName + " _this") + compiled + (*_this).generateStatement("return " + "_this");
 	}
 	else 
 	if (methodDeclaration.variant = ?.JDeclaration declarationVariant) {
 		cParameters = cParameters.addFirst(new_CDeclaration(new_CPointerType(CPrimitiveType.Void), "_ref"));
-		/*(*_this).joinTypeParameters(typeParameters)*/ joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
-		/*(*_this).generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref")*/ thisInitialization = (*_this).generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ thisInitialization = (*_this).generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 		/*Undefined identifier: cParameters*/ finalParameters = cParameters;
 		outputContent = thisInitialization + maybeCompiled.orElseGet(lambda26);
 	}
 	else outputContent = "?";
-	/*cParameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "))*/ compiledParameters = cParameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
-	/*_switch*/ modifiedMethodDeclaration = _switch;
-	/*modifiedMethodDeclaration.mapTypeParameters(lambda28).mapName(lambda27)*/ mapped = modifiedMethodDeclaration.mapTypeParameters(lambda28).mapName(lambda27);
-	/*mapped.generate() + "(" + compiledParameters + ")"*/ header = mapped.generate() + "(" + compiledParameters + ")";
-	/*header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator()*/ generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: cParameters]]]]]]*/ compiledParameters = cParameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
+	/*Unwrapped expression: _switch*/ modifiedMethodDeclaration = _switch;
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: modifiedMethodDeclaration]]]]*/ mapped = modifiedMethodDeclaration.mapTypeParameters(lambda27).mapName(lambda28);
+	/*Unwrapped expression: mapped.generate() + "(" + compiledParameters + ")"*/ header = mapped.generate() + "(" + compiledParameters + ")";
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: header + "{" + outputContent + System.lineSeparator() + "}" + System]]*/ generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 	(*_this).functionDeclarations = (*_this).functionDeclarations.addLast(header + ";" + System.lineSeparator());
 	(*_this).functions = (*_this).functions.addLast(generated);
-	/*cParameters.iter().map(F? { alloc(CDeclaration), F?Table { type }}).toList()*/ parameterTypes = cParameters.iter().map(F? { alloc(CDeclaration), F?Table { type }}).toList();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: cParameters]]]]]]*/ parameterTypes = cParameters.iter().map(F? { alloc(CDeclaration), F?Table { type }}).toList();
 	return _switch;
 }
 CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParameters){
@@ -2223,14 +2309,14 @@ char* generateCase_Main(void* _ref, JDeclaration declaration, char* variant){
 	return generateIndent(2) + "case " + variant + "Variant:" + generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&(_this->data." + variant + "))") + generateStatement(3, "break");
 }
 auto lambda30(void* _ref, auto ()){
-	return new_Placeholder(declaration);
+	return (*_this).parseDeclaration(declaration).map(F? { alloc((*_this)), F?Table { toInterface }});
 }
 auto lambda31(void* _ref, auto ()){
-	return (*_this).parseDeclaration(declaration).map(F? { alloc((*_this)), F?Table { toInterface }});
+	return new_Placeholder(declaration);
 }
 JMethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	return (*_this).parseConstructor(declaration, structName).or(lambda31).orElseGet(lambda30);
+	return (*_this).parseConstructor(declaration, structName).or(lambda30).orElseGet(lambda31);
 }
 JMethodDeclaration toInterface_Main(void* _ref, JDeclaration value){
 	Main* _this = (Main*) _ref;
@@ -2238,40 +2324,34 @@ JMethodDeclaration toInterface_Main(void* _ref, JDeclaration value){
 }
 Option<JMethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	/*declaration.strip()*/ stripped = declaration.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: ]*/ stripped = declaration.strip();
 	if (stripped.equals(structName)) 
 		return new_Some<JMethodDeclaration>(new_JConstructor(structName));
-	/*stripped.lastIndexOf(" ")*/ i = stripped.lastIndexOf(" ");
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ i = stripped.lastIndexOf(" ");
 	if (i >= 0) {
-		/*stripped.substring(i + 1).strip()*/ substring = stripped.substring(i + 1).strip();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = stripped.substring(i + 1).strip();
 		if (substring.equals(structName)) 
 			return new_Some<JMethodDeclaration>(new_JConstructor(structName));
 	}
 	return new_None<JMethodDeclaration>();
 }
-auto lambda32(void* _ref, auto slice){
-	return !slice.isEmpty();
-}
-auto lambda33(void* _ref, auto (state, character)){
+auto lambda32(void* _ref, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
+}
+auto lambda33(void* _ref, auto slice){
+	return !slice.isEmpty();
 }
 auto lambda34(void* _ref, auto enumValue){
 	return (*_this).compileEnumValue(structName, enumValue);
 }
-auto lambda35(void* _ref, auto option){
-	return option.variant = ?.NoneVariant;
-}
-auto lambda36(void* _ref, auto option){
-	return option.variant = ?.NoneVariant;
-}
 Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* structName){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = input.strip();
 	if (!stripped.endsWith(";")) 
 		return new_None<CStructMember>();
-	/*(*_this).divide(stripped.substring(0, stripped.length() - 1), lambda33).map(F? { alloc(String), F?Table { strip }}).filter(lambda32).toList()*/ enumValues = (*_this).divide(stripped.substring(0, stripped.length() - 1), lambda33).map(F? { alloc(String), F?Table { strip }}).filter(lambda32).toList();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]]*/ enumValues = (*_this).divide(stripped.substring(0, stripped.length() - 1), lambda32).map(F? { alloc(String), F?Table { strip }}).filter(lambda33).toList();
 	if (!enumValues.isEmpty()) {
-		/*enumValues.iter().map(lambda34)*/ optionStream = enumValues.iter().map(lambda34);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: enumValues]]]]*/ optionStream = enumValues.iter().map(lambda34);
 		/*final var areAnyInvalid =
 					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>))*/;
 		if (areAnyInvalid) 
@@ -2282,14 +2362,14 @@ Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* stru
 Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue){
 	Main* _this = (Main*) _ref;
 	if (enumValue.endsWith(")")) {
-		/*enumValue.substring(0, enumValue.length() - 1)*/ substring = enumValue.substring(0, enumValue.length() - 1);
-		/*substring.indexOf("(")*/ i = substring.indexOf("(");
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring = enumValue.substring(0, enumValue.length() - 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]*/ i = substring.indexOf("(");
 		if (i >= 0) {
-			/*substring.substring(0, i)*/ name = substring.substring(0, i);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]*/ name = substring.substring(0, i);
 			if (!(*_this).isIdentifier(name)) 
 				return new_None<CStructMember>();
-			/*substring.substring(i + 1)*/ substring2 = substring.substring(i + 1);
-			/*structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator()*/ generated = structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator();
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]*/ substring2 = substring.substring(i + 1);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System]]*/ generated = structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator();
 			(*_this).globals = (*_this).globals.addLast(generated);
 			return new_Some<CStructMember>(new_EmptyStructMember());
 		}
@@ -2298,23 +2378,23 @@ Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* 
 }
 char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = input.strip();
 	if (stripped.isEmpty()) 
 		return "";
-	/*(*_this).compileConditional("if", indent, stripped)*/ maybeIf = (*_this).compileConditional("if", indent, stripped);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeIf = (*_this).compileConditional("if", indent, stripped);
 	if (maybeIf.variant = ?.SomeVariant) 
 		return result;
-	/*(*_this).compileConditional("while", indent, stripped)*/ maybeWhile = (*_this).compileConditional("while", indent, stripped);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeWhile = (*_this).compileConditional("while", indent, stripped);
 	if (maybeWhile.variant = ?.SomeVariant) 
 		return result;
 	if (stripped.endsWith(";")) {
-		/*stripped.substring(0, stripped.length() - 1)*/ substring = stripped.substring(0, stripped.length() - 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring = stripped.substring(0, stripped.length() - 1);
 		return generateIndent(indent) + (*_this).compileMethodStatement(substring) + ";";
 	}
 	if (stripped.startsWith("else ")) {
-		/*stripped.substring("else ".length()).strip()*/ substring = stripped.substring("else ".length()).strip();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = stripped.substring("else ".length()).strip();
 		if (substring.startsWith("{") && substring.endsWith("}")) {
-			/*substring.substring(1, substring.length() - 1)*/ substring1 = substring.substring(1, substring.length() - 1);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]*/ substring1 = substring.substring(1, substring.length() - 1);
 			return generateIndent(indent) + "else {" + (*_this).compileMethodsSegments(substring1, indent + 1) + generateIndent(indent) + "}";
 		}
 		/*else return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent)*/;
@@ -2323,25 +2403,25 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 		return generateIndent(indent) + stripped;
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
-auto lambda37(void* _ref, auto slice){
+auto lambda35(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input){
 	Main* _this = (Main*) _ref;
 	if (input.startsWith(type)) {
-		/*input.substring(type.length()).strip()*/ substring = input.substring(type.length()).strip();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring = input.substring(type.length()).strip();
 		if (substring.startsWith("(")) {
-			/*substring.substring(1).strip()*/ afterConditionStart = substring.substring(1).strip();
-			/*(*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda37).toList()*/ divisions = (*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda37).toList();
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]]]*/ afterConditionStart = substring.substring(1).strip();
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]]*/ divisions = (*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda35).toList();
 			if (divisions.size() < 2) 
 				return new_None<char*>();
-			/*divisions.getFirst()*/ first = divisions.getFirst();
-			/*(*_this).joinStrings("", divisions.subList(1, divisions.size()))*/ maybeWithBraces = (*_this).joinStrings("", divisions.subList(1, divisions.size()));
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: divisions]]*/ first = divisions.getFirst();
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeWithBraces = (*_this).joinStrings("", divisions.subList(1, divisions.size()));
 			if (!first.endsWith(")")) 
 				return new_None<char*>();
-			/*first.substring(0, first.length() - 1)*/ condition = first.substring(0, first.length() - 1);
+			/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ condition = first.substring(0, first.length() - 1);
 			if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
-				/*maybeWithBraces.substring(1, maybeWithBraces.length() - 1)*/ content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
+				/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: maybeWithBraces]]*/ content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 				return new_Some<char*>(generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" + (*_this).compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 			}
 			return new_Some<char*>(generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") " + (*_this).compileMethodSegment(maybeWithBraces, indent + 1));
@@ -2351,38 +2431,38 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 }
 char* compileMethodStatement_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = input.strip();
 	if (stripped.equals("break")) 
 		return "break";
 	if (stripped.startsWith("return ")) 
 		return "return " + (*_this).compileExpressionOrPlaceholder(stripped.substring("return ".length()));
-	/*(*_this).compileAssignment(stripped)*/ maybeAssignment = (*_this).compileAssignment(stripped);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeAssignment = (*_this).compileAssignment(stripped);
 	if (maybeAssignment.variant = ?.SomeVariant) 
 		return assignment;
-	/*(*_this).compileInvokable(stripped)*/ maybeInvokable = (*_this).compileInvokable(stripped);
-	if (maybeInvokable.variant = ?.SomeVariant) 
-		return value;
-	/*(*_this).post(stripped, "++")*/ instance = (*_this).post(stripped, "++");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeInvokable = (*_this).parseInvokable(stripped);
+	if (maybeInvokable.variant = ?.Some(var value)Variant) 
+		return value.toExpression().generate();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ instance = (*_this).post(stripped, "++");
 	if (instance.variant = ?.SomeVariant) 
 		return x;
-	/*(*_this).post(stripped, "--")*/ instance0 = (*_this).post(stripped, "--");
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ instance0 = (*_this).post(stripped, "--");
 	if (instance0.variant = ?.SomeVariant) 
 		return x;
-	/*(*_this).parseDeclaration(input)*/ maybeDeclaration = (*_this).parseDeclaration(input);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeDeclaration = (*_this).parseDeclaration(input);
 	if (maybeDeclaration.variant = ?.SomeVariant) 
 		return declaration.toCDeclaration().generate();
 	return wrap(stripped);
 }
 Option<char*> compileAssignment_Main(void* _ref, char* stripped){
 	Main* _this = (Main*) _ref;
-	/*stripped.indexOf("=")*/ index = stripped.indexOf("=");
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ index = stripped.indexOf("=");
 	if (index >= 0) {
-		/*stripped.substring(0, index)*/ destination = stripped.substring(0, index);
-		/*stripped.substring(index + 1)*/ substring1 = stripped.substring(index + 1);
-		/*(*_this).parseAssignable(destination)*/ assignable = (*_this).parseAssignable(destination);
-		/*(*_this).parseExpression(substring1)*/ maybeSource = (*_this).parseExpression(substring1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ destination = stripped.substring(0, index);
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring1 = stripped.substring(index + 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ assignable = (*_this).parseAssignable(destination);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeSource = (*_this).parseExpression(substring1);
 		if (maybeSource.variant = ?.SomeVariant) 
-			return new_Some<char*>((*_this).transformAssignable(assignable, source).generate() + " = " + source.toCAssignable().generate());
+			return new_Some<char*>((*_this).transformAssignable(assignable, source).generate() + " = " + source.toAssignable().generate());
 	}
 	return new_None<char*>();
 }
@@ -2394,63 +2474,19 @@ JType resolveExpression_Main(void* _ref, JExpression source){
 	Main* _this = (Main*) _ref;
 	return _switch;
 }
-auto lambda38(void* _ref, auto found){
-	return found.type;
+JType resolveCaller_Main(void* _ref, JCaller caller){
+	Main* _this = (Main*) _ref;
+	return _switch;
 }
-auto lambda39(void* _ref, auto def){
+auto lambda36(void* _ref, auto def){
 	return def.name.equals(identifier);
+}
+auto lambda37(void* _ref, auto found){
+	return found.type;
 }
 Option<JType> resolveIdentifierInEnvironment_Main(void* _ref, char* identifier){
 	Main* _this = (Main*) _ref;
-	return (*_this).environment.iter().flatMap(F? { alloc(List), F?Table { iter }}).filter(lambda39).next().map(lambda38);
-}
-auto lambda40(void* _ref, auto ()){
-	return new_Placeholder(input);
-}
-auto lambda42(void* _ref, auto value){
-	return value;
-}
-auto lambda41(void* _ref, auto ()){
-	return (*_this).parseDeclaration(input).map(lambda42);
-}
-auto lambda43(void* _ref, auto value){
-	return value;
-}
-auto lambda44(void* _ref, auto value){
-	return value;
-}
-auto lambda45(void* _ref, auto value){
-	return value;
-}
-auto lambda47(void* _ref, auto value){
-	return value;
-}
-auto lambda46(void* _ref, auto ()){
-	return (*_this).parseDeclaration(input).map(lambda47);
-}
-auto lambda48(void* _ref, auto value){
-	return value;
-}
-auto lambda50(void* _ref, auto value){
-	return value;
-}
-auto lambda49(void* _ref, auto ()){
-	return (*_this).parseDeclaration(input).map(lambda50);
-}
-auto lambda51(void* _ref, auto value){
-	return value;
-}
-auto lambda52(void* _ref, auto ()){
-	return new_Placeholder(input);
-}
-auto lambda54(void* _ref, auto value){
-	return value;
-}
-auto lambda53(void* _ref, auto ()){
-	return (*_this).parseDeclaration(input).map(lambda54);
-}
-auto lambda55(void* _ref, auto value){
-	return value;
+	return (*_this).environment.iter().flatMap(F? { alloc(List), F?Table { iter }}).filter(lambda36).next().map(lambda37);
 }
 JAssignable parseAssignable_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
@@ -2463,72 +2499,72 @@ JAssignable parseAssignable_Main(void* _ref, char* input){
 Option<char*> post_Main(void* _ref, char* stripped, char* slice){
 	Main* _this = (Main*) _ref;
 	if (stripped.endsWith(slice)) {
-		/*stripped.substring(0, stripped.length() - 2)*/ instance = stripped.substring(0, stripped.length() - 2);
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ instance = stripped.substring(0, stripped.length() - 2);
 		return new_Some<char*>((*_this).compileExpressionOrPlaceholder(instance) + slice);
 	}
 	return new_None<char*>();
 }
-auto lambda56(void* _ref, auto ()){
+auto lambda38(void* _ref, auto ()){
 	return wrap(input);
 }
 char* compileExpressionOrPlaceholder_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return (*_this).parseCExpression(input).map(F? { alloc(CExpression), F?Table { generate }}).orElseGet(lambda56);
+	return (*_this).parseCExpression(input).map(F? { alloc(CExpression), F?Table { generate }}).orElseGet(lambda38);
 }
 Option<CExpression> parseCExpression_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return (*_this).parseExpression(input).map(F? { alloc(JExpression), F?Table { toCExpression }});
+	return (*_this).parseExpression(input).map(F? { alloc(JExpression), F?Table { toExpression }});
 }
-auto lambda57(void* _ref, auto ()){
-	return (*_this).compileOperator(stripped, " >= ");
+auto lambda39(void* _ref, auto ()){
+	return (*_this).compileOperator(stripped, " != ");
 }
-auto lambda58(void* _ref, auto ()){
-	return (*_this).compileOperator(stripped, " || ");
-}
-auto lambda59(void* _ref, auto ()){
-	return (*_this).compileOperator(stripped, " && ");
-}
-auto lambda60(void* _ref, auto ()){
-	return (*_this).compileOperator(stripped, " - ");
-}
-auto lambda61(void* _ref, auto ()){
-	return (*_this).compileOperator(stripped, " + ");
-}
-auto lambda62(void* _ref, auto ()){
+auto lambda40(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " < ");
 }
-auto lambda63(void* _ref, auto ()){
-	return (*_this).compileOperator(stripped, " != ");
+auto lambda41(void* _ref, auto ()){
+	return (*_this).compileOperator(stripped, " + ");
+}
+auto lambda42(void* _ref, auto ()){
+	return (*_this).compileOperator(stripped, " - ");
+}
+auto lambda43(void* _ref, auto ()){
+	return (*_this).compileOperator(stripped, " && ");
+}
+auto lambda44(void* _ref, auto ()){
+	return (*_this).compileOperator(stripped, " || ");
+}
+auto lambda45(void* _ref, auto ()){
+	return (*_this).compileOperator(stripped, " >= ");
 }
 Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = input.strip();
 	if (stripped.equals("this")) 
 		return new_Some<char*>("(*_this)").map(F? { alloc(JExpressionWrapper), F?Table { new }});
 	if (stripped.startsWith("switch ")) 
 		return new_Some<char*>("_switch").map(F? { alloc(JExpressionWrapper), F?Table { new }});
-	/*stripped.lastIndexOf("::")*/ i2 = stripped.lastIndexOf("::");
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ i2 = stripped.lastIndexOf("::");
 	if (i2 >= 0) {
-		/*stripped.substring(0, i2)*/ substring = stripped.substring(0, i2);
-		/*stripped.substring(i2 + 2).strip()*/ name = stripped.substring(i2 + 2).strip();
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring = stripped.substring(0, i2);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ name = stripped.substring(i2 + 2).strip();
 		if ((*_this).isIdentifier(name)) {
-			/*(*_this).compileExpressionOrPlaceholder(substring)*/ compiled = (*_this).compileExpressionOrPlaceholder(substring);
-			/*"F?"*/ functionalInterfaceName = "F?";
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ compiled = (*_this).compileExpressionOrPlaceholder(substring);
+			/*Unwrapped expression: "F?"*/ functionalInterfaceName = "F?";
 			return new_Some<char*>(functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name + " }}").map(F? { alloc(JExpressionWrapper), F?Table { new }});
 		}
 	}
 	if (stripped.startsWith("'") && stripped.endsWith("'")) 
 		return new_Some<char*>(stripped).map(F? { alloc(JExpressionWrapper), F?Table { new }});
-	/*(*_this).compileLambda(stripped)*/ maybeLambda = (*_this).compileLambda(stripped);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeLambda = (*_this).compileLambda(stripped);
 	if (maybeLambda.variant = ?.SomeVariant) 
 		return maybeLambda.map(F? { alloc(JExpressionWrapper), F?Table { new }});
-	/*stripped.indexOf(".variant = ?."Variant)*/ i3 = stripped.indexOf(".variant = ?."Variant);
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ i3 = stripped.indexOf(".variant = ?."Variant);
 	if (i3 >= 0) {
-		/*stripped.substring(0, i3)*/ substring = stripped.substring(0, i3);
-		/*stripped.substring(i3 + ".variant = ?.".length()Variant).strip()*/ substring1 = stripped.substring(i3 + ".variant = ?.".length()Variant).strip();
-		/*(*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }})*/ maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring = stripped.substring(0, i3);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ substring1 = stripped.substring(i3 + ".variant = ?.".length()Variant).strip();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]*/ maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
 		if (maybeInstance.variant = ?.SomeVariant) {
-			/*substring1.indexOf(" < ")*/ i4 = substring1.indexOf(" < ");
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring1]]*/ i4 = substring1.indexOf(" < ");
 			char* substring2;
 			if (i4 >= 0) 
 				substring2 = substring1.substring(0, i4);
@@ -2536,27 +2572,27 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 			return new_Some<char*>(instance + ".variant = ?." + substring2 + "Variant").map(F? { alloc(JExpressionWrapper), F?Table { new }});
 		}
 	}
-	/*stripped.lastIndexOf(".")*/ i = stripped.lastIndexOf(".");
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ i = stripped.lastIndexOf(".");
 	if (i >= 0) {
-		/*stripped.substring(0, i)*/ instanceString = stripped.substring(0, i);
-		/*stripped.substring(i + 1).strip()*/ memberName = stripped.substring(i + 1).strip();
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ instanceString = stripped.substring(0, i);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ memberName = stripped.substring(i + 1).strip();
 		if ((*_this).isIdentifier(memberName)) {
-			/*(*_this).parseExpression(instanceString)*/ maybeInstance = (*_this).parseExpression(instanceString);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeInstance = (*_this).parseExpression(instanceString);
 			if (maybeInstance.variant = ?.Some(var value)Variant) 
 				return new_Some<JExpression>(new_JMemberAccess(value, memberName));
 		}
 	}
-	/*(*_this).compileInvokable(stripped)*/ maybeInvokable = (*_this).compileInvokable(stripped);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeInvokable = (*_this).parseInvokable(stripped);
 	if (maybeInvokable.variant = ?.SomeVariant) 
-		return maybeInvokable.map(F? { alloc(JExpressionWrapper), F?Table { new }});
-	/*(*_this).compileOperator(stripped, " == ").or(lambda63).or(lambda62).or(lambda61).or(lambda60).or(lambda59).or(lambda58).or(lambda57)*/ maybeOperator = (*_this).compileOperator(stripped, " == ").or(lambda63).or(lambda62).or(lambda61).or(lambda60).or(lambda59).or(lambda58).or(lambda57);
+		return maybeInvokable;
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]]]]]]]]]]*/ maybeOperator = (*_this).compileOperator(stripped, " == ").or(lambda39).or(lambda40).or(lambda41).or(lambda42).or(lambda43).or(lambda44).or(lambda45);
 	if (maybeOperator.variant = ?.SomeVariant) 
 		return maybeOperator.map(F? { alloc(JExpressionWrapper), F?Table { new }});
 	if ((*_this).isIdentifier(stripped)) 
 		return new_Some<JExpression>(new_Identifier(stripped));
 	if (stripped.startsWith("!")) {
-		/*stripped.substring(1)*/ substring = stripped.substring(1);
-		/*(*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }})*/ maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring = stripped.substring(1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]*/ maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
 		if (maybeInstance.variant = ?.SomeVariant) 
 			return new_Some<char*>("!" + instance).map(F? { alloc(JExpressionWrapper), F?Table { new }});
 	}
@@ -2566,46 +2602,46 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 		return new_Some<char*>(stripped).map(F? { alloc(JExpressionWrapper), F?Table { new }});
 	return new_None<JExpression>();
 }
-auto lambda64(void* _ref, auto slice){
+auto lambda46(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda65(void* _ref, auto param){
+auto lambda47(void* _ref, auto param){
 	return "auto " + param;
 }
 Option<char*> compileLambda_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.indexOf("->")*/ index = input.indexOf("->");
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ index = input.indexOf("->");
 	if (index < 0) 
 		return new_None<char*>();
-	/*input.substring(0, index).strip()*/ beforeContent = input.substring(0, index).strip();
-	/*input.substring(index + 2).strip()*/ maybeWithBraces = input.substring(index + 2).strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ beforeContent = input.substring(0, index).strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ maybeWithBraces = input.substring(index + 2).strip();
 	List<char*> params;
 	if ((*_this).isIdentifier(beforeContent)) 
 		params = Lists.of(beforeContent);
 	else 
 	if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
-		/*beforeContent.substring(1, beforeContent.length() - 1)*/ substring = beforeContent.substring(1, beforeContent.length() - 1);
-		params = (*_this).divide(substring, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda64).toList();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeContent]]*/ substring = beforeContent.substring(1, beforeContent.length() - 1);
+		params = (*_this).divide(substring, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda46).toList();
 	}
 	/*else return new None<String>()*/;
 	if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
-		/*maybeWithBraces.substring(1, maybeWithBraces.length() - 1)*/ content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
-		/*(*_this).compileMethodsSegments(content, 1)*/ compiled = (*_this).compileMethodsSegments(content, 1);
-		/*(*_this).generateName()*/ generatedName = (*_this).generateName();
-		/*params.iter().map(lambda65).toList().addFirst("void* _ref")*/ paramList = params.iter().map(lambda65).toList().addFirst("void* _ref");
-		/*(*_this).joinStrings(", ", paramList)*/ joined = (*_this).joinStrings(", ", paramList);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: maybeWithBraces]]*/ content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ compiled = (*_this).compileMethodsSegments(content, 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ generatedName = (*_this).generateName();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: params]]]]]]]]*/ paramList = params.iter().map(lambda47).toList().addFirst("void* _ref");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ joined = (*_this).joinStrings(", ", paramList);
 		(*_this).functions = (*_this).functions.addLast("auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" + System.lineSeparator());
 		return new_Some<char*>(generatedName);
 	}
 	else {
-		/*(*_this).generateName()*/ generatedName = (*_this).generateName();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ generatedName = (*_this).generateName();
 		(*_this).functions = (*_this).functions.addLast("auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" + (*_this).generateStatement("return " + (*_this).compileExpressionOrPlaceholder(maybeWithBraces)) + System.lineSeparator() + "}" + System.lineSeparator());
 		return new_Some<char*>(generatedName);
 	}
 }
 char* generateName_Main(void* _ref){
 	Main* _this = (Main*) _ref;
-	/*Not a valid member accessPlaceholder[input="lambda" + (*_this)]*/ generatedName = "lambda" + (*_this).counter;
+	/*Not a valid member access: Placeholder[input=Unwrapped expression: "lambda" + (*_this)]*/ generatedName = "lambda" + (*_this).counter;
 	(*_this).counter++;
 	return generatedName;
 }
@@ -2615,11 +2651,11 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 		return new_None<char*>();
 	if (!input.contains(operator)) 
 		return new_None<char*>();
-	/*-1*/ i1 = -1;
-	/*0*/ depth = 0;
-	/*0*/ i = 0;
+	/*Unwrapped expression: -1*/ i1 = -1;
+	/*Unwrapped expression: 0*/ depth = 0;
+	/*Unwrapped expression: 0*/ i = 0;
 	while (i < input.length() - 1) {
-		/*input.charAt(i)*/ c = input.charAt(i);
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ c = input.charAt(i);
 		if (c == operator.charAt(0)) 
 			if (depth == 0) {
 				i1 = i;
@@ -2632,39 +2668,39 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 		i++;
 	}
 	if (i1 >= 0) {
-		/*input.substring(0, i1)*/ leftString = input.substring(0, i1);
-		/*input.substring(i1 + operator.length())*/ right = input.substring(i1 + operator.length());
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ leftString = input.substring(0, i1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ right = input.substring(i1 + operator.length());
 		if ((*_this).parseCExpression(leftString).map(F? { alloc(CExpression), F?Table { generate }}).variant = ?.SomeVariant) 
 			if ((*_this).parseCExpression(right).map(F? { alloc(CExpression), F?Table { generate }}).variant = ?.SomeVariant) 
 				return new_Some<char*>(leftCompiled + " " + operator + " " + rightCompiled);
 	}
 	return new_None<char*>();
 }
-Option<char*> compileInvokable_Main(void* _ref, char* stripped){
+Option<JExpression> parseInvokable_Main(void* _ref, char* stripped){
 	Main* _this = (Main*) _ref;
-	if (stripped.endsWith(")")) {
-		char* stripped1 = stripped;
-		/*stripped.length()*/ length = stripped.length();
-		/*stripped1.substring(0, length - 1)*/ withoutEnd = stripped1.substring(0, length - 1);
-		/*(*_this).findCallerStart(withoutEnd)*/ callerStart = (*_this).findCallerStart(withoutEnd);
-		if (callerStart >= 0) {
-			/*withoutEnd.substring(0, callerStart)*/ callerString = withoutEnd.substring(0, callerStart);
-			/*withoutEnd.substring(callerStart + 1)*/ arguments = withoutEnd.substring(callerStart + 1);
-			/*(*_this).divide(arguments, new_EscapedFolder(new_ValueFolder())).map(F? { alloc((*_this)), F?Table { compileExpressionOrPlaceholder }}).collect(new_Joiner(", "))*/ joinedArguments = (*_this).divide(arguments, new_EscapedFolder(new_ValueFolder())).map(F? { alloc((*_this)), F?Table { compileExpressionOrPlaceholder }}).collect(new_Joiner(", "));
-			/*(*_this).compileCaller(callerString)*/ maybeCaller = (*_this).compileCaller(callerString);
-			if (maybeCaller.variant = ?.SomeVariant) 
-				return new_Some<char*>(value + "(" + joinedArguments + ")");
-		}
-	}
-	return new_None<char*>();
+	if (!stripped.endsWith(")")) 
+		return new_None<JExpression>();
+	char* stripped1 = stripped;
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: stripped1]]*/ length = stripped1.length();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: stripped1]]*/ withoutEnd = stripped1.substring(0, length - 1);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ callerStart = (*_this).findCallerStart(withoutEnd);
+	if (callerStart < 0) 
+		return new_None<JExpression>();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: withoutEnd]]*/ callerString = withoutEnd.substring(0, callerStart);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: withoutEnd]]*/ argumentsString = withoutEnd.substring(callerStart + 1);
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeCaller = (*_this).parseCaller(callerString);
+	if (!(maybeCaller.variant = ?.Some(var value)Variant)) 
+		return new_None<JExpression>();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]]]*/ arguments = (*_this).divide(argumentsString, new_EscapedFolder(new_ValueFolder())).map(F? { alloc((*_this)), F?Table { parseExpression }}).flatMap(F? { alloc(Option), F?Table { iter }}).toList();
+	return new_Some<JExpression>(new_JInvokable(value, arguments));
 }
 int findCallerStart_Main(void* _ref, char* withoutEnd){
 	Main* _this = (Main*) _ref;
-	/*-1*/ callerStart = -1;
-	/*0*/ depth = 0;
-	/*0*/ i = 0;
+	/*Unwrapped expression: -1*/ callerStart = -1;
+	/*Unwrapped expression: 0*/ depth = 0;
+	/*Unwrapped expression: 0*/ i = 0;
 	while (i < withoutEnd.length()) {
-		/*withoutEnd.charAt(i)*/ c = withoutEnd.charAt(i);
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ c = withoutEnd.charAt(i);
 		if (c == '(') {
 			if (depth == 0) 
 				callerStart = i;
@@ -2686,74 +2722,75 @@ int allDigits_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	return IntStream.range(0, input.length()).mapToObj(F? { alloc(input), F?Table { charAt }}).allMatch(F? { alloc(Character), F?Table { isDigit }});
 }
-Option<char*> compileCaller_Main(void* _ref, char* input){
+Option<JCaller> parseCaller_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
-	/*(*_this).parseCExpression(stripped).map(F? { alloc(CExpression), F?Table { generate }})*/ maybeExpression = (*_this).parseCExpression(stripped).map(F? { alloc(CExpression), F?Table { generate }});
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = input.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ maybeExpression = (*_this).parseExpression(stripped);
 	if (maybeExpression.variant = ?.SomeVariant) 
-		return maybeExpression;
+		return new_Some<JCaller>(expression);
 	if (stripped.startsWith("new ")) {
-		/*stripped.substring("new ".length())*/ type = stripped.substring("new ".length());
-		return new_Some<char*>("new_" + (*_this).compileType(type));
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ type = stripped.substring("new ".length());
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ jType = (*_this).parseType(type);
+		return new_Some<JCaller>(new_JConstruction(jType));
 	}
-	return new_None<char*>();
+	return new_None<JCaller>();
 }
 Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
-	/*stripped.lastIndexOf(" ")*/ nameSeparator = stripped.lastIndexOf(" ");
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = input.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ nameSeparator = stripped.lastIndexOf(" ");
 	if (nameSeparator >= 0) {
-		/*stripped.substring(0, nameSeparator).strip()*/ beforeName = stripped.substring(0, nameSeparator).strip();
-		/*stripped.substring(nameSeparator + 1).strip()*/ name = stripped.substring(nameSeparator + 1).strip();
-		/*(*_this).findTypeSeparator(beforeName)*/ typeSeparator = (*_this).findTypeSeparator(beforeName);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ beforeName = stripped.substring(0, nameSeparator).strip();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: String]]]*/ name = stripped.substring(nameSeparator + 1).strip();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ typeSeparator = (*_this).findTypeSeparator(beforeName);
 		if (!(*_this).isIdentifier(name)) 
 			return new_None<JDeclaration>();
 		if (typeSeparator < 0) {
-			/*(*_this).parseType(beforeName)*/ type = (*_this).parseType(beforeName);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ type = (*_this).parseType(beforeName);
 			return new_Some<JDeclaration>(new_JDeclaration(type, name));
 		}
-		/*beforeName.substring(0, typeSeparator).strip()*/ beforeType = beforeName.substring(0, typeSeparator).strip();
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeName]]]]*/ beforeType = beforeName.substring(0, typeSeparator).strip();
 		List<char*> copy = Lists.empty();
 		if (beforeType.endsWith(">")) {
-			/*beforeType.substring(0, beforeType.length() - 1)*/ substring = beforeType.substring(0, beforeType.length() - 1);
-			/*substring.indexOf(" < ")*/ i = substring.indexOf(" < ");
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeType]]*/ substring = beforeType.substring(0, beforeType.length() - 1);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]*/ i = substring.indexOf(" < ");
 			if (i >= 0) {
-				/*substring.substring(i + 1)*/ substring2 = substring.substring(i + 1);
+				/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]*/ substring2 = substring.substring(i + 1);
 				copy = (*_this).splitValues(substring2);
 				beforeType = substring.substring(0, i);
 			}
 		}
 		List<char*> annotations = Lists.empty();
-		/*beforeType.lastIndexOf("\n")*/ i = beforeType.lastIndexOf("\n");
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: beforeType]]*/ i = beforeType.lastIndexOf("\n");
 		if (i >= 0) {
 			annotations = (*_this).collectAnnotations(beforeType.substring(0, i));
 			beforeType = beforeType.substring(i + 1).strip();
 		}
 		if ((*_this).isIdentifier(name)) {
-			/*(*_this).parseType(beforeName.substring(typeSeparator + 1))*/ type = (*_this).parseType(beforeName.substring(typeSeparator + 1));
-			/*new_JDeclaration(annotations, copy, new_Some<char*>(beforeType), type, name)*/ jDeclaration = new_JDeclaration(annotations, copy, new_Some<char*>(beforeType), type, name);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ type = (*_this).parseType(beforeName.substring(typeSeparator + 1));
+			JDeclaration jDeclaration = new_JDeclaration(annotations, copy, new_Some<char*>(beforeType), type, name);
 			return new_Some<JDeclaration>(jDeclaration);
 		}
 	}
 	return new_None<JDeclaration>();
 }
-auto lambda66(void* _ref, auto slice){
-	return slice.substring(1);
-}
-auto lambda67(void* _ref, auto slice){
+auto lambda48(void* _ref, auto slice){
 	return !slice.isEmpty();
+}
+auto lambda49(void* _ref, auto slice){
+	return slice.substring(1);
 }
 List<char*> collectAnnotations_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return Streams.fromObjArray(input.split(Pattern.quote("\n"))).filter(lambda67).map(lambda66).map(F? { alloc(String), F?Table { strip }}).toList();
+	return Streams.fromObjArray(input.split(Pattern.quote("\n"))).filter(lambda48).map(lambda49).map(F? { alloc(String), F?Table { strip }}).toList();
 }
 int findTypeSeparator_Main(void* _ref, char* beforeName){
 	Main* _this = (Main*) _ref;
-	/*-1*/ typeSeparator = -1;
-	/*0*/ depth = 0;
-	/*0*/ i = 0;
+	/*Unwrapped expression: -1*/ typeSeparator = -1;
+	/*Unwrapped expression: 0*/ depth = 0;
+	/*Unwrapped expression: 0*/ i = 0;
 	while (i < beforeName.length()) {
-		/*beforeName.charAt(i)*/ c = beforeName.charAt(i);
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ c = beforeName.charAt(i);
 		if (c == ' ' && depth == 0) 
 			typeSeparator = i;
 		if (c == '<') 
@@ -2770,7 +2807,7 @@ char* compileType_Main(void* _ref, char* input){
 }
 JType parseType_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ stripped = input.strip();
 	/*switch (stripped) {
 			case "boolean", "Boolean" -> {
 				return JPrimitiveType.Boolean;
@@ -2792,17 +2829,17 @@ JType parseType_Main(void* _ref, char* input){
 			}
 		}*/
 	if (stripped.endsWith("[]")) {
-		/*stripped.substring(0, stripped.length() - 2)*/ slice = stripped.substring(0, stripped.length() - 2);
-		/*(*_this).parseType(slice)*/ type = (*_this).parseType(slice);
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ slice = stripped.substring(0, stripped.length() - 2);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]*/ type = (*_this).parseType(slice);
 		return new_JArrayType(type);
 	}
 	if (stripped.endsWith(">")) {
-		/*stripped.substring(0, stripped.length() - 1)*/ substring = stripped.substring(0, stripped.length() - 1);
-		/*substring.indexOf(" < ")*/ i = substring.indexOf(" < ");
+		/*Not a functional type: Placeholder[input=Not a valid member access: String]*/ substring = stripped.substring(0, stripped.length() - 1);
+		/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]*/ i = substring.indexOf(" < ");
 		if (i >= 0) {
-			/*substring.substring(0, i)*/ base = substring.substring(0, i);
-			/*substring.substring(i + 1)*/ parameters = substring.substring(i + 1);
-			/*(*_this).divide(parameters, new_ValueFolder()).map(F? { alloc((*_this)), F?Table { parseType }}).toList()*/ list = (*_this).divide(parameters, new_ValueFolder()).map(F? { alloc((*_this)), F?Table { parseType }}).toList();
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]*/ base = substring.substring(0, i);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Undefined identifier: substring]]*/ parameters = substring.substring(i + 1);
+			/*Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Not a functional type: Placeholder[input=Not a valid member access: Placeholder[input=Unwrapped expression: (*_this)]]]]]]*/ list = (*_this).divide(parameters, new_ValueFolder()).map(F? { alloc((*_this)), F?Table { parseType }}).toList();
 			return new_JGenericType(base, list);
 		}
 	}
