@@ -146,8 +146,10 @@ public class Main {
 
 	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
 
-	sealed private interface JExpression extends JAssignable permits JExpressionWrapper {
-		CAssignable toCAssignable();
+	sealed private interface JExpression extends JAssignable permits Identifier, JExpressionWrapper {
+		default CAssignable toCAssignable() {
+			return this.toCExpression();
+		}
 
 		CExpression toCExpression();
 	}
@@ -230,6 +232,10 @@ public class Main {
 
 		private <R> Stream<R> flatMap(F1R<T, Stream<R>> mapper) {
 			return new Stream<R>(new FlatMapHead<T, R>(this.head, mapper));
+		}
+
+		public Option<T> next() {
+			return this.head.next();
 		}
 	}
 
@@ -443,7 +449,7 @@ public class Main {
 		}
 	}
 
-	private record Identifier(String value) implements CType, JType {
+	private record Identifier(String value) implements CType, JType, JExpression, CExpression {
 		@Override
 		public String generate() {
 			return this.value;
@@ -460,6 +466,11 @@ public class Main {
 		}
 
 		public CType toCType() {
+			return this;
+		}
+
+		@Override
+		public CExpression toCExpression() {
 			return this;
 		}
 	}
@@ -876,6 +887,7 @@ public class Main {
 		}
 	}
 
+	private List<List<JDeclaration>> environment = new JavaList<List<JDeclaration>>();
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structures;
@@ -1281,22 +1293,24 @@ public class Main {
 		final var parametersString = substring1.substring(0, i1);
 		final var withBraces = substring1.substring(i1 + 1).strip();
 
-		var parameters = this
-				.divide(parametersString, (state, character) -> new ValueFolder().apply(state, character))
+		final var parameters = this
+				.divide(parametersString, new ValueFolder())
 				.map(String::strip)
 				.filter(slice -> !slice.isEmpty())
 				.toList()
 				.iter()
 				.map(this::parseDeclaration)
 				.flatMap(Option::stream)
-				.map(JDeclaration::toCDeclaration)
 				.toList();
+
+		this.environment = this.environment.addLast(parameters);
+		var cParameters = parameters.iter().map(JDeclaration::toCDeclaration).toList();
 
 		final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName);
 
 		Option<String> maybeCompiled = new None<String>();
 		if (methodDeclaration instanceof JDeclaration declaration && declaration.annotations.contains("Actual")) {
-			final var compiledParameters = parameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
+			final var compiledParameters = cParameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
 
 			final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName).toCDeclaration();
 
@@ -1317,14 +1331,14 @@ public class Main {
 			outputContent =
 					this.generateStatement(structName + " _this") + compiled + this.generateStatement("return " + "_this");
 		} else if (methodDeclaration instanceof JDeclaration declaration) {
-			parameters = parameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
+			cParameters = cParameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
 			final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
 			final var thisInitialization = this.generateStatement(
 					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 
-			var finalParameters = parameters;
+			var finalParameters = cParameters;
 			outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
 				if (variants.isEmpty()) {
 					final var joinedParameters = finalParameters
@@ -1350,7 +1364,7 @@ public class Main {
 			});
 		} else outputContent = "?";
 
-		final var compiledParameters = parameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
+		final var compiledParameters = cParameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
 
 		final var modifiedMethodDeclaration = switch (methodDeclaration) {
 			case JConstructor constructor -> {
@@ -1371,7 +1385,7 @@ public class Main {
 		this.functionDeclarations = this.functionDeclarations.addLast(header + ";" + System.lineSeparator());
 		this.functions = this.functions.addLast(generated);
 
-		final var parameterTypes = parameters.iter().map(CDeclaration::type).toList();
+		final var parameterTypes = cParameters.iter().map(CDeclaration::type).toList();
 
 		return switch (methodDeclaration) {
 			case JConstructor _ -> new Some<CStructMember>(new EmptyStructMember());
@@ -1564,20 +1578,20 @@ public class Main {
 			final var destination = stripped.substring(0, index);
 			final var substring1 = stripped.substring(index + 1);
 			final var assignable = this.parseAssignable(destination);
-			final var maybeSource = this.parseCExpression(substring1);
+			final var maybeSource = this.parseExpression(substring1);
 
-			if (maybeSource instanceof Some<CExpression>(var source))
-				return new Some<String>(this.transformAssignable(assignable, source).generate() + " = " + source.generate());
+			if (maybeSource instanceof Some<JExpression>(var source)) return new Some<String>(
+					this.transformAssignable(assignable, source).generate() + " = " + source.toCAssignable().generate());
 		}
 
 		return new None<String>();
 	}
 
-	private CAssignable transformAssignable(JAssignable assignable, CExpression source) {
+	private CAssignable transformAssignable(JAssignable assignable, JExpression source) {
 		return switch (assignable) {
 			case JDeclaration jDeclaration -> {
 				if (jDeclaration.type.equals(JPrimitiveType.Var))
-					yield jDeclaration.withType(this.resolve(source)).toCAssignable();
+					yield jDeclaration.withType(this.resolveExpression(source)).toCAssignable();
 
 				yield jDeclaration.toCAssignable();
 			}
@@ -1587,8 +1601,14 @@ public class Main {
 		};
 	}
 
-	private Placeholder resolve(CExpression source) {
-		return new Placeholder(source.generate());
+	private JType resolveExpression(JExpression source) {
+		if (source instanceof Identifier(var value)) {
+			final var maybeFound = this.environment.iter().flatMap(List::iter).filter(def -> def.name.equals(value)).next();
+
+			if (maybeFound instanceof Some<JDeclaration>(var found)) return found.type;
+		}
+
+		return new Placeholder(source.toString());
 	}
 
 	private JAssignable parseAssignable(String input) {
@@ -1617,14 +1637,10 @@ public class Main {
 	}
 
 	private Option<JExpression> parseExpression(String input) {
-		return this.getStringOption(input).map(JExpressionWrapper::new);
-	}
-
-	private Option<String> getStringOption(String input) {
 		final var stripped = input.strip();
-		if (stripped.equals("this")) return new Some<String>("(*_this)");
+		if (stripped.equals("this")) return new Some<String>("(*_this)").map(JExpressionWrapper::new);
 
-		if (stripped.startsWith("switch ")) return new Some<String>("_switch");
+		if (stripped.startsWith("switch ")) return new Some<String>("_switch").map(JExpressionWrapper::new);
 
 		final var i2 = stripped.lastIndexOf("::");
 		if (i2 >= 0) {
@@ -1635,14 +1651,15 @@ public class Main {
 				final var functionalInterfaceName = "F?";
 				return new Some<String>(
 						functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name +
-						" }}");
+						" }}").map(JExpressionWrapper::new);
 			}
 		}
 
-		if (stripped.startsWith("'") && stripped.endsWith("'")) return new Some<String>(stripped);
+		if (stripped.startsWith("'") && stripped.endsWith("'"))
+			return new Some<String>(stripped).map(JExpressionWrapper::new);
 
 		final var maybeLambda = this.compileLambda(stripped);
-		if (maybeLambda instanceof Some<String>) return maybeLambda;
+		if (maybeLambda instanceof Some<String>) return maybeLambda.map(JExpressionWrapper::new);
 
 		final var i3 = stripped.indexOf("instanceof");
 		if (i3 >= 0) {
@@ -1655,7 +1672,7 @@ public class Main {
 				if (i4 >= 0) substring2 = substring1.substring(0, i4);
 				else substring2 = substring1;
 
-				return new Some<String>(instance + ".variant = ?." + substring2 + "Variant");
+				return new Some<String>(instance + ".variant = ?." + substring2 + "Variant").map(JExpressionWrapper::new);
 			}
 		}
 
@@ -1672,13 +1689,13 @@ public class Main {
 					if (instance.equals("this")) generated = "_this->" + memberName;
 					else generated = instance + "." + memberName;
 
-					return new Some<String>(generated);
+					return new Some<String>(generated).map(JExpressionWrapper::new);
 				}
 			}
 		}
 
 		final var maybeInvokable = this.compileInvokable(stripped);
-		if (maybeInvokable instanceof Some<String>) return maybeInvokable;
+		if (maybeInvokable instanceof Some<String>) return maybeInvokable.map(JExpressionWrapper::new);
 
 		final var maybeOperator = this
 				.compileOperator(stripped, "==")
@@ -1690,21 +1707,22 @@ public class Main {
 				.or(() -> this.compileOperator(stripped, "||"))
 				.or(() -> this.compileOperator(stripped, ">="));
 
-		if (maybeOperator instanceof Some<String>) return maybeOperator;
-
-		if (this.isIdentifier(stripped)) return new Some<String>(stripped);
+		if (maybeOperator instanceof Some<String>) return maybeOperator.map(JExpressionWrapper::new);
+		if (this.isIdentifier(stripped)) return new Some<JExpression>(new Identifier(stripped));
 
 		if (stripped.startsWith("!")) {
 			final var substring = stripped.substring(1);
 			final var maybeInstance = this.parseCExpression(substring).map(CExpression::generate);
-			if (maybeInstance instanceof Some<String>(var instance)) return new Some<String>("!" + instance);
+			if (maybeInstance instanceof Some<String>(var instance))
+				return new Some<String>("!" + instance).map(JExpressionWrapper::new);
 		}
 
-		if (this.isNumber(stripped)) return new Some<String>(stripped);
+		if (this.isNumber(stripped)) return new Some<String>(stripped).map(JExpressionWrapper::new);
 
-		if (stripped.startsWith("\"") && stripped.endsWith("\"")) return new Some<String>(stripped);
+		if (stripped.startsWith("\"") && stripped.endsWith("\""))
+			return new Some<String>(stripped).map(JExpressionWrapper::new);
 
-		return new None<String>();
+		return new None<JExpression>();
 	}
 
 	private Option<String> compileLambda(String input) {

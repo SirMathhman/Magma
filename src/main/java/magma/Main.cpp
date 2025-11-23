@@ -355,7 +355,7 @@ struct JGenericType {
 	char* base;
 	List<JType> typeArguments;
 };
-struct Main {/*private interface CExpression extends CAssignable {}*/
+struct Main {/*private interface CExpression extends CAssignable {}*//*private List<List<JDeclaration>> environment = new JavaList<List<JDeclaration>>*/
 	List<char*> functionDeclarations;
 	List<char*> globals;
 	List<char*> structures;
@@ -428,8 +428,7 @@ CFunctionDeclaration mapTypeParameters_CFunctionDeclaration(void* _ref, F1R<List
 CFunctionDeclaration mapName_CFunctionDeclaration(void* _ref, F1R<char*, char*> mapper);
 char* generate_CFunctionDeclaration(void* _ref);
 char* generate_CAssignable(void* _ref);
-/*{
-		CAssignable*/ toCAssignable_Main(void* _ref);
+CAssignable toCAssignable_Main(void* _ref);
 StringBuilder empty_StringBuilders(void* _ref);
 StringBuilder appendChar_StringBuilder(void* _ref, char next);
 StringBuilder clear_StringBuilder(void* _ref);
@@ -451,6 +450,8 @@ template <typename T>
 Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate);
 template <typename R, typename T>
 Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);
+template <typename T>
+Option<T> next_Stream(void* _ref);
 RangeHead<> new_RangeHead(int length);
 Option<int> next_RangeHead(void* _ref);
 template <typename T>
@@ -481,6 +482,7 @@ char* generate_Identifier(void* _ref);
 char* toString_Identifier(void* _ref);
 char* toBaseName_Identifier(void* _ref);
 CType toCType_Identifier(void* _ref);
+CExpression toCExpression_Identifier(void* _ref);
 char* generate_Placeholder(void* _ref);
 char* toBaseName_Placeholder(void* _ref);
 CAssignable toCAssignable_Placeholder(void* _ref);
@@ -560,6 +562,7 @@ CAssignable toCAssignable_JExpressionWrapper(void* _ref);
 char* generate_CExpressionWrapper(void* _ref);
 CType toCType_JArrayType(void* _ref);
 CType toCType_JGenericType(void* _ref);
+/*private List<List<JDeclaration>> environment = new JavaList<List<JDeclaration>>*/();
 Main<> new_Main();
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);
 char* wrap_Main(void* _ref, char* input);
@@ -596,14 +599,13 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent);
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input);
 char* compileMethodStatement_Main(void* _ref, char* input);
 Option<char*> compileAssignment_Main(void* _ref, char* stripped);
-CAssignable transformAssignable_Main(void* _ref, JAssignable assignable, CExpression source);
-Placeholder resolve_Main(void* _ref, CExpression source);
+CAssignable transformAssignable_Main(void* _ref, JAssignable assignable, JExpression source);
+JType resolveExpression_Main(void* _ref, JExpression source);
 JAssignable parseAssignable_Main(void* _ref, char* input);
 Option<char*> post_Main(void* _ref, char* stripped, char* slice);
 char* compileExpressionOrPlaceholder_Main(void* _ref, char* input);
 Option<CExpression> parseCExpression_Main(void* _ref, char* input);
 Option<JExpression> parseExpression_Main(void* _ref, char* input);
-Option<char*> getStringOption_Main(void* _ref, char* input);
 Option<char*> compileLambda_Main(void* _ref, char* input);
 char* generateName_Main(void* _ref);
 Option<char*> compileOperator_Main(void* _ref, char* input, char* operator);
@@ -933,10 +935,12 @@ char* generate_CAssignable(void* _ref){
 	CAssignable* _this = (CAssignable*) _ref;
 	return _this->table.generate(_this->data);
 }
-/*{
-		CAssignable*/ toCAssignable_Main(void* _ref){
+CAssignable toCAssignable_Main(void* _ref){
 	Main* _this = (Main*) _ref;
-	return _this->table.toCAssignable(_this->data);
+	return (*_this).toCExpression();
+	/*}
+
+		CExpression toCExpression()*/;
 }
 StringBuilder empty_StringBuilders(void* _ref){
 	StringBuilders* _this = (StringBuilders*) _ref;
@@ -982,10 +986,10 @@ auto lambda1(void* _ref, auto element){
 template <typename R, typename T>
 R fold_Stream(void* _ref, R initial, F2R<R, T, R> folder){
 	Stream<T>* _this = (Stream<T>*) _ref;
-	/*initial*/ current = initial;
+	R current = initial;
 	while (true) {
-		/*current*/ finalCurrent = current;
-		/*(*_this).head.next().map(lambda1).toTuple(lambda0)*/ tuple = (*_this).head.next().map(lambda1).toTuple(lambda0);
+		/**/ finalCurrent = current;
+		/*JExpressionWrapper[content=(*_this).head.next().map(lambda1).toTuple(lambda0)]*/ tuple = (*_this).head.next().map(lambda1).toTuple(lambda0);
 		if (tuple.left) 
 			current = tuple.right;
 		return current;
@@ -1016,6 +1020,11 @@ Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper){
 	Stream<T>* _this = (Stream<T>*) _ref;
 	return new_Stream<R>(new_FlatMapHead<T, R>((*_this).head, mapper));
 }
+template <typename T>
+Option<T> next_Stream(void* _ref){
+	Stream<T>* _this = (Stream<T>*) _ref;
+	return (*_this).head.next();
+}
 Head<int> toHead_RangeHead(void* _ref){
 	RangeHead _this = *((RangeHead*) _ref);
 	HeadData data;
@@ -1031,7 +1040,7 @@ RangeHead<> new_RangeHead(int length){
 Option<int> next_RangeHead(void* _ref){
 	RangeHead* _this = (RangeHead*) _ref;
 	if ((*_this).counter < (*_this).length) {
-		/*(*_this).counter*/ value = (*_this).counter;
+		/*JExpressionWrapper[content=(*_this).counter]*/ value = (*_this).counter;
 		(*_this).counter++;
 		return new_Some<int>(value);
 	}
@@ -1091,7 +1100,7 @@ State append_State(void* _ref, char next){
 Option<char> pop_State(void* _ref){
 	State* _this = (State*) _ref;
 	if ((*_this).index < (*_this).input.length()) {
-		/*(*_this).input.charAt((*_this).index)*/ value = (*_this).input.charAt((*_this).index);
+		/*JExpressionWrapper[content=(*_this).input.charAt((*_this).index)]*/ value = (*_this).input.charAt((*_this).index);
 		(*_this).index++;
 		return new_Some<char>(value);
 	}
@@ -1118,7 +1127,7 @@ Stream<char*> stream_State(void* _ref){
 	return (*_this).segments.iter();
 }
 auto lambda3(void* _ref, auto popped){
-	/*(*_this).append(popped)*/ appended = (*_this).append(popped);
+	/*JExpressionWrapper[content=(*_this).append(popped)]*/ appended = (*_this).append(popped);
 	return new_Tuple<State, char>(appended, popped);
 }
 Option<Tuple<State, char>> popAndAppendToTuple_State(void* _ref){
@@ -1160,7 +1169,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref){
 	CTemplateType* _this = (CTemplateType*) _ref;
-	/*(*_this).list.iter().map(F? { alloc(CType), F?Table { generate }}).collect(new_Joiner(", "))*/ typeArguments = (*_this).list.iter().map(F? { alloc(CType), F?Table { generate }}).collect(new_Joiner(", "));
+	/*JExpressionWrapper[content=(*_this).list.iter().map(F? { alloc(CType), F?Table { generate }}).collect(new_Joiner(", "))]*/ typeArguments = (*_this).list.iter().map(F? { alloc(CType), F?Table { generate }}).collect(new_Joiner(", "));
 	return (*_this).base + " < " + typeArguments + ">";
 }
 char* toBaseName_CTemplateType(void* _ref){
@@ -1179,6 +1188,18 @@ JType toJType_Identifier(void* _ref){
 	data.Identifier = _this;
 	return { IdentifierVariant, data };
 }
+JExpression toJExpression_Identifier(void* _ref){
+	Identifier _this = *((Identifier*) _ref);
+	JExpressionData data;
+	data.Identifier = _this;
+	return { IdentifierVariant, data };
+}
+CExpression toCExpression_Identifier(void* _ref){
+	Identifier _this = *((Identifier*) _ref);
+	CExpressionData data;
+	data.Identifier = _this;
+	return { IdentifierVariant, data };
+}
 char* generate_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
 	return (*_this).value;
@@ -1192,6 +1213,10 @@ char* toBaseName_Identifier(void* _ref){
 	return (*_this).value;
 }
 CType toCType_Identifier(void* _ref){
+	Identifier* _this = (Identifier*) _ref;
+	return (*_this);
+}
+CExpression toCExpression_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
 	return (*_this);
 }
@@ -1300,7 +1325,7 @@ CStructMember toCStructMember_F1RDeclaration(void* _ref){
 }
 char* generate_F1RDeclaration(void* _ref){
 	F1RDeclaration* _this = (F1RDeclaration*) _ref;
-	/*"(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")"*/ joinedParameterTypes = "(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")";
+	/*JExpressionWrapper[content="(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")"]*/ joinedParameterTypes = "(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")";
 	return (*_this).type.generate() + " (*" + this.name + ")" + joinedParameterTypes;
 }
 CStructMember toCStructMember_EmptyStructMember(void* _ref){
@@ -1327,17 +1352,17 @@ auto lambda5(void* _ref, auto tuple){
 State apply_EscapedFolder(void* _ref, State state, char next){
 	EscapedFolder* _this = (EscapedFolder*) _ref;
 	if (next == '\'') {
-		/*state.append(next)*/ appended = state.append(next);
+		/*JExpressionWrapper[content=state.append(next)]*/ appended = state.append(next);
 		return appended.popAndAppendToTuple().map(lambda5).flatMap(F? { alloc(State), F?Table { popAndAppendToOption }}).orElse(appended);
 	}
 	if (next == '\"') {
-		/*state.append(next)*/ current = state.append(next);
+		/*JExpressionWrapper[content=state.append(next)]*/ current = state.append(next);
 		while (true) {
-			/*current.popAndAppendToTuple()*/ maybeTuple = current.popAndAppendToTuple();
+			/*JExpressionWrapper[content=current.popAndAppendToTuple()]*/ maybeTuple = current.popAndAppendToTuple();
 			if (!(maybeTuple.variant = ?.SomeVariant)) 
 				break;
 			current = value.left;
-			/*value.right*/ right = value.right;
+			/*JExpressionWrapper[content=value.right]*/ right = value.right;
 			if (right == '\\') 
 				current = current.popAndAppendToOption().orElse(current);
 			if (right == '\"') 
@@ -1357,9 +1382,9 @@ State apply_ValueFolder(void* _ref, State state, char next){
 	ValueFolder* _this = (ValueFolder*) _ref;
 	if (next == ',' && state.isLevel()) 
 		return state.advance();
-	/*state.append(next)*/ appended = state.append(next);
+	/*JExpressionWrapper[content=state.append(next)]*/ appended = state.append(next);
 	if (next == '-') {
-		/*appended.peek()*/ peeked = appended.peek();
+		/*JExpressionWrapper[content=appended.peek()]*/ peeked = appended.peek();
 		if (peeked.variant = ?.SomeVariant) 
 			return appended.popAndAppendToOption().orElse(appended);
 		return appended;
@@ -1462,7 +1487,7 @@ Folder toFolder_ConditionEndLocator(void* _ref){
 }
 State apply_ConditionEndLocator(void* _ref, State state, char c){
 	ConditionEndLocator* _this = (ConditionEndLocator*) _ref;
-	/*state.append(c)*/ appended = state.append(c);
+	/*JExpressionWrapper[content=state.append(c)]*/ appended = state.append(c);
 	if (c == '(') 
 		return appended.enter();
 	if (c == ')') {
@@ -1551,11 +1576,11 @@ Option<R> next_FlatMapHead(void* _ref){
 	FlatMapHead<T, R>* _this = (FlatMapHead<T, R>*) _ref;
 	while (true) {
 		if ((*_this).maybeCurrent.variant = ?.SomeVariant) {
-			/*current.head.next()*/ next = current.head.next();
+			/*JExpressionWrapper[content=current.head.next()]*/ next = current.head.next();
 			if (next.variant = ?.SomeVariant) 
 				return next;
 		}
-		/*(*_this).head.next()*/ maybeNext = (*_this).head.next();
+		/*JExpressionWrapper[content=(*_this).head.next()]*/ maybeNext = (*_this).head.next();
 		if (maybeNext.variant = ?.NoneVariant) 
 			return new_None<R>();
 		(*_this).maybeCurrent = maybeNext.map((*_this).mapper);
@@ -1655,7 +1680,7 @@ CFunctionDeclaration mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>,
 }
 char* generate_CDeclaration(void* _ref){
 	CDeclaration* _this = (CDeclaration*) _ref;
-	/*generateTemplateString((*_this).typeParameters)*/ template = generateTemplateString((*_this).typeParameters);
+	/*JExpressionWrapper[content=generateTemplateString((*_this).typeParameters)]*/ template = generateTemplateString((*_this).typeParameters);
 	return template + (*_this).type.generate() + " " + (*_this).name;
 }
 JExpression toJExpression_JExpressionWrapper(void* _ref){
@@ -1706,8 +1731,10 @@ JType toJType_JGenericType(void* _ref){
 }
 CType toCType_JGenericType(void* _ref){
 	JGenericType* _this = (JGenericType*) _ref;
-	/*(*_this).typeArguments.iter().map(F? { alloc(Main), F?Table { transformType }}).toList()*/ newTypeArguments = (*_this).typeArguments.iter().map(F? { alloc(Main), F?Table { transformType }}).toList();
+	/*JExpressionWrapper[content=(*_this).typeArguments.iter().map(F? { alloc(Main), F?Table { transformType }}).toList()]*/ newTypeArguments = (*_this).typeArguments.iter().map(F? { alloc(Main), F?Table { transformType }}).toList();
 	return new_CTemplateType((*_this).base, newTypeArguments);
+}
+/*private List<List<JDeclaration>> environment = new JavaList<List<JDeclaration>>*/(){?
 }
 Main<> new_Main(){
 	Main _this;
@@ -1727,14 +1754,14 @@ char* generateTemplateString_Main(void* _ref, List<char*> typeParameters){
 	if (typeParameters.isEmpty()) 
 		templateString = "";
 	else {
-		/*typeParameters.iter().map(lambda8).collect(new_Joiner(", "))*/ typeNames = typeParameters.iter().map(lambda8).collect(new_Joiner(", "));
+		/*JExpressionWrapper[content=typeParameters.iter().map(lambda8).collect(new_Joiner(", "))]*/ typeNames = typeParameters.iter().map(lambda8).collect(new_Joiner(", "));
 		templateString = "template <" + typeNames + ">" + System.lineSeparator();
 	}
 	return templateString;
 }
 char* wrap_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.replace("start", "start").replace("end", "end")*/ replaced = input.replace("/*", "start").replace("*/", "end");
+	/*JExpressionWrapper[content=input.replace("start", "start").replace("end", "end")]*/ replaced = input.replace("/*", "start").replace("*/", "end");
 	return "/*" + replaced + "*/";
 }
 void main_Main(void* _ref, char** args){
@@ -1760,18 +1787,18 @@ CType transformPrimitiveType_Main(void* _ref, JPrimitiveType type){
 }
 Option<IOError> run_Main(void* _ref){
 	Main* _this = (Main*) _ref;
-	/*Paths.get(".", "src", "main", "java", "magma", "Main.java")*/ source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-	/*source.resolveSibling("Main.cpp")*/ target = source.resolveSibling("Main.cpp");
-	/*source.readString().mapValue(F? { alloc((*_this)), F?Table { compile }})*/ input = source.readString().mapValue(F? { alloc((*_this)), F?Table { compile }});
+	/*JExpressionWrapper[content=Paths.get(".", "src", "main", "java", "magma", "Main.java")]*/ source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+	/*JExpressionWrapper[content=source.resolveSibling("Main.cpp")]*/ target = source.resolveSibling("Main.cpp");
+	/*JExpressionWrapper[content=source.readString().mapValue(F? { alloc((*_this)), F?Table { compile }})]*/ input = source.readString().mapValue(F? { alloc((*_this)), F?Table { compile }});
 	return _switch;
 }
 char* compile_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*(*_this).compileStatements(input, F? { alloc((*_this)), F?Table { compileRootSegment }})*/ all = (*_this).compileStatements(input, F? { alloc((*_this)), F?Table { compileRootSegment }});
-	/*(*_this).joinStrings("", (*_this).structures)*/ joinedStructures = (*_this).joinStrings("", (*_this).structures);
-	/*(*_this).joinStrings("", (*_this).globals)*/ joinedGlobals = (*_this).joinStrings("", (*_this).globals);
-	/*(*_this).joinStrings("", (*_this).functionDeclarations)*/ joinedFunctionDeclarations = (*_this).joinStrings("", (*_this).functionDeclarations);
-	/*(*_this).joinStrings("", (*_this).functions)*/ joinedFunctions = (*_this).joinStrings("", (*_this).functions);
+	/*JExpressionWrapper[content=(*_this).compileStatements(input, F? { alloc((*_this)), F?Table { compileRootSegment }})]*/ all = (*_this).compileStatements(input, F? { alloc((*_this)), F?Table { compileRootSegment }});
+	/*JExpressionWrapper[content=(*_this).joinStrings("", (*_this).structures)]*/ joinedStructures = (*_this).joinStrings("", (*_this).structures);
+	/*JExpressionWrapper[content=(*_this).joinStrings("", (*_this).globals)]*/ joinedGlobals = (*_this).joinStrings("", (*_this).globals);
+	/*JExpressionWrapper[content=(*_this).joinStrings("", (*_this).functionDeclarations)]*/ joinedFunctionDeclarations = (*_this).joinStrings("", (*_this).functionDeclarations);
+	/*JExpressionWrapper[content=(*_this).joinStrings("", (*_this).functions)]*/ joinedFunctions = (*_this).joinStrings("", (*_this).functions);
 	return joinedStructures + joinedGlobals + joinedFunctionDeclarations + joinedFunctions + all;
 }
 char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures){
@@ -1788,9 +1815,9 @@ char* compileAll_Main(void* _ref, char* input, F1R<char*, char*> mapper, Folder 
 }
 Stream<char*> divide_Main(void* _ref, char* input, Folder folder){
 	Main* _this = (Main*) _ref;
-	/*new_State(input)*/ current = new_State(input);
+	/*JExpressionWrapper[content=new_State(input)]*/ current = new_State(input);
 	while (true) {
-		/*current.pop()*/ maybeNext = current.pop();
+		/*JExpressionWrapper[content=current.pop()]*/ maybeNext = current.pop();
 		if (!(maybeNext.variant = ?.SomeVariant)) 
 			break;
 		char next;
@@ -1802,14 +1829,14 @@ Stream<char*> divide_Main(void* _ref, char* input, Folder folder){
 State foldStatement_Main(void* _ref, State current, char next){
 	Main* _this = (Main*) _ref;
 	if (next == '/' && current.isLevel()) {
-		/*current.peek()*/ maybePeeked = current.peek();
+		/*JExpressionWrapper[content=current.peek()]*/ maybePeeked = current.peek();
 		if (maybePeeked.variant = ?.SomeVariant) {
-			/*current.append('/').popAndAppendToOption().orElse(current)*/ withoutLineCommentPrefix = current.append('/').popAndAppendToOption().orElse(current);
+			/*JExpressionWrapper[content=current.append('/').popAndAppendToOption().orElse(current)]*/ withoutLineCommentPrefix = current.append('/').popAndAppendToOption().orElse(current);
 			while (true) {
-				/*withoutLineCommentPrefix.popAndAppendToTuple()*/ maybeTuple = withoutLineCommentPrefix.popAndAppendToTuple();
+				/*JExpressionWrapper[content=withoutLineCommentPrefix.popAndAppendToTuple()]*/ maybeTuple = withoutLineCommentPrefix.popAndAppendToTuple();
 				if (maybeTuple.variant = ?.SomeVariant) {
 					withoutLineCommentPrefix = tuple.left;
-					/*tuple.right*/ right = tuple.right;
+					/*JExpressionWrapper[content=tuple.right]*/ right = tuple.right;
 					if (right == '\r' || right == '\n') 
 						withoutLineCommentPrefix = withoutLineCommentPrefix.advance();
 				}
@@ -1817,7 +1844,7 @@ State foldStatement_Main(void* _ref, State current, char next){
 			}
 		}
 	}
-	/*current.append(next)*/ appended = current.append(next);
+	/*JExpressionWrapper[content=current.append(next)]*/ appended = current.append(next);
 	if (next == ';' && appended.isLevel()) 
 		return appended.advance();
 	if (next == '}' && appended.isShallow()) {
@@ -1838,7 +1865,7 @@ auto lambda9(void* _ref, auto ()){
 }
 char* compileRootSegment_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*JExpressionWrapper[content=input.strip()]*/ stripped = input.strip();
 	if (stripped.isEmpty()) 
 		return "";
 	if (stripped.startsWith("package ") || stripped.startsWith("import ")) 
@@ -1877,114 +1904,114 @@ auto lambda19(void* _ref, auto member){
 }
 Option<CStructMember> compileStructure_Main(void* _ref, char* type, char* stripped){
 	Main* _this = (Main*) _ref;
-	/*stripped.indexOf(type + " ")*/ i = stripped.indexOf(type + " ");
+	/*JExpressionWrapper[content=stripped.indexOf(type + " ")]*/ i = stripped.indexOf(type + " ");
 	if (i < 0) 
 		return new_None<CStructMember>();
-	/*stripped.substring(0, i).strip()*/ beforeType = stripped.substring(0, i).strip();
+	/*JExpressionWrapper[content=stripped.substring(0, i).strip()]*/ beforeType = stripped.substring(0, i).strip();
 	char* modifiers;
 	List<char*> annotations = Lists.empty();
-	/*beforeType.lastIndexOf("\n")*/ i5 = beforeType.lastIndexOf("\n");
+	/*JExpressionWrapper[content=beforeType.lastIndexOf("\n")]*/ i5 = beforeType.lastIndexOf("\n");
 	if (i5 >= 0) {
-		/*beforeType.substring(0, i5)*/ substring = beforeType.substring(0, i5);
-		/*beforeType.substring(i5 + 1)*/ substring1 = beforeType.substring(i5 + 1);
+		/*JExpressionWrapper[content=beforeType.substring(0, i5)]*/ substring = beforeType.substring(0, i5);
+		/*JExpressionWrapper[content=beforeType.substring(i5 + 1)]*/ substring1 = beforeType.substring(i5 + 1);
 		annotations = (*_this).collectAnnotations(substring);
 		modifiers = substring1;
 	}
 	else modifiers = beforeType;
 	if (annotations.contains("Actual")) 
 		return new_Some<CStructMember>(new_EmptyStructMember());
-	/*stripped.substring(i + (type + " ").length()).strip()*/ afterKeyword = stripped.substring(i + (type + " ").length()).strip();
-	/*afterKeyword.indexOf("{")*/ i1 = afterKeyword.indexOf("{");
+	/*JExpressionWrapper[content=stripped.substring(i + (type + " ").length()).strip()]*/ afterKeyword = stripped.substring(i + (type + " ").length()).strip();
+	/*JExpressionWrapper[content=afterKeyword.indexOf("{")]*/ i1 = afterKeyword.indexOf("{");
 	if (i1 < 0) 
 		return new_None<CStructMember>();
-	/*afterKeyword.substring(0, i1).strip()*/ beforeContent = afterKeyword.substring(0, i1).strip();
-	/*afterKeyword.substring(i1 + 1).strip()*/ withEnd = afterKeyword.substring(i1 + 1).strip();
+	/*JExpressionWrapper[content=afterKeyword.substring(0, i1).strip()]*/ beforeContent = afterKeyword.substring(0, i1).strip();
+	/*JExpressionWrapper[content=afterKeyword.substring(i1 + 1).strip()]*/ withEnd = afterKeyword.substring(i1 + 1).strip();
 	if (!withEnd.endsWith("}")) 
 		return new_None<CStructMember>();
-	/*withEnd.substring(0, withEnd.length() - 1)*/ inputContent = withEnd.substring(0, withEnd.length() - 1);
+	/*JExpressionWrapper[content=withEnd.substring(0, withEnd.length() - 1)]*/ inputContent = withEnd.substring(0, withEnd.length() - 1);
 	List<char*> variants = Lists.empty();
-	/*beforeContent.indexOf("permits ")*/ i2 = beforeContent.indexOf("permits ");
+	/*JExpressionWrapper[content=beforeContent.indexOf("permits ")]*/ i2 = beforeContent.indexOf("permits ");
 	if (i2 >= 0) {
-		/*beforeContent.substring(i2 + "permits ".length())*/ substring1 = beforeContent.substring(i2 + "permits ".length());
+		/*JExpressionWrapper[content=beforeContent.substring(i2 + "permits ".length())]*/ substring1 = beforeContent.substring(i2 + "permits ".length());
 		beforeContent = beforeContent.substring(0, i2);
 		variants = (*_this).splitValues(substring1);
 	}
 	List<CType> implementees = Lists.empty();
-	/*beforeContent.indexOf("implements ")*/ i4 = beforeContent.indexOf("implements ");
+	/*JExpressionWrapper[content=beforeContent.indexOf("implements ")]*/ i4 = beforeContent.indexOf("implements ");
 	if (i4 >= 0) {
-		/*beforeContent.substring(i4 + "implements ".length())*/ implementeesString = beforeContent.substring(i4 + "implements ".length());
+		/*JExpressionWrapper[content=beforeContent.substring(i4 + "implements ".length())]*/ implementeesString = beforeContent.substring(i4 + "implements ".length());
 		beforeContent = beforeContent.substring(0, i4).strip();
 		implementees = (*_this).divide(implementeesString, lambda12).map(F? { alloc(String), F?Table { strip }}).filter(lambda11).map(lambda10).toList();
 	}
 	List<JDeclaration> recordFields = Lists.empty();
 	if (beforeContent.endsWith(")")) {
-		/*beforeContent.substring(0, beforeContent.length() - 1)*/ substring = beforeContent.substring(0, beforeContent.length() - 1);
-		/*substring.indexOf("(")*/ i3 = substring.indexOf("(");
+		/*JExpressionWrapper[content=beforeContent.substring(0, beforeContent.length() - 1)]*/ substring = beforeContent.substring(0, beforeContent.length() - 1);
+		/*JExpressionWrapper[content=substring.indexOf("(")]*/ i3 = substring.indexOf("(");
 		if (i3 >= 0) {
 			beforeContent = substring.substring(0, i3);
 			recordFields = (*_this).divide(substring.substring(i3 + 1), lambda13).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
 		}
 	}
 	List<char*> typeParameters = Lists.empty();
-	/*beforeContent.indexOf(" < ")*/ i3 = beforeContent.indexOf(" < ");
+	/*JExpressionWrapper[content=beforeContent.indexOf(" < ")]*/ i3 = beforeContent.indexOf(" < ");
 	if (i3 >= 0) {
-		/*beforeContent.substring(i3 + 1).strip()*/ substring1 = beforeContent.substring(i3 + 1).strip();
+		/*JExpressionWrapper[content=beforeContent.substring(i3 + 1).strip()]*/ substring1 = beforeContent.substring(i3 + 1).strip();
 		if (substring1.endsWith(">")) {
 			beforeContent = beforeContent.substring(0, i3);
-			/*substring1.substring(0, substring1.length() - 1)*/ substring = substring1.substring(0, substring1.length() - 1);
+			/*JExpressionWrapper[content=substring1.substring(0, substring1.length() - 1)]*/ substring = substring1.substring(0, substring1.length() - 1);
 			typeParameters = (*_this).splitValues(substring);
 		}
 	}
 	if (!(*_this).isIdentifier(beforeContent)) 
 		return new_None<CStructMember>();
-	/*Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList()*/ modifiersList = Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList();
-	/*beforeContent.strip()*/ name = beforeContent.strip();
-	/*generateTemplateString(typeParameters)*/ templateString = generateTemplateString(typeParameters);
-	/*(*_this).joinTypeParameters(typeParameters)*/ joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
-	/*StringBuilders.empty()*/ fields = StringBuilders.empty();
-	/*StringBuilders.empty()*/ dependencies = StringBuilders.empty();
+	/*JExpressionWrapper[content=Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList()]*/ modifiersList = Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList();
+	/*JExpressionWrapper[content=beforeContent.strip()]*/ name = beforeContent.strip();
+	/*JExpressionWrapper[content=generateTemplateString(typeParameters)]*/ templateString = generateTemplateString(typeParameters);
+	/*JExpressionWrapper[content=(*_this).joinTypeParameters(typeParameters)]*/ joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
+	/*JExpressionWrapper[content=StringBuilders.empty()]*/ fields = StringBuilders.empty();
+	/*JExpressionWrapper[content=StringBuilders.empty()]*/ dependencies = StringBuilders.empty();
 	(*_this).functions = implementees.iter().map(lambda15).fold((*_this).functions, F? { alloc(List), F?Table { addLast }});
-	/*recordFields.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).map(F? { alloc(CDeclaration), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner())*/ joinedRecordFields = recordFields.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).map(F? { alloc(CDeclaration), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner());
-	/*typeParameters*/ finalTypeParameters = typeParameters;
-	/*variants*/ finalVariants = variants;
-	/*(*_this).divide(inputContent, new_EscapedFolder(F? { alloc((*_this)), F?Table { foldStatement }})).map(lambda16).flatMap(F? { alloc(Option), F?Table { stream }}).toList()*/ members = (*_this).divide(inputContent, new_EscapedFolder(F? { alloc((*_this)), F?Table { foldStatement }})).map(lambda16).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+	/*JExpressionWrapper[content=recordFields.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).map(F? { alloc(CDeclaration), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner())]*/ joinedRecordFields = recordFields.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).map(F? { alloc(CDeclaration), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner());
+	List<char*> finalTypeParameters = typeParameters;
+	/**/ finalVariants = variants;
+	/*JExpressionWrapper[content=(*_this).divide(inputContent, new_EscapedFolder(F? { alloc((*_this)), F?Table { foldStatement }})).map(lambda16).flatMap(F? { alloc(Option), F?Table { stream }}).toList()]*/ members = (*_this).divide(inputContent, new_EscapedFolder(F? { alloc((*_this)), F?Table { foldStatement }})).map(lambda16).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
 	if (modifiersList.contains("sealed")) {
-		/*variants.iter().map(lambda17).collect(new_Joiner(","))*/ enumFields = variants.iter().map(lambda17).collect(new_Joiner(","));
-		/*"enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator()*/ generatedEnum = "enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
-		/*variants.iter().map(lambda18).collect(new_Joiner())*/ unionFields = variants.iter().map(lambda18).collect(new_Joiner());
-		/*templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator()*/ generatedUnion = templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
-		/*name + "Variant variant"*/ s = name + "Variant variant";
-		/*name + "Data" + joinedTypeParameters + " data"*/ s1 = name + "Data" + joinedTypeParameters + " data";
-		/*(*_this).generateStatement(s) + (*_this).generateStatement(s1)*/ generatedFields = (*_this).generateStatement(s) + (*_this).generateStatement(s1);
+		/*JExpressionWrapper[content=variants.iter().map(lambda17).collect(new_Joiner(","))]*/ enumFields = variants.iter().map(lambda17).collect(new_Joiner(","));
+		/*JExpressionWrapper[content="enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator()]*/ generatedEnum = "enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
+		/*JExpressionWrapper[content=variants.iter().map(lambda18).collect(new_Joiner())]*/ unionFields = variants.iter().map(lambda18).collect(new_Joiner());
+		/*JExpressionWrapper[content=templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator()]*/ generatedUnion = templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
+		/*JExpressionWrapper[content=name + "Variant variant"]*/ s = name + "Variant variant";
+		/*JExpressionWrapper[content=name + "Data" + joinedTypeParameters + " data"]*/ s1 = name + "Data" + joinedTypeParameters + " data";
+		/*JExpressionWrapper[content=(*_this).generateStatement(s) + (*_this).generateStatement(s1)]*/ generatedFields = (*_this).generateStatement(s) + (*_this).generateStatement(s1);
 		fields = fields.appendString(generatedFields);
 		dependencies = dependencies.appendString(generatedEnum).appendString(generatedUnion);
 	}
 	else 
 	if (type.equals("interface")) {
-		/*(*_this).generateStatement(name + "Table" + joinedTypeParameters + " table")*/ table = (*_this).generateStatement(name + "Table" + joinedTypeParameters + " table");
-		/*(*_this).generateStatement("void* data")*/ data = (*_this).generateStatement("void* data");
-		/*members.iter().map(F? { alloc(CStructMember), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""))*/ tableMembers = members.iter().map(F? { alloc(CStructMember), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""));
-		/*templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator()*/ vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator();
+		/*JExpressionWrapper[content=(*_this).generateStatement(name + "Table" + joinedTypeParameters + " table")]*/ table = (*_this).generateStatement(name + "Table" + joinedTypeParameters + " table");
+		/*JExpressionWrapper[content=(*_this).generateStatement("void* data")]*/ data = (*_this).generateStatement("void* data");
+		/*JExpressionWrapper[content=members.iter().map(F? { alloc(CStructMember), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""))]*/ tableMembers = members.iter().map(F? { alloc(CStructMember), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner(""));
+		/*JExpressionWrapper[content=templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator()]*/ vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator();
 		dependencies = dependencies.appendString(vTable);
 		fields = fields.appendString(table).appendString(data);
 	}
 	else {
-		/*members.iter().filter(lambda19).map(F? { alloc(CStructMember), F?Table { generate }}).collect(new_Joiner())*/ joinedMembers = members.iter().filter(lambda19).map(F? { alloc(CStructMember), F?Table { generate }}).collect(new_Joiner());
+		/*JExpressionWrapper[content=members.iter().filter(lambda19).map(F? { alloc(CStructMember), F?Table { generate }}).collect(new_Joiner())]*/ joinedMembers = members.iter().filter(lambda19).map(F? { alloc(CStructMember), F?Table { generate }}).collect(new_Joiner());
 		fields = fields.appendString(joinedMembers);
 	}
-	/*dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator()*/ generated = dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator();
+	/*JExpressionWrapper[content=dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator()]*/ generated = dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator();
 	(*_this).structures = (*_this).structures.addLast(generated);
 	return new_Some<CStructMember>(new_EmptyStructMember());
 }
 char* getString_Main(void* _ref, CType implementee, char* name, char* joinedTypeParameters, char* templateString){
 	Main* _this = (Main*) _ref;
-	/*implementee.toBaseName()*/ identifier = implementee.toBaseName();
-	/*name + joinedTypeParameters*/ thisType = name + joinedTypeParameters;
-	/*(*_this).generateStatement(thisType + " _this = *((" + thisType + "*) _ref)")*/ s = (*_this).generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
-	/*(*_this).generateStatement(identifier + "Data" + joinedTypeParameters + " data")*/ s1 = (*_this).generateStatement(identifier + "Data" + joinedTypeParameters + " data");
-	/*(*_this).generateStatement("data." + name + " = _this")*/ s2 = (*_this).generateStatement("data." + name + " = _this");
-	/*(*_this).generateStatement("return { " + name + "Variant, data }")*/ s3 = (*_this).generateStatement("return { " + name + "Variant, data }");
-	/*s + s1 + s2 + s3*/ conversionF1RContent = s + s1 + s2 + s3;
+	/*JExpressionWrapper[content=implementee.toBaseName()]*/ identifier = implementee.toBaseName();
+	/*JExpressionWrapper[content=name + joinedTypeParameters]*/ thisType = name + joinedTypeParameters;
+	/*JExpressionWrapper[content=(*_this).generateStatement(thisType + " _this = *((" + thisType + "*) _ref)")]*/ s = (*_this).generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
+	/*JExpressionWrapper[content=(*_this).generateStatement(identifier + "Data" + joinedTypeParameters + " data")]*/ s1 = (*_this).generateStatement(identifier + "Data" + joinedTypeParameters + " data");
+	/*JExpressionWrapper[content=(*_this).generateStatement("data." + name + " = _this")]*/ s2 = (*_this).generateStatement("data." + name + " = _this");
+	/*JExpressionWrapper[content=(*_this).generateStatement("return { " + name + "Variant, data }")]*/ s3 = (*_this).generateStatement("return { " + name + "Variant, data }");
+	/*JExpressionWrapper[content=s + s1 + s2 + s3]*/ conversionF1RContent = s + s1 + s2 + s3;
 	return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _ref){" + conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
 }
 char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters){
@@ -2004,46 +2031,46 @@ auto lambda20(void* _ref, auto slice){
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.split(Pattern.quote(","))*/ segments = input.split(Pattern.quote(","));
-	/*Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda20).toList()*/ list = Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda20).toList();
+	/*JExpressionWrapper[content=input.split(Pattern.quote(","))]*/ segments = input.split(Pattern.quote(","));
+	/*JExpressionWrapper[content=Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda20).toList()]*/ list = Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda20).toList();
 	return new_JavaList<char*>(list);
 }
 auto lambda21(void* _ref, auto i){
-	/*stripped.charAt(i)*/ c = stripped.charAt(i);
+	/*JExpressionWrapper[content=stripped.charAt(i)]*/ c = stripped.charAt(i);
 	return Character.isLetter(c) || (i != 0 && Character.isDigit(c));
 }
 int isIdentifier_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*JExpressionWrapper[content=input.strip()]*/ stripped = input.strip();
 	return IntStream.range(0, stripped.length()).allMatch(lambda21);
 }
 Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*JExpressionWrapper[content=input.strip()]*/ stripped = input.strip();
 	if (stripped.isEmpty()) 
 		return new_None<CStructMember>();
-	/*(*_this).compileStructure("enum", input)*/ maybeEnum = (*_this).compileStructure("enum", input);
+	/*JExpressionWrapper[content=(*_this).compileStructure("enum", input)]*/ maybeEnum = (*_this).compileStructure("enum", input);
 	if (maybeEnum.variant = ?.SomeVariant) 
 		return maybeEnum;
-	/*(*_this).compileStructure("interface", input)*/ maybeInterface = (*_this).compileStructure("interface", input);
+	/*JExpressionWrapper[content=(*_this).compileStructure("interface", input)]*/ maybeInterface = (*_this).compileStructure("interface", input);
 	if (maybeInterface.variant = ?.SomeVariant) 
 		return maybeInterface;
-	/*(*_this).compileStructure("record", input)*/ maybeRecord = (*_this).compileStructure("record", input);
+	/*JExpressionWrapper[content=(*_this).compileStructure("record", input)]*/ maybeRecord = (*_this).compileStructure("record", input);
 	if (maybeRecord.variant = ?.SomeVariant) 
 		return maybeRecord;
-	/*(*_this).compileStructure("class", input)*/ maybeClass = (*_this).compileStructure("class", input);
+	/*JExpressionWrapper[content=(*_this).compileStructure("class", input)]*/ maybeClass = (*_this).compileStructure("class", input);
 	if (maybeClass.variant = ?.SomeVariant) 
 		return maybeClass;
-	/*(*_this).compileEnumValues(input, structName)*/ maybeEnumValues = (*_this).compileEnumValues(input, structName);
+	/*JExpressionWrapper[content=(*_this).compileEnumValues(input, structName)]*/ maybeEnumValues = (*_this).compileEnumValues(input, structName);
 	if (maybeEnumValues.variant = ?.SomeVariant) 
 		return maybeEnumValues;
 	if (stripped.endsWith(";")) {
-		/*stripped.substring(0, stripped.length() - 1)*/ substring = stripped.substring(0, stripped.length() - 1);
-		/*(*_this).parseDeclaration(substring)*/ maybeDeclaration = (*_this).parseDeclaration(substring);
+		/*JExpressionWrapper[content=stripped.substring(0, stripped.length() - 1)]*/ substring = stripped.substring(0, stripped.length() - 1);
+		/*JExpressionWrapper[content=(*_this).parseDeclaration(substring)]*/ maybeDeclaration = (*_this).parseDeclaration(substring);
 		if (maybeDeclaration.variant = ?.SomeVariant) 
 			return new_Some<CStructMember>(new_CField(declaration.toCDeclaration()));
 	}
-	/*(*_this).compileMethod(structName, typeParameters, variants, stripped)*/ maybeMethod = (*_this).compileMethod(structName, typeParameters, variants, stripped);
+	/*JExpressionWrapper[content=(*_this).compileMethod(structName, typeParameters, variants, stripped)]*/ maybeMethod = (*_this).compileMethod(structName, typeParameters, variants, stripped);
 	if (maybeMethod.variant = ?.SomeVariant) 
 		return maybeMethod;
 	return new_Some<CStructMember>(new_Placeholder(stripped));
@@ -2051,82 +2078,81 @@ Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* st
 auto lambda22(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda23(void* _ref, auto (state, character)){
-	return new_ValueFolder().apply(state, character);
-}
-auto lambda24(void* _ref, auto name){
+auto lambda23(void* _ref, auto name){
 	return name + "_" + structName;
 }
-auto lambda25(void* _ref, auto parameter){
+auto lambda24(void* _ref, auto parameter){
 	return parameter.name;
 }
-auto lambda26(void* _ref, auto variant){
+auto lambda25(void* _ref, auto variant){
 	return (*_this).generateCase(declaration, variant);
 }
-auto lambda27(void* _ref){
+auto lambda26(void* _ref){
 	if (variants.isEmpty()) {
-		/*finalParameters.subList(1, finalParameters.size()).iter().map(lambda25).toList().addFirst("_this->data").iter().collect(new_Joiner(", "))*/ joinedParameters = finalParameters.subList(1, finalParameters.size()).iter().map(lambda25).toList().addFirst("_this->data").iter().collect(new_Joiner(", "));
+		/*JExpressionWrapper[content=finalParameters.subList(1, finalParameters.size()).iter().map(lambda24).toList().addFirst("_this->data").iter().collect(new_Joiner(", "))]*/ joinedParameters = finalParameters.subList(1, finalParameters.size()).iter().map(lambda24).toList().addFirst("_this->data").iter().collect(new_Joiner(", "));
 		return (*_this).generateStatement("return _this->table." + declaration.name + "(" + joinedParameters + ")");
 	}
 	else {
-		/*(*_this).generateStatement(transformType(declaration.type).generate() + " _ret")*/ returnValueDefinition = (*_this).generateStatement(transformType(declaration.type).generate() + " _ret");
-		/*variants.iter().map(lambda26).collect(new_Joiner())*/ cases = variants.iter().map(lambda26).collect(new_Joiner());
+		/*JExpressionWrapper[content=(*_this).generateStatement(transformType(declaration.type).generate() + " _ret")]*/ returnValueDefinition = (*_this).generateStatement(transformType(declaration.type).generate() + " _ret");
+		/*JExpressionWrapper[content=variants.iter().map(lambda25).collect(new_Joiner())]*/ cases = variants.iter().map(lambda25).collect(new_Joiner());
 		return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases + generateIndent(1) + "}" + (*_this).generateStatement("return _ret");
 	}
 }
-auto lambda28(void* _ref, auto name){
+auto lambda27(void* _ref, auto name){
 	return name + "_" + structName;
 }
-auto lambda29(void* _ref, auto typeParameters0){
+auto lambda28(void* _ref, auto typeParameters0){
 	return typeParameters0.addAll(typeParameters);
 }
 Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.indexOf("(")*/ i = input.indexOf("(");
+	/*JExpressionWrapper[content=input.indexOf("(")]*/ i = input.indexOf("(");
 	if (i < 0) 
 		return new_None<CStructMember>();
-	/*input.substring(0, i)*/ declarationString = input.substring(0, i);
-	/*input.substring(i + 1)*/ substring1 = input.substring(i + 1);
-	/*substring1.indexOf(")")*/ i1 = substring1.indexOf(")");
+	/*JExpressionWrapper[content=input.substring(0, i)]*/ declarationString = input.substring(0, i);
+	/*JExpressionWrapper[content=input.substring(i + 1)]*/ substring1 = input.substring(i + 1);
+	/*JExpressionWrapper[content=substring1.indexOf(")")]*/ i1 = substring1.indexOf(")");
 	if (i1 < 0) 
 		return new_None<CStructMember>();
-	/*substring1.substring(0, i1)*/ parametersString = substring1.substring(0, i1);
-	/*substring1.substring(i1 + 1).strip()*/ withBraces = substring1.substring(i1 + 1).strip();
-	/*(*_this).divide(parametersString, lambda23).map(F? { alloc(String), F?Table { strip }}).filter(lambda22).toList().iter().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).toList()*/ parameters = (*_this).divide(parametersString, lambda23).map(F? { alloc(String), F?Table { strip }}).filter(lambda22).toList().iter().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).toList();
-	/*(*_this).parseMethodDeclaration(declarationString, structName)*/ methodDeclaration = (*_this).parseMethodDeclaration(declarationString, structName);
+	/*JExpressionWrapper[content=substring1.substring(0, i1)]*/ parametersString = substring1.substring(0, i1);
+	/*JExpressionWrapper[content=substring1.substring(i1 + 1).strip()]*/ withBraces = substring1.substring(i1 + 1).strip();
+	/*JExpressionWrapper[content=(*_this).divide(parametersString, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda22).toList().iter().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList()]*/ parameters = (*_this).divide(parametersString, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda22).toList().iter().map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+	(*_this).environment = (*_this).environment.addLast(parameters);
+	/*JExpressionWrapper[content=parameters.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).toList()]*/ cParameters = parameters.iter().map(F? { alloc(JDeclaration), F?Table { toCDeclaration }}).toList();
+	/*JExpressionWrapper[content=(*_this).parseMethodDeclaration(declarationString, structName)]*/ methodDeclaration = (*_this).parseMethodDeclaration(declarationString, structName);
 	Option<char*> maybeCompiled = new_None<char*>();
 	if (methodDeclaration.variant = ?.JDeclaration declaration && declaration.annotations.contains("Actual")Variant) {
-		/*parameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "))*/ compiledParameters = parameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
-		/*declaration.mapName(lambda24).toCDeclaration()*/ modifiedMethodDeclaration = declaration.mapName(lambda24).toCDeclaration();
+		/*JExpressionWrapper[content=cParameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "))]*/ compiledParameters = cParameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
+		/*JExpressionWrapper[content=declaration.mapName(lambda23).toCDeclaration()]*/ modifiedMethodDeclaration = declaration.mapName(lambda23).toCDeclaration();
 		(*_this).functionDeclarations = (*_this).functionDeclarations.addLast(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
 		return new_Some<CStructMember>(new_EmptyStructMember());
 	}
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-		/*withBraces.substring(1, withBraces.length() - 1)*/ inputContent = withBraces.substring(1, withBraces.length() - 1);
+		/*JExpressionWrapper[content=withBraces.substring(1, withBraces.length() - 1)]*/ inputContent = withBraces.substring(1, withBraces.length() - 1);
 		maybeCompiled = new_Some<char*>((*_this).compileMethodsSegments(inputContent, 1));
 	}
 	char* outputContent;
 	if (methodDeclaration.variant = ?.JConstructorVariant) {
-		/*maybeCompiled.orElse("?")*/ compiled = maybeCompiled.orElse("?");
+		/*JExpressionWrapper[content=maybeCompiled.orElse("?")]*/ compiled = maybeCompiled.orElse("?");
 		outputContent = (*_this).generateStatement(structName + " _this") + compiled + (*_this).generateStatement("return " + "_this");
 	}
 	else 
 	if (methodDeclaration.variant = ?.JDeclaration declarationVariant) {
-		parameters = parameters.addFirst(new_CDeclaration(new_CPointerType(CPrimitiveType.Void), "_ref"));
-		/*(*_this).joinTypeParameters(typeParameters)*/ joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
-		/*(*_this).generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref")*/ thisInitialization = (*_this).generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
-		/*parameters*/ finalParameters = parameters;
-		outputContent = thisInitialization + maybeCompiled.orElseGet(lambda27);
+		cParameters = cParameters.addFirst(new_CDeclaration(new_CPointerType(CPrimitiveType.Void), "_ref"));
+		/*JExpressionWrapper[content=(*_this).joinTypeParameters(typeParameters)]*/ joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
+		/*JExpressionWrapper[content=(*_this).generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref")]*/ thisInitialization = (*_this).generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
+		/**/ finalParameters = cParameters;
+		outputContent = thisInitialization + maybeCompiled.orElseGet(lambda26);
 	}
 	else outputContent = "?";
-	/*parameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "))*/ compiledParameters = parameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
-	/*_switch*/ modifiedMethodDeclaration = _switch;
-	/*modifiedMethodDeclaration.mapTypeParameters(lambda29).mapName(lambda28)*/ mapped = modifiedMethodDeclaration.mapTypeParameters(lambda29).mapName(lambda28);
-	/*mapped.generate() + "(" + compiledParameters + ")"*/ header = mapped.generate() + "(" + compiledParameters + ")";
-	/*header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator()*/ generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+	/*JExpressionWrapper[content=cParameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "))]*/ compiledParameters = cParameters.iter().map(F? { alloc(CDeclaration), F?Table { generate }}).collect(new_Joiner(", "));
+	/*JExpressionWrapper[content=_switch]*/ modifiedMethodDeclaration = _switch;
+	/*JExpressionWrapper[content=modifiedMethodDeclaration.mapTypeParameters(lambda28).mapName(lambda27)]*/ mapped = modifiedMethodDeclaration.mapTypeParameters(lambda28).mapName(lambda27);
+	/*JExpressionWrapper[content=mapped.generate() + "(" + compiledParameters + ")"]*/ header = mapped.generate() + "(" + compiledParameters + ")";
+	/*JExpressionWrapper[content=header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator()]*/ generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 	(*_this).functionDeclarations = (*_this).functionDeclarations.addLast(header + ";" + System.lineSeparator());
 	(*_this).functions = (*_this).functions.addLast(generated);
-	/*parameters.iter().map(F? { alloc(CDeclaration), F?Table { type }}).toList()*/ parameterTypes = parameters.iter().map(F? { alloc(CDeclaration), F?Table { type }}).toList();
+	/*JExpressionWrapper[content=cParameters.iter().map(F? { alloc(CDeclaration), F?Table { type }}).toList()]*/ parameterTypes = cParameters.iter().map(F? { alloc(CDeclaration), F?Table { type }}).toList();
 	return _switch;
 }
 CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParameters){
@@ -2136,26 +2162,26 @@ CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParam
 	/*final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList()*/;
 	return new_CTemplateType(base, typeArguments);
 }
-auto lambda30(void* _ref, auto input){
+auto lambda29(void* _ref, auto input){
 	return (*_this).compileMethodSegment(input, indent);
 }
 char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent){
 	Main* _this = (Main*) _ref;
-	return (*_this).compileStatements(inputContent, lambda30);
+	return (*_this).compileStatements(inputContent, lambda29);
 }
 char* generateCase_Main(void* _ref, JDeclaration declaration, char* variant){
 	Main* _this = (Main*) _ref;
 	return generateIndent(2) + "case " + variant + "Variant:" + generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&(_this->data." + variant + "))") + generateStatement(3, "break");
 }
-auto lambda31(void* _ref, auto ()){
+auto lambda30(void* _ref, auto ()){
 	return new_Placeholder(declaration);
 }
-auto lambda32(void* _ref, auto ()){
+auto lambda31(void* _ref, auto ()){
 	return (*_this).parseDeclaration(declaration).map(F? { alloc((*_this)), F?Table { toInterface }});
 }
 JMethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	return (*_this).parseConstructor(declaration, structName).or(lambda32).orElseGet(lambda31);
+	return (*_this).parseConstructor(declaration, structName).or(lambda31).orElseGet(lambda30);
 }
 JMethodDeclaration toInterface_Main(void* _ref, JDeclaration value){
 	Main* _this = (Main*) _ref;
@@ -2163,40 +2189,40 @@ JMethodDeclaration toInterface_Main(void* _ref, JDeclaration value){
 }
 Option<JMethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	/*declaration.strip()*/ stripped = declaration.strip();
+	/*JExpressionWrapper[content=declaration.strip()]*/ stripped = declaration.strip();
 	if (stripped.equals(structName)) 
 		return new_Some<JMethodDeclaration>(new_JConstructor(structName));
-	/*stripped.lastIndexOf(" ")*/ i = stripped.lastIndexOf(" ");
+	/*JExpressionWrapper[content=stripped.lastIndexOf(" ")]*/ i = stripped.lastIndexOf(" ");
 	if (i >= 0) {
-		/*stripped.substring(i + 1).strip()*/ substring = stripped.substring(i + 1).strip();
+		/*JExpressionWrapper[content=stripped.substring(i + 1).strip()]*/ substring = stripped.substring(i + 1).strip();
 		if (substring.equals(structName)) 
 			return new_Some<JMethodDeclaration>(new_JConstructor(structName));
 	}
 	return new_None<JMethodDeclaration>();
 }
-auto lambda33(void* _ref, auto slice){
+auto lambda32(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda34(void* _ref, auto (state, character)){
+auto lambda33(void* _ref, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
 }
-auto lambda35(void* _ref, auto enumValue){
+auto lambda34(void* _ref, auto enumValue){
 	return (*_this).compileEnumValue(structName, enumValue);
+}
+auto lambda35(void* _ref, auto option){
+	return option.variant = ?.NoneVariant;
 }
 auto lambda36(void* _ref, auto option){
 	return option.variant = ?.NoneVariant;
 }
-auto lambda37(void* _ref, auto option){
-	return option.variant = ?.NoneVariant;
-}
 Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* structName){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*JExpressionWrapper[content=input.strip()]*/ stripped = input.strip();
 	if (!stripped.endsWith(";")) 
 		return new_None<CStructMember>();
-	/*(*_this).divide(stripped.substring(0, stripped.length() - 1), lambda34).map(F? { alloc(String), F?Table { strip }}).filter(lambda33).toList()*/ enumValues = (*_this).divide(stripped.substring(0, stripped.length() - 1), lambda34).map(F? { alloc(String), F?Table { strip }}).filter(lambda33).toList();
+	/*JExpressionWrapper[content=(*_this).divide(stripped.substring(0, stripped.length() - 1), lambda33).map(F? { alloc(String), F?Table { strip }}).filter(lambda32).toList()]*/ enumValues = (*_this).divide(stripped.substring(0, stripped.length() - 1), lambda33).map(F? { alloc(String), F?Table { strip }}).filter(lambda32).toList();
 	if (!enumValues.isEmpty()) {
-		/*enumValues.iter().map(lambda35)*/ optionStream = enumValues.iter().map(lambda35);
+		/*JExpressionWrapper[content=enumValues.iter().map(lambda34)]*/ optionStream = enumValues.iter().map(lambda34);
 		/*final var areAnyInvalid =
 					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>))*/;
 		if (areAnyInvalid) 
@@ -2207,14 +2233,14 @@ Option<CStructMember> compileEnumValues_Main(void* _ref, char* input, char* stru
 Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue){
 	Main* _this = (Main*) _ref;
 	if (enumValue.endsWith(")")) {
-		/*enumValue.substring(0, enumValue.length() - 1)*/ substring = enumValue.substring(0, enumValue.length() - 1);
-		/*substring.indexOf("(")*/ i = substring.indexOf("(");
+		/*JExpressionWrapper[content=enumValue.substring(0, enumValue.length() - 1)]*/ substring = enumValue.substring(0, enumValue.length() - 1);
+		/*JExpressionWrapper[content=substring.indexOf("(")]*/ i = substring.indexOf("(");
 		if (i >= 0) {
-			/*substring.substring(0, i)*/ name = substring.substring(0, i);
+			/*JExpressionWrapper[content=substring.substring(0, i)]*/ name = substring.substring(0, i);
 			if (!(*_this).isIdentifier(name)) 
 				return new_None<CStructMember>();
-			/*substring.substring(i + 1)*/ substring2 = substring.substring(i + 1);
-			/*structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator()*/ generated = structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator();
+			/*JExpressionWrapper[content=substring.substring(i + 1)]*/ substring2 = substring.substring(i + 1);
+			/*JExpressionWrapper[content=structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator()]*/ generated = structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator();
 			(*_this).globals = (*_this).globals.addLast(generated);
 			return new_Some<CStructMember>(new_EmptyStructMember());
 		}
@@ -2223,23 +2249,23 @@ Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* 
 }
 char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*JExpressionWrapper[content=input.strip()]*/ stripped = input.strip();
 	if (stripped.isEmpty()) 
 		return "";
-	/*(*_this).compileConditional("if", indent, stripped)*/ maybeIf = (*_this).compileConditional("if", indent, stripped);
+	/*JExpressionWrapper[content=(*_this).compileConditional("if", indent, stripped)]*/ maybeIf = (*_this).compileConditional("if", indent, stripped);
 	if (maybeIf.variant = ?.SomeVariant) 
 		return result;
-	/*(*_this).compileConditional("while", indent, stripped)*/ maybeWhile = (*_this).compileConditional("while", indent, stripped);
+	/*JExpressionWrapper[content=(*_this).compileConditional("while", indent, stripped)]*/ maybeWhile = (*_this).compileConditional("while", indent, stripped);
 	if (maybeWhile.variant = ?.SomeVariant) 
 		return result;
 	if (stripped.endsWith(";")) {
-		/*stripped.substring(0, stripped.length() - 1)*/ substring = stripped.substring(0, stripped.length() - 1);
+		/*JExpressionWrapper[content=stripped.substring(0, stripped.length() - 1)]*/ substring = stripped.substring(0, stripped.length() - 1);
 		return generateIndent(indent) + (*_this).compileMethodStatement(substring) + ";";
 	}
 	if (stripped.startsWith("else ")) {
-		/*stripped.substring("else ".length()).strip()*/ substring = stripped.substring("else ".length()).strip();
+		/*JExpressionWrapper[content=stripped.substring("else ".length()).strip()]*/ substring = stripped.substring("else ".length()).strip();
 		if (substring.startsWith("{") && substring.endsWith("}")) {
-			/*substring.substring(1, substring.length() - 1)*/ substring1 = substring.substring(1, substring.length() - 1);
+			/*JExpressionWrapper[content=substring.substring(1, substring.length() - 1)]*/ substring1 = substring.substring(1, substring.length() - 1);
 			return generateIndent(indent) + "else {" + (*_this).compileMethodsSegments(substring1, indent + 1) + generateIndent(indent) + "}";
 		}
 		/*else return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent)*/;
@@ -2248,25 +2274,25 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 		return generateIndent(indent) + stripped;
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
-auto lambda38(void* _ref, auto slice){
+auto lambda37(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input){
 	Main* _this = (Main*) _ref;
 	if (input.startsWith(type)) {
-		/*input.substring(type.length()).strip()*/ substring = input.substring(type.length()).strip();
+		/*JExpressionWrapper[content=input.substring(type.length()).strip()]*/ substring = input.substring(type.length()).strip();
 		if (substring.startsWith("(")) {
-			/*substring.substring(1).strip()*/ afterConditionStart = substring.substring(1).strip();
-			/*(*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda38).toList()*/ divisions = (*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda38).toList();
+			/*JExpressionWrapper[content=substring.substring(1).strip()]*/ afterConditionStart = substring.substring(1).strip();
+			/*JExpressionWrapper[content=(*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda37).toList()]*/ divisions = (*_this).divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda37).toList();
 			if (divisions.size() < 2) 
 				return new_None<char*>();
-			/*divisions.getFirst()*/ first = divisions.getFirst();
-			/*(*_this).joinStrings("", divisions.subList(1, divisions.size()))*/ maybeWithBraces = (*_this).joinStrings("", divisions.subList(1, divisions.size()));
+			/*JExpressionWrapper[content=divisions.getFirst()]*/ first = divisions.getFirst();
+			/*JExpressionWrapper[content=(*_this).joinStrings("", divisions.subList(1, divisions.size()))]*/ maybeWithBraces = (*_this).joinStrings("", divisions.subList(1, divisions.size()));
 			if (!first.endsWith(")")) 
 				return new_None<char*>();
-			/*first.substring(0, first.length() - 1)*/ condition = first.substring(0, first.length() - 1);
+			/*JExpressionWrapper[content=first.substring(0, first.length() - 1)]*/ condition = first.substring(0, first.length() - 1);
 			if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
-				/*maybeWithBraces.substring(1, maybeWithBraces.length() - 1)*/ content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
+				/*JExpressionWrapper[content=maybeWithBraces.substring(1, maybeWithBraces.length() - 1)]*/ content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 				return new_Some<char*>(generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" + (*_this).compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 			}
 			return new_Some<char*>(generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") " + (*_this).compileMethodSegment(maybeWithBraces, indent + 1));
@@ -2276,48 +2302,56 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 }
 char* compileMethodStatement_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*JExpressionWrapper[content=input.strip()]*/ stripped = input.strip();
 	if (stripped.equals("break")) 
 		return "break";
 	if (stripped.startsWith("return ")) 
 		return "return " + (*_this).compileExpressionOrPlaceholder(stripped.substring("return ".length()));
-	/*(*_this).compileAssignment(stripped)*/ maybeAssignment = (*_this).compileAssignment(stripped);
+	/*JExpressionWrapper[content=(*_this).compileAssignment(stripped)]*/ maybeAssignment = (*_this).compileAssignment(stripped);
 	if (maybeAssignment.variant = ?.SomeVariant) 
 		return assignment;
-	/*(*_this).compileInvokable(stripped)*/ maybeInvokable = (*_this).compileInvokable(stripped);
+	/*JExpressionWrapper[content=(*_this).compileInvokable(stripped)]*/ maybeInvokable = (*_this).compileInvokable(stripped);
 	if (maybeInvokable.variant = ?.SomeVariant) 
 		return value;
-	/*(*_this).post(stripped, "++")*/ instance = (*_this).post(stripped, "++");
+	/*JExpressionWrapper[content=(*_this).post(stripped, "++")]*/ instance = (*_this).post(stripped, "++");
 	if (instance.variant = ?.SomeVariant) 
 		return x;
-	/*(*_this).post(stripped, "--")*/ instance0 = (*_this).post(stripped, "--");
+	/*JExpressionWrapper[content=(*_this).post(stripped, "--")]*/ instance0 = (*_this).post(stripped, "--");
 	if (instance0.variant = ?.SomeVariant) 
 		return x;
-	/*(*_this).parseDeclaration(input)*/ maybeDeclaration = (*_this).parseDeclaration(input);
+	/*JExpressionWrapper[content=(*_this).parseDeclaration(input)]*/ maybeDeclaration = (*_this).parseDeclaration(input);
 	if (maybeDeclaration.variant = ?.SomeVariant) 
 		return declaration.toCDeclaration().generate();
 	return wrap(stripped);
 }
 Option<char*> compileAssignment_Main(void* _ref, char* stripped){
 	Main* _this = (Main*) _ref;
-	/*stripped.indexOf("=")*/ index = stripped.indexOf("=");
+	/*JExpressionWrapper[content=stripped.indexOf("=")]*/ index = stripped.indexOf("=");
 	if (index >= 0) {
-		/*stripped.substring(0, index)*/ destination = stripped.substring(0, index);
-		/*stripped.substring(index + 1)*/ substring1 = stripped.substring(index + 1);
-		/*(*_this).parseAssignable(destination)*/ assignable = (*_this).parseAssignable(destination);
-		/*(*_this).parseCExpression(substring1)*/ maybeSource = (*_this).parseCExpression(substring1);
+		/*JExpressionWrapper[content=stripped.substring(0, index)]*/ destination = stripped.substring(0, index);
+		/*JExpressionWrapper[content=stripped.substring(index + 1)]*/ substring1 = stripped.substring(index + 1);
+		/*JExpressionWrapper[content=(*_this).parseAssignable(destination)]*/ assignable = (*_this).parseAssignable(destination);
+		/*JExpressionWrapper[content=(*_this).parseExpression(substring1)]*/ maybeSource = (*_this).parseExpression(substring1);
 		if (maybeSource.variant = ?.SomeVariant) 
-			return new_Some<char*>((*_this).transformAssignable(assignable, source).generate() + " = " + source.generate());
+			return new_Some<char*>((*_this).transformAssignable(assignable, source).generate() + " = " + source.toCAssignable().generate());
 	}
 	return new_None<char*>();
 }
-CAssignable transformAssignable_Main(void* _ref, JAssignable assignable, CExpression source){
+CAssignable transformAssignable_Main(void* _ref, JAssignable assignable, JExpression source){
 	Main* _this = (Main*) _ref;
 	return _switch;
 }
-Placeholder resolve_Main(void* _ref, CExpression source){
+auto lambda38(void* _ref, auto def){
+	return def.name.equals(value);
+}
+JType resolveExpression_Main(void* _ref, JExpression source){
 	Main* _this = (Main*) _ref;
-	return new_Placeholder(source.generate());
+	if (source.variant = ?.Identifier(var value)Variant) {
+		/*JExpressionWrapper[content=(*_this).environment.iter().flatMap(F? { alloc(List), F?Table { iter }}).filter(lambda38).next()]*/ maybeFound = (*_this).environment.iter().flatMap(F? { alloc(List), F?Table { iter }}).filter(lambda38).next();
+		if (maybeFound.variant = ?.SomeVariant) 
+			return found.type;
+	}
+	return new_Placeholder(source.toString());
 }
 auto lambda39(void* _ref, auto ()){
 	return new_Placeholder(input);
@@ -2378,7 +2412,7 @@ JAssignable parseAssignable_Main(void* _ref, char* input){
 Option<char*> post_Main(void* _ref, char* stripped, char* slice){
 	Main* _this = (Main*) _ref;
 	if (stripped.endsWith(slice)) {
-		/*stripped.substring(0, stripped.length() - 2)*/ instance = stripped.substring(0, stripped.length() - 2);
+		/*JExpressionWrapper[content=stripped.substring(0, stripped.length() - 2)]*/ instance = stripped.substring(0, stripped.length() - 2);
 		return new_Some<char*>((*_this).compileExpressionOrPlaceholder(instance) + slice);
 	}
 	return new_None<char*>();
@@ -2393,10 +2427,6 @@ char* compileExpressionOrPlaceholder_Main(void* _ref, char* input){
 Option<CExpression> parseCExpression_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	return (*_this).parseExpression(input).map(F? { alloc(JExpression), F?Table { toCExpression }});
-}
-Option<JExpression> parseExpression_Main(void* _ref, char* input){
-	Main* _this = (Main*) _ref;
-	return (*_this).getStringOption(input).map(F? { alloc(JExpressionWrapper), F?Table { new }});
 }
 auto lambda56(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " >= ");
@@ -2419,48 +2449,48 @@ auto lambda61(void* _ref, auto ()){
 auto lambda62(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " != ");
 }
-Option<char*> getStringOption_Main(void* _ref, char* input){
+Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*JExpressionWrapper[content=input.strip()]*/ stripped = input.strip();
 	if (stripped.equals("this")) 
-		return new_Some<char*>("(*_this)");
+		return new_Some<char*>("(*_this)").map(F? { alloc(JExpressionWrapper), F?Table { new }});
 	if (stripped.startsWith("switch ")) 
-		return new_Some<char*>("_switch");
-	/*stripped.lastIndexOf("::")*/ i2 = stripped.lastIndexOf("::");
+		return new_Some<char*>("_switch").map(F? { alloc(JExpressionWrapper), F?Table { new }});
+	/*JExpressionWrapper[content=stripped.lastIndexOf("::")]*/ i2 = stripped.lastIndexOf("::");
 	if (i2 >= 0) {
-		/*stripped.substring(0, i2)*/ substring = stripped.substring(0, i2);
-		/*stripped.substring(i2 + 2).strip()*/ name = stripped.substring(i2 + 2).strip();
+		/*JExpressionWrapper[content=stripped.substring(0, i2)]*/ substring = stripped.substring(0, i2);
+		/*JExpressionWrapper[content=stripped.substring(i2 + 2).strip()]*/ name = stripped.substring(i2 + 2).strip();
 		if ((*_this).isIdentifier(name)) {
-			/*(*_this).compileExpressionOrPlaceholder(substring)*/ compiled = (*_this).compileExpressionOrPlaceholder(substring);
-			/*"F?"*/ functionalInterfaceName = "F?";
-			return new_Some<char*>(functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name + " }}");
+			/*JExpressionWrapper[content=(*_this).compileExpressionOrPlaceholder(substring)]*/ compiled = (*_this).compileExpressionOrPlaceholder(substring);
+			/*JExpressionWrapper[content="F?"]*/ functionalInterfaceName = "F?";
+			return new_Some<char*>(functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name + " }}").map(F? { alloc(JExpressionWrapper), F?Table { new }});
 		}
 	}
 	if (stripped.startsWith("'") && stripped.endsWith("'")) 
-		return new_Some<char*>(stripped);
-	/*(*_this).compileLambda(stripped)*/ maybeLambda = (*_this).compileLambda(stripped);
+		return new_Some<char*>(stripped).map(F? { alloc(JExpressionWrapper), F?Table { new }});
+	/*JExpressionWrapper[content=(*_this).compileLambda(stripped)]*/ maybeLambda = (*_this).compileLambda(stripped);
 	if (maybeLambda.variant = ?.SomeVariant) 
-		return maybeLambda;
-	/*stripped.indexOf(".variant = ?."Variant)*/ i3 = stripped.indexOf(".variant = ?."Variant);
+		return maybeLambda.map(F? { alloc(JExpressionWrapper), F?Table { new }});
+	/*JExpressionWrapper[content=stripped.indexOf(".variant = ?."Variant)]*/ i3 = stripped.indexOf(".variant = ?."Variant);
 	if (i3 >= 0) {
-		/*stripped.substring(0, i3)*/ substring = stripped.substring(0, i3);
-		/*stripped.substring(i3 + ".variant = ?.".length()Variant).strip()*/ substring1 = stripped.substring(i3 + ".variant = ?.".length()Variant).strip();
-		/*(*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }})*/ maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
+		/*JExpressionWrapper[content=stripped.substring(0, i3)]*/ substring = stripped.substring(0, i3);
+		/*JExpressionWrapper[content=stripped.substring(i3 + ".variant = ?.".length()Variant).strip()]*/ substring1 = stripped.substring(i3 + ".variant = ?.".length()Variant).strip();
+		/*JExpressionWrapper[content=(*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }})]*/ maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
 		if (maybeInstance.variant = ?.SomeVariant) {
-			/*substring1.indexOf(" < ")*/ i4 = substring1.indexOf(" < ");
+			/*JExpressionWrapper[content=substring1.indexOf(" < ")]*/ i4 = substring1.indexOf(" < ");
 			char* substring2;
 			if (i4 >= 0) 
 				substring2 = substring1.substring(0, i4);
 			else substring2 = substring1;
-			return new_Some<char*>(instance + ".variant = ?." + substring2 + "Variant");
+			return new_Some<char*>(instance + ".variant = ?." + substring2 + "Variant").map(F? { alloc(JExpressionWrapper), F?Table { new }});
 		}
 	}
-	/*stripped.lastIndexOf(".")*/ i = stripped.lastIndexOf(".");
+	/*JExpressionWrapper[content=stripped.lastIndexOf(".")]*/ i = stripped.lastIndexOf(".");
 	if (i >= 0) {
-		/*stripped.substring(0, i)*/ instanceString = stripped.substring(0, i);
-		/*stripped.substring(i + 1).strip()*/ memberName = stripped.substring(i + 1).strip();
+		/*JExpressionWrapper[content=stripped.substring(0, i)]*/ instanceString = stripped.substring(0, i);
+		/*JExpressionWrapper[content=stripped.substring(i + 1).strip()]*/ memberName = stripped.substring(i + 1).strip();
 		if ((*_this).isIdentifier(memberName)) {
-			/*(*_this).parseCExpression(instanceString).map(F? { alloc(CExpression), F?Table { generate }})*/ maybeInstance = (*_this).parseCExpression(instanceString).map(F? { alloc(CExpression), F?Table { generate }});
+			/*JExpressionWrapper[content=(*_this).parseCExpression(instanceString).map(F? { alloc(CExpression), F?Table { generate }})]*/ maybeInstance = (*_this).parseCExpression(instanceString).map(F? { alloc(CExpression), F?Table { generate }});
 			if (maybeInstance.variant = ?.SomeVariant) {
 				char* instance;
 				instance = value;
@@ -2468,29 +2498,29 @@ Option<char*> getStringOption_Main(void* _ref, char* input){
 				if (instance.equals("this")) 
 					generated = "_this->" + memberName;
 				else generated = instance + "." + memberName;
-				return new_Some<char*>(generated);
+				return new_Some<char*>(generated).map(F? { alloc(JExpressionWrapper), F?Table { new }});
 			}
 		}
 	}
-	/*(*_this).compileInvokable(stripped)*/ maybeInvokable = (*_this).compileInvokable(stripped);
+	/*JExpressionWrapper[content=(*_this).compileInvokable(stripped)]*/ maybeInvokable = (*_this).compileInvokable(stripped);
 	if (maybeInvokable.variant = ?.SomeVariant) 
-		return maybeInvokable;
-	/*(*_this).compileOperator(stripped, " == ").or(lambda62).or(lambda61).or(lambda60).or(lambda59).or(lambda58).or(lambda57).or(lambda56)*/ maybeOperator = (*_this).compileOperator(stripped, " == ").or(lambda62).or(lambda61).or(lambda60).or(lambda59).or(lambda58).or(lambda57).or(lambda56);
+		return maybeInvokable.map(F? { alloc(JExpressionWrapper), F?Table { new }});
+	/*JExpressionWrapper[content=(*_this).compileOperator(stripped, " == ").or(lambda62).or(lambda61).or(lambda60).or(lambda59).or(lambda58).or(lambda57).or(lambda56)]*/ maybeOperator = (*_this).compileOperator(stripped, " == ").or(lambda62).or(lambda61).or(lambda60).or(lambda59).or(lambda58).or(lambda57).or(lambda56);
 	if (maybeOperator.variant = ?.SomeVariant) 
-		return maybeOperator;
+		return maybeOperator.map(F? { alloc(JExpressionWrapper), F?Table { new }});
 	if ((*_this).isIdentifier(stripped)) 
-		return new_Some<char*>(stripped);
+		return new_Some<JExpression>(new_Identifier(stripped));
 	if (stripped.startsWith("!")) {
-		/*stripped.substring(1)*/ substring = stripped.substring(1);
-		/*(*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }})*/ maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
+		/*JExpressionWrapper[content=stripped.substring(1)]*/ substring = stripped.substring(1);
+		/*JExpressionWrapper[content=(*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }})]*/ maybeInstance = (*_this).parseCExpression(substring).map(F? { alloc(CExpression), F?Table { generate }});
 		if (maybeInstance.variant = ?.SomeVariant) 
-			return new_Some<char*>("!" + instance);
+			return new_Some<char*>("!" + instance).map(F? { alloc(JExpressionWrapper), F?Table { new }});
 	}
 	if ((*_this).isNumber(stripped)) 
-		return new_Some<char*>(stripped);
+		return new_Some<char*>(stripped).map(F? { alloc(JExpressionWrapper), F?Table { new }});
 	if (stripped.startsWith("\"") && stripped.endsWith("\"")) 
-		return new_Some<char*>(stripped);
-	return new_None<char*>();
+		return new_Some<char*>(stripped).map(F? { alloc(JExpressionWrapper), F?Table { new }});
+	return new_None<JExpression>();
 }
 auto lambda63(void* _ref, auto slice){
 	return !slice.isEmpty();
@@ -2500,38 +2530,38 @@ auto lambda64(void* _ref, auto param){
 }
 Option<char*> compileLambda_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.indexOf("->")*/ index = input.indexOf("->");
+	/*JExpressionWrapper[content=input.indexOf("->")]*/ index = input.indexOf("->");
 	if (index < 0) 
 		return new_None<char*>();
-	/*input.substring(0, index).strip()*/ beforeContent = input.substring(0, index).strip();
-	/*input.substring(index + 2).strip()*/ maybeWithBraces = input.substring(index + 2).strip();
+	/*JExpressionWrapper[content=input.substring(0, index).strip()]*/ beforeContent = input.substring(0, index).strip();
+	/*JExpressionWrapper[content=input.substring(index + 2).strip()]*/ maybeWithBraces = input.substring(index + 2).strip();
 	List<char*> params;
 	if ((*_this).isIdentifier(beforeContent)) 
 		params = Lists.of(beforeContent);
 	else 
 	if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
-		/*beforeContent.substring(1, beforeContent.length() - 1)*/ substring = beforeContent.substring(1, beforeContent.length() - 1);
+		/*JExpressionWrapper[content=beforeContent.substring(1, beforeContent.length() - 1)]*/ substring = beforeContent.substring(1, beforeContent.length() - 1);
 		params = (*_this).divide(substring, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda63).toList();
 	}
 	/*else return new None<String>()*/;
 	if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
-		/*maybeWithBraces.substring(1, maybeWithBraces.length() - 1)*/ content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
-		/*(*_this).compileMethodsSegments(content, 1)*/ compiled = (*_this).compileMethodsSegments(content, 1);
-		/*(*_this).generateName()*/ generatedName = (*_this).generateName();
-		/*params.iter().map(lambda64).toList().addFirst("void* _ref")*/ paramList = params.iter().map(lambda64).toList().addFirst("void* _ref");
-		/*(*_this).joinStrings(", ", paramList)*/ joined = (*_this).joinStrings(", ", paramList);
+		/*JExpressionWrapper[content=maybeWithBraces.substring(1, maybeWithBraces.length() - 1)]*/ content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
+		/*JExpressionWrapper[content=(*_this).compileMethodsSegments(content, 1)]*/ compiled = (*_this).compileMethodsSegments(content, 1);
+		/*JExpressionWrapper[content=(*_this).generateName()]*/ generatedName = (*_this).generateName();
+		/*JExpressionWrapper[content=params.iter().map(lambda64).toList().addFirst("void* _ref")]*/ paramList = params.iter().map(lambda64).toList().addFirst("void* _ref");
+		/*JExpressionWrapper[content=(*_this).joinStrings(", ", paramList)]*/ joined = (*_this).joinStrings(", ", paramList);
 		(*_this).functions = (*_this).functions.addLast("auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" + System.lineSeparator());
 		return new_Some<char*>(generatedName);
 	}
 	else {
-		/*(*_this).generateName()*/ generatedName = (*_this).generateName();
+		/*JExpressionWrapper[content=(*_this).generateName()]*/ generatedName = (*_this).generateName();
 		(*_this).functions = (*_this).functions.addLast("auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" + (*_this).generateStatement("return " + (*_this).compileExpressionOrPlaceholder(maybeWithBraces)) + System.lineSeparator() + "}" + System.lineSeparator());
 		return new_Some<char*>(generatedName);
 	}
 }
 char* generateName_Main(void* _ref){
 	Main* _this = (Main*) _ref;
-	/*"lambda" + (*_this).counter*/ generatedName = "lambda" + (*_this).counter;
+	/*JExpressionWrapper[content="lambda" + (*_this).counter]*/ generatedName = "lambda" + (*_this).counter;
 	(*_this).counter++;
 	return generatedName;
 }
@@ -2541,11 +2571,11 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 		return new_None<char*>();
 	if (!input.contains(operator)) 
 		return new_None<char*>();
-	/*-1*/ i1 = -1;
-	/*0*/ depth = 0;
-	/*0*/ i = 0;
+	/*JExpressionWrapper[content=-1]*/ i1 = -1;
+	/*JExpressionWrapper[content=0]*/ depth = 0;
+	/*JExpressionWrapper[content=0]*/ i = 0;
 	while (i < input.length() - 1) {
-		/*input.charAt(i)*/ c = input.charAt(i);
+		/*JExpressionWrapper[content=input.charAt(i)]*/ c = input.charAt(i);
 		if (c == operator.charAt(0)) 
 			if (depth == 0) {
 				i1 = i;
@@ -2558,8 +2588,8 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 		i++;
 	}
 	if (i1 >= 0) {
-		/*input.substring(0, i1)*/ leftString = input.substring(0, i1);
-		/*input.substring(i1 + operator.length())*/ right = input.substring(i1 + operator.length());
+		/*JExpressionWrapper[content=input.substring(0, i1)]*/ leftString = input.substring(0, i1);
+		/*JExpressionWrapper[content=input.substring(i1 + operator.length())]*/ right = input.substring(i1 + operator.length());
 		if ((*_this).parseCExpression(leftString).map(F? { alloc(CExpression), F?Table { generate }}).variant = ?.SomeVariant) 
 			if ((*_this).parseCExpression(right).map(F? { alloc(CExpression), F?Table { generate }}).variant = ?.SomeVariant) 
 				return new_Some<char*>(leftCompiled + " " + operator + " " + rightCompiled);
@@ -2569,15 +2599,15 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 Option<char*> compileInvokable_Main(void* _ref, char* stripped){
 	Main* _this = (Main*) _ref;
 	if (stripped.endsWith(")")) {
-		/*stripped*/ stripped1 = stripped;
-		/*stripped.length()*/ length = stripped.length();
-		/*stripped1.substring(0, length - 1)*/ withoutEnd = stripped1.substring(0, length - 1);
-		/*(*_this).findCallerStart(withoutEnd)*/ callerStart = (*_this).findCallerStart(withoutEnd);
+		char* stripped1 = stripped;
+		/*JExpressionWrapper[content=stripped.length()]*/ length = stripped.length();
+		/*JExpressionWrapper[content=stripped1.substring(0, length - 1)]*/ withoutEnd = stripped1.substring(0, length - 1);
+		/*JExpressionWrapper[content=(*_this).findCallerStart(withoutEnd)]*/ callerStart = (*_this).findCallerStart(withoutEnd);
 		if (callerStart >= 0) {
-			/*withoutEnd.substring(0, callerStart)*/ callerString = withoutEnd.substring(0, callerStart);
-			/*withoutEnd.substring(callerStart + 1)*/ arguments = withoutEnd.substring(callerStart + 1);
-			/*(*_this).divide(arguments, new_EscapedFolder(new_ValueFolder())).map(F? { alloc((*_this)), F?Table { compileExpressionOrPlaceholder }}).collect(new_Joiner(", "))*/ joinedArguments = (*_this).divide(arguments, new_EscapedFolder(new_ValueFolder())).map(F? { alloc((*_this)), F?Table { compileExpressionOrPlaceholder }}).collect(new_Joiner(", "));
-			/*(*_this).compileCaller(callerString)*/ maybeCaller = (*_this).compileCaller(callerString);
+			/*JExpressionWrapper[content=withoutEnd.substring(0, callerStart)]*/ callerString = withoutEnd.substring(0, callerStart);
+			/*JExpressionWrapper[content=withoutEnd.substring(callerStart + 1)]*/ arguments = withoutEnd.substring(callerStart + 1);
+			/*JExpressionWrapper[content=(*_this).divide(arguments, new_EscapedFolder(new_ValueFolder())).map(F? { alloc((*_this)), F?Table { compileExpressionOrPlaceholder }}).collect(new_Joiner(", "))]*/ joinedArguments = (*_this).divide(arguments, new_EscapedFolder(new_ValueFolder())).map(F? { alloc((*_this)), F?Table { compileExpressionOrPlaceholder }}).collect(new_Joiner(", "));
+			/*JExpressionWrapper[content=(*_this).compileCaller(callerString)]*/ maybeCaller = (*_this).compileCaller(callerString);
 			if (maybeCaller.variant = ?.SomeVariant) 
 				return new_Some<char*>(value + "(" + joinedArguments + ")");
 		}
@@ -2586,11 +2616,11 @@ Option<char*> compileInvokable_Main(void* _ref, char* stripped){
 }
 int findCallerStart_Main(void* _ref, char* withoutEnd){
 	Main* _this = (Main*) _ref;
-	/*-1*/ callerStart = -1;
-	/*0*/ depth = 0;
-	/*0*/ i = 0;
+	/*JExpressionWrapper[content=-1]*/ callerStart = -1;
+	/*JExpressionWrapper[content=0]*/ depth = 0;
+	/*JExpressionWrapper[content=0]*/ i = 0;
 	while (i < withoutEnd.length()) {
-		/*withoutEnd.charAt(i)*/ c = withoutEnd.charAt(i);
+		/*JExpressionWrapper[content=withoutEnd.charAt(i)]*/ c = withoutEnd.charAt(i);
 		if (c == '(') {
 			if (depth == 0) 
 				callerStart = i;
@@ -2614,50 +2644,50 @@ int allDigits_Main(void* _ref, char* input){
 }
 Option<char*> compileCaller_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
-	/*(*_this).parseCExpression(stripped).map(F? { alloc(CExpression), F?Table { generate }})*/ maybeExpression = (*_this).parseCExpression(stripped).map(F? { alloc(CExpression), F?Table { generate }});
+	/*JExpressionWrapper[content=input.strip()]*/ stripped = input.strip();
+	/*JExpressionWrapper[content=(*_this).parseCExpression(stripped).map(F? { alloc(CExpression), F?Table { generate }})]*/ maybeExpression = (*_this).parseCExpression(stripped).map(F? { alloc(CExpression), F?Table { generate }});
 	if (maybeExpression.variant = ?.SomeVariant) 
 		return maybeExpression;
 	if (stripped.startsWith("new ")) {
-		/*stripped.substring("new ".length())*/ type = stripped.substring("new ".length());
+		/*JExpressionWrapper[content=stripped.substring("new ".length())]*/ type = stripped.substring("new ".length());
 		return new_Some<char*>("new_" + (*_this).compileType(type));
 	}
 	return new_None<char*>();
 }
 Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
-	/*stripped.lastIndexOf(" ")*/ nameSeparator = stripped.lastIndexOf(" ");
+	/*JExpressionWrapper[content=input.strip()]*/ stripped = input.strip();
+	/*JExpressionWrapper[content=stripped.lastIndexOf(" ")]*/ nameSeparator = stripped.lastIndexOf(" ");
 	if (nameSeparator >= 0) {
-		/*stripped.substring(0, nameSeparator).strip()*/ beforeName = stripped.substring(0, nameSeparator).strip();
-		/*stripped.substring(nameSeparator + 1).strip()*/ name = stripped.substring(nameSeparator + 1).strip();
-		/*(*_this).findTypeSeparator(beforeName)*/ typeSeparator = (*_this).findTypeSeparator(beforeName);
+		/*JExpressionWrapper[content=stripped.substring(0, nameSeparator).strip()]*/ beforeName = stripped.substring(0, nameSeparator).strip();
+		/*JExpressionWrapper[content=stripped.substring(nameSeparator + 1).strip()]*/ name = stripped.substring(nameSeparator + 1).strip();
+		/*JExpressionWrapper[content=(*_this).findTypeSeparator(beforeName)]*/ typeSeparator = (*_this).findTypeSeparator(beforeName);
 		if (!(*_this).isIdentifier(name)) 
 			return new_None<JDeclaration>();
 		if (typeSeparator < 0) {
-			/*(*_this).parseType(beforeName)*/ type = (*_this).parseType(beforeName);
+			/*JExpressionWrapper[content=(*_this).parseType(beforeName)]*/ type = (*_this).parseType(beforeName);
 			return new_Some<JDeclaration>(new_JDeclaration(type, name));
 		}
-		/*beforeName.substring(0, typeSeparator).strip()*/ beforeType = beforeName.substring(0, typeSeparator).strip();
+		/*JExpressionWrapper[content=beforeName.substring(0, typeSeparator).strip()]*/ beforeType = beforeName.substring(0, typeSeparator).strip();
 		List<char*> copy = Lists.empty();
 		if (beforeType.endsWith(">")) {
-			/*beforeType.substring(0, beforeType.length() - 1)*/ substring = beforeType.substring(0, beforeType.length() - 1);
-			/*substring.indexOf(" < ")*/ i = substring.indexOf(" < ");
+			/*JExpressionWrapper[content=beforeType.substring(0, beforeType.length() - 1)]*/ substring = beforeType.substring(0, beforeType.length() - 1);
+			/*JExpressionWrapper[content=substring.indexOf(" < ")]*/ i = substring.indexOf(" < ");
 			if (i >= 0) {
-				/*substring.substring(i + 1)*/ substring2 = substring.substring(i + 1);
+				/*JExpressionWrapper[content=substring.substring(i + 1)]*/ substring2 = substring.substring(i + 1);
 				copy = (*_this).splitValues(substring2);
 				beforeType = substring.substring(0, i);
 			}
 		}
 		List<char*> annotations = Lists.empty();
-		/*beforeType.lastIndexOf("\n")*/ i = beforeType.lastIndexOf("\n");
+		/*JExpressionWrapper[content=beforeType.lastIndexOf("\n")]*/ i = beforeType.lastIndexOf("\n");
 		if (i >= 0) {
 			annotations = (*_this).collectAnnotations(beforeType.substring(0, i));
 			beforeType = beforeType.substring(i + 1).strip();
 		}
 		if ((*_this).isIdentifier(name)) {
-			/*(*_this).parseType(beforeName.substring(typeSeparator + 1))*/ type = (*_this).parseType(beforeName.substring(typeSeparator + 1));
-			/*new_JDeclaration(annotations, copy, new_Some<char*>(beforeType), type, name)*/ jDeclaration = new_JDeclaration(annotations, copy, new_Some<char*>(beforeType), type, name);
+			/*JExpressionWrapper[content=(*_this).parseType(beforeName.substring(typeSeparator + 1))]*/ type = (*_this).parseType(beforeName.substring(typeSeparator + 1));
+			/*JExpressionWrapper[content=new_JDeclaration(annotations, copy, new_Some<char*>(beforeType), type, name)]*/ jDeclaration = new_JDeclaration(annotations, copy, new_Some<char*>(beforeType), type, name);
 			return new_Some<JDeclaration>(jDeclaration);
 		}
 	}
@@ -2675,11 +2705,11 @@ List<char*> collectAnnotations_Main(void* _ref, char* input){
 }
 int findTypeSeparator_Main(void* _ref, char* beforeName){
 	Main* _this = (Main*) _ref;
-	/*-1*/ typeSeparator = -1;
-	/*0*/ depth = 0;
-	/*0*/ i = 0;
+	/*JExpressionWrapper[content=-1]*/ typeSeparator = -1;
+	/*JExpressionWrapper[content=0]*/ depth = 0;
+	/*JExpressionWrapper[content=0]*/ i = 0;
 	while (i < beforeName.length()) {
-		/*beforeName.charAt(i)*/ c = beforeName.charAt(i);
+		/*JExpressionWrapper[content=beforeName.charAt(i)]*/ c = beforeName.charAt(i);
 		if (c == ' ' && depth == 0) 
 			typeSeparator = i;
 		if (c == '<') 
@@ -2696,7 +2726,7 @@ char* compileType_Main(void* _ref, char* input){
 }
 JType parseType_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*input.strip()*/ stripped = input.strip();
+	/*JExpressionWrapper[content=input.strip()]*/ stripped = input.strip();
 	/*switch (stripped) {
 			case "boolean", "Boolean" -> {
 				return JPrimitiveType.Boolean;
@@ -2718,17 +2748,17 @@ JType parseType_Main(void* _ref, char* input){
 			}
 		}*/
 	if (stripped.endsWith("[]")) {
-		/*stripped.substring(0, stripped.length() - 2)*/ slice = stripped.substring(0, stripped.length() - 2);
-		/*(*_this).parseType(slice)*/ type = (*_this).parseType(slice);
+		/*JExpressionWrapper[content=stripped.substring(0, stripped.length() - 2)]*/ slice = stripped.substring(0, stripped.length() - 2);
+		/*JExpressionWrapper[content=(*_this).parseType(slice)]*/ type = (*_this).parseType(slice);
 		return new_JArrayType(type);
 	}
 	if (stripped.endsWith(">")) {
-		/*stripped.substring(0, stripped.length() - 1)*/ substring = stripped.substring(0, stripped.length() - 1);
-		/*substring.indexOf(" < ")*/ i = substring.indexOf(" < ");
+		/*JExpressionWrapper[content=stripped.substring(0, stripped.length() - 1)]*/ substring = stripped.substring(0, stripped.length() - 1);
+		/*JExpressionWrapper[content=substring.indexOf(" < ")]*/ i = substring.indexOf(" < ");
 		if (i >= 0) {
-			/*substring.substring(0, i)*/ base = substring.substring(0, i);
-			/*substring.substring(i + 1)*/ parameters = substring.substring(i + 1);
-			/*(*_this).divide(parameters, new_ValueFolder()).map(F? { alloc((*_this)), F?Table { parseType }}).toList()*/ list = (*_this).divide(parameters, new_ValueFolder()).map(F? { alloc((*_this)), F?Table { parseType }}).toList();
+			/*JExpressionWrapper[content=substring.substring(0, i)]*/ base = substring.substring(0, i);
+			/*JExpressionWrapper[content=substring.substring(i + 1)]*/ parameters = substring.substring(i + 1);
+			/*JExpressionWrapper[content=(*_this).divide(parameters, new_ValueFolder()).map(F? { alloc((*_this)), F?Table { parseType }}).toList()]*/ list = (*_this).divide(parameters, new_ValueFolder()).map(F? { alloc((*_this)), F?Table { parseType }}).toList();
 			return new_JGenericType(base, list);
 		}
 	}
