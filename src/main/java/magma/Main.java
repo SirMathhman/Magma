@@ -179,6 +179,8 @@ public class Main {
 		String generate();
 	}
 
+	private interface JObjectMemberPrototype {}
+
 	@Actual
 	private record JavaIOError(IOException e) implements IOError {
 		@Override
@@ -528,7 +530,8 @@ public class Main {
 	}
 
 	private record Placeholder(String input)
-			implements CType, JMethodDeclaration, CStructMember, CFunctionDeclaration, CAssignable, JAssignable, JType {
+			implements CType, JMethodDeclaration, CStructMember, CFunctionDeclaration, CAssignable, JAssignable, JType,
+			JObjectMemberPrototype {
 		@Override
 		public String generate() {
 			return wrap(this.input);
@@ -1128,7 +1131,8 @@ public class Main {
 
 	private record JObjectPrototype(String type, List<String> annotations, List<String> modifiersList, String name,
 																	List<String> typeParameters, List<JDeclaration> recordFields,
-																	List<CType> implementees, List<String> variants, String inputContent) {
+																	List<CType> implementees, List<String> variants, String inputContent)
+			implements JObjectMemberPrototype {
 		private List<CDefinable> collectCFields() {
 			return this.recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList();
 		}
@@ -1154,6 +1158,9 @@ public class Main {
 						 conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
 		}
 	}
+
+	@Deprecated
+	private record JObjectMemberPrototypeWrapper(CStructMember member) implements JObjectMemberPrototype {}
 
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
@@ -1338,11 +1345,11 @@ public class Main {
 
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
-		return this.compileStructure("class", stripped).map(CStructMember::generate).orElseGet(() -> wrap(stripped));
-	}
-
-	private Option<CStructMember> compileStructure(String type, String input) {
-		return this.partiallyParseObject(type, input).flatMap(this::transformObject);
+		return this
+				.partiallyParseObject("class", stripped)
+				.flatMap(this::transformObject)
+				.map(CStructMember::generate)
+				.orElseGet(() -> wrap(stripped));
 	}
 
 	private Option<JObjectPrototype> partiallyParseObject(String type, String stripped) {
@@ -1449,8 +1456,6 @@ public class Main {
 		this.functions = object.createConversionFunctions().iter().fold(this.functions, List::addLast);
 
 		var fields = object.collectCFields();
-		var finalTypeParameters = object.typeParameters();
-		var finalVariants = object.variants();
 
 		final var within = this.environment.withinScoped((env) -> {
 			final var withName = env.withName(object.name());
@@ -1460,7 +1465,7 @@ public class Main {
 			// But if environment becomes immutable, then we have to pass withName as a parameter here eventually
 			final var members = this
 					.divide(object.inputContent, new EscapedFolder(this::foldStatement))
-					.map(slice -> this.compileClassSegment(slice, object.name(), finalTypeParameters, finalVariants))
+					.map(slice -> this.partiallyParseObjectMember(object, slice).flatMap(this::transformObjectMember))
 					.flatMap(Option::iter)
 					.toList();
 
@@ -1494,6 +1499,43 @@ public class Main {
 		final var elements = dependencies.addLast(new CStructure(object.typeParameters(), object.name(), fields));
 		this.rootSegments = this.rootSegments.addAllLast(elements);
 		return new Some<CStructMember>(new EmptyStructMember());
+	}
+
+	private Option<JObjectMemberPrototype> partiallyParseObjectMember(JObjectPrototype object, String input) {
+		final var stripped = input.strip();
+		if (stripped.isEmpty()) return new None<JObjectMemberPrototype>();
+
+		final var maybeEnum = this.partiallyParseObject("enum", input);
+		if (maybeEnum instanceof Some<JObjectPrototype>(var enum0)) return new Some<JObjectMemberPrototype>(enum0);
+
+		final var maybeInterface = this.partiallyParseObject("interface", input);
+		if (maybeInterface instanceof Some<JObjectPrototype>(var interface0))
+			return new Some<JObjectMemberPrototype>(interface0);
+
+		final var maybeRecord = this.partiallyParseObject("record", input);
+		if (maybeRecord instanceof Some<JObjectPrototype>(var record0)) return new Some<JObjectMemberPrototype>(record0);
+
+		final var maybeClass = this.partiallyParseObject("class", input);
+		if (maybeClass instanceof Some<JObjectPrototype>(var class0)) return new Some<JObjectMemberPrototype>(class0);
+
+		final var maybeEnumValues = this.compileEnumValues(input, object.name());
+		if (maybeEnumValues instanceof Some<CStructMember>(var enumValues))
+			return new Some<JObjectMemberPrototype>(new JObjectMemberPrototypeWrapper(enumValues));
+
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			final var maybeDeclaration = this.parseDeclaration(substring);
+			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) {
+				this.environment = this.environment.define(declaration);
+				return new Some<JObjectMemberPrototype>(new JObjectMemberPrototypeWrapper(new CField(declaration.toCDeclaration())));
+			}
+		}
+
+		final var maybeMethod = this.compileMethod(object.name(), object.typeParameters(), object.variants(), stripped);
+		if (maybeMethod instanceof Some<CStructMember>(var temp))
+			return new Some<JObjectMemberPrototype>(new JObjectMemberPrototypeWrapper(temp));
+
+		return new Some<JObjectMemberPrototype>(new Placeholder(stripped));
 	}
 
 	private List<CDefinable> retainFields(List<CStructMember> members) {
@@ -1533,41 +1575,10 @@ public class Main {
 		});
 	}
 
-	private Option<CStructMember> compileClassSegment(String input,
-																										String structName,
-																										List<String> typeParameters,
-																										List<String> variants) {
-		final var stripped = input.strip();
-		if (stripped.isEmpty()) return new None<CStructMember>();
-
-		final var maybeEnum = this.compileStructure("enum", input);
-		if (maybeEnum instanceof Some<CStructMember>) return maybeEnum;
-
-		final var maybeInterface = this.compileStructure("interface", input);
-		if (maybeInterface instanceof Some<CStructMember>) return maybeInterface;
-
-		final var maybeRecord = this.compileStructure("record", input);
-		if (maybeRecord instanceof Some<CStructMember>) return maybeRecord;
-
-		final var maybeClass = this.compileStructure("class", input);
-		if (maybeClass instanceof Some<CStructMember>) return maybeClass;
-
-		final var maybeEnumValues = this.compileEnumValues(input, structName);
-		if (maybeEnumValues instanceof Some<CStructMember>) return maybeEnumValues;
-
-		if (stripped.endsWith(";")) {
-			final var substring = stripped.substring(0, stripped.length() - 1);
-			final var maybeDeclaration = this.parseDeclaration(substring);
-			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) {
-				this.environment = this.environment.define(declaration);
-				return new Some<CStructMember>(new CField(declaration.toCDeclaration()));
-			}
-		}
-
-		final var maybeMethod = this.compileMethod(structName, typeParameters, variants, stripped);
-		if (maybeMethod instanceof Some<CStructMember>) return maybeMethod;
-
-		return new Some<CStructMember>(new Placeholder(stripped));
+	private Option<CStructMember> transformObjectMember(JObjectMemberPrototype wrapper) {
+		if (wrapper instanceof JObjectMemberPrototypeWrapper(var member)) return new Some<CStructMember>(member);
+		else if (wrapper instanceof JObjectPrototype objectPrototype) return this.transformObject(objectPrototype);
+		else return new None<CStructMember>();
 	}
 
 	private Option<CStructMember> compileMethod(String structName,
