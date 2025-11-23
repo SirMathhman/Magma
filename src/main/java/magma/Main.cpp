@@ -1,8 +1,7 @@
 struct CPrimitiveType {
 	char* content;
 };
-struct JPrimitiveType {
-	CType type;
+struct JPrimitiveType {/*Int, Void, Boolean, String, Char, Var*/
 };
 template <typename T>
 struct HeadTable {
@@ -16,9 +15,9 @@ struct Head {
 template <typename T>
 struct ListTable {
 	Stream<T> (*iter)(void*);
-	void (*isEmpty)(void*);
+	int (*isEmpty)(void*);
 	List<T> (*addLast)(void*, T);
-	void (*contains)(void*, T);
+	int (*contains)(void*, T);
 	List<T> (*addFirst)(void*, T);
 	List<T> (*addAll)(void*, List<T>);
 	int (*size)(void*);
@@ -189,12 +188,23 @@ struct CAssignable {
 	CAssignableTable table;
 	void* data;
 };
-struct JTypeTable {
-	CType (*toCType)(void*);
+enum JTypeVariant {
+	IdentifierVariant,
+	JArrayTypeVariant,
+	JGenericTypeVariant,
+	JPrimitiveTypeVariant,
+	PlaceholderVariant
+};
+union JTypeData {
+	Identifier Identifier;
+	JArrayType JArrayType;
+	JGenericType JGenericType;
+	JPrimitiveType JPrimitiveType;
+	Placeholder Placeholder;
 };
 struct JType {
-	JTypeTable table;
-	void* data;
+	JTypeVariant variant;
+	JTypeData data;
 };
 enum JAssignableVariant {
 	JDeclarationVariant,
@@ -302,7 +312,7 @@ struct MapHead {
 template <typename T>
 struct SingleHead {
 	T value;
-	void retrieved;
+	int retrieved;
 };
 template <typename T, typename R>
 struct FlatMapHead {
@@ -315,7 +325,7 @@ struct EmptyHead {
 };
 template <typename T>
 struct AnyMatch {
-	F1R<T, void> predicate;
+	F1R<T, int> predicate;
 };
 struct Joiner {
 	char* delimiter;
@@ -353,27 +363,19 @@ struct Main {
 CPrimitiveType CPrimitiveTypeVoid = new_CPrimitiveType("void");
 CPrimitiveType CPrimitiveTypeChar = new_CPrimitiveType("char");
 CPrimitiveType CPrimitiveTypeInt = new_CPrimitiveType("int");
-JPrimitiveType JPrimitiveTypeInt = new_JPrimitiveType(CPrimitiveType.Int);
-JPrimitiveType JPrimitiveTypeVoid = new_JPrimitiveType(CPrimitiveType.Void);
-JPrimitiveType JPrimitiveTypeBoolean = new_JPrimitiveType(CPrimitiveType.Void);
-JPrimitiveType JPrimitiveTypeString = new_JPrimitiveType(new CPointerType(CPrimitiveType.Char));
-JPrimitiveType JPrimitiveTypeChar = new_JPrimitiveType(CPrimitiveType.Char);
-JPrimitiveType JPrimitiveTypeVar = new_JPrimitiveType(null);
 CPrimitiveType<> new_CPrimitiveType(char* content);
 char* generate_CPrimitiveType(void* _ref);
 char* toBaseName_CPrimitiveType(void* _ref);
-JPrimitiveType<> new_JPrimitiveType(CType type);
-CType toCType_JPrimitiveType(void* _ref);
 template <typename T>
 Option<T> next_Head(void* _ref);
 template <typename T>
 Stream<T> iter_List(void* _ref);
 template <typename T>
-void isEmpty_List(void* _ref);
+int isEmpty_List(void* _ref);
 template <typename T>
 List<T> addLast_List(void* _ref, T element);
 template <typename T>
-void contains_List(void* _ref, T element);
+int contains_List(void* _ref, T element);
 template <typename T>
 List<T> addFirst_List(void* _ref, T element);
 template <typename T>
@@ -404,7 +406,7 @@ Stream<T> stream_Option(void* _ref);
 template <typename T>
 Option<T> or_Option(void* _ref, FR<Option<T>> other);
 template <typename T>
-Tuple<void, T> toTuple_Option(void* _ref, FR<T> other);
+Tuple<int, T> toTuple_Option(void* _ref, FR<T> other);
 template <typename T0, typename R>
 R apply_F1R(void* _ref, T0 value);
 template <typename R, typename T, typename X>
@@ -424,7 +426,6 @@ CFunctionDeclaration mapTypeParameters_CFunctionDeclaration(void* _ref, F1R<List
 CFunctionDeclaration mapName_CFunctionDeclaration(void* _ref, F1R<char*, char*> mapper);
 char* generate_CFunctionDeclaration(void* _ref);
 char* generate_CAssignable(void* _ref);
-CType toCType_JType(void* _ref);
 StringBuilder empty_StringBuilders(void* _ref);
 StringBuilder appendChar_StringBuilder(void* _ref, char next);
 StringBuilder clear_StringBuilder(void* _ref);
@@ -443,7 +444,7 @@ C collect_Stream(void* _ref, Collector<T, C> collector);
 template <typename T>
 List<T> toList_Stream(void* _ref);
 template <typename T>
-Stream<T> filter_Stream(void* _ref, F1R<T, void> predicate);
+Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate);
 template <typename R, typename T>
 Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);
 RangeHead<> new_RangeHead(int length);
@@ -457,8 +458,8 @@ Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper);
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper);
 State<> new_State(char* input);
-void isShallow_State(void* _ref);
-void isLevel_State(void* _ref);
+int isShallow_State(void* _ref);
+int isLevel_State(void* _ref);
 State append_State(void* _ref, char next);
 Option<char> pop_State(void* _ref);
 State advance_State(void* _ref);
@@ -502,7 +503,7 @@ Stream<T> stream_Some(void* _ref);
 template <typename T>
 Option<T> or_Some(void* _ref, FR<Option<T>> other);
 template <typename T>
-Tuple<void, T> toTuple_Some(void* _ref, FR<T> other);
+Tuple<int, T> toTuple_Some(void* _ref, FR<T> other);
 template <typename R, typename T>
 Option<R> map_None(void* _ref, F1R<T, R> mapper);
 template <typename T>
@@ -516,7 +517,7 @@ Stream<T> stream_None(void* _ref);
 template <typename T>
 Option<T> or_None(void* _ref, FR<Option<T>> other);
 template <typename T>
-Tuple<void, T> toTuple_None(void* _ref, FR<T> other);
+Tuple<int, T> toTuple_None(void* _ref, FR<T> other);
 State apply_ConditionEndLocator(void* _ref, State state, char c);
 char* generate_CField(void* _ref);
 template <typename T>
@@ -535,9 +536,9 @@ Option<R> next_FlatMapHead(void* _ref);
 template <typename T>
 Option<T> next_EmptyHead(void* _ref);
 template <typename T>
-void createInitial_AnyMatch(void* _ref);
+int createInitial_AnyMatch(void* _ref);
 template <typename T>
-void fold_AnyMatch(void* _ref, void aBoolean, T t);
+int fold_AnyMatch(void* _ref, int aBoolean, T t);
 Joiner<> new_Joiner();
 char* createInitial_Joiner(void* _ref);
 char* fold_Joiner(void* _ref, char* current, char* element);
@@ -561,6 +562,8 @@ char* wrap_Main(void* _ref, char* input);
 void main_Main(void* _ref, char** args);
 char* generateStatement_Main(void* _ref, int depth, char* content);
 char* generateIndent_Main(void* _ref, int depth);
+CType transformType_Main(void* _ref, JType jType);
+CType transformPrimitiveType_Main(void* _ref, JPrimitiveType type);
 Option<IOError> run_Main(void* _ref);
 char* compile_Main(void* _ref, char* input);
 char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures);
@@ -574,7 +577,7 @@ char* getString_Main(void* _ref, CType implementee, char* name, char* joinedType
 char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters);
 char* generateStatement_Main(void* _ref, char* content);
 List<char*> splitValues_Main(void* _ref, char* input);
-void isIdentifier_Main(void* _ref, char* input);
+int isIdentifier_Main(void* _ref, char* input);
 Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants);
 Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input);
 CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParameters);
@@ -601,8 +604,8 @@ char* generateName_Main(void* _ref);
 Option<char*> compileOperator_Main(void* _ref, char* input, char* operator);
 Option<char*> compileInvokable_Main(void* _ref, char* stripped);
 int findCallerStart_Main(void* _ref, char* withoutEnd);
-void isNumber_Main(void* _ref, char* input);
-void allDigits_Main(void* _ref, char* input);
+int isNumber_Main(void* _ref, char* input);
+int allDigits_Main(void* _ref, char* input);
 Option<char*> compileCaller_Main(void* _ref, char* input);
 Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input);
 List<char*> collectAnnotations_Main(void* _ref, char* input);
@@ -634,15 +637,6 @@ JType toJType_JPrimitiveType(void* _ref){
 	data.JPrimitiveType = _this;
 	return { JPrimitiveTypeVariant, data };
 }
-JPrimitiveType<> new_JPrimitiveType(CType type){
-	JPrimitiveType _this;
-	(*_this).type = type;
-	return _this;
-}
-CType toCType_JPrimitiveType(void* _ref){
-	JPrimitiveType* _this = (JPrimitiveType*) _ref;
-	return (*_this).type;
-}
 template <typename T>
 Option<T> next_Head(void* _ref){
 	Head<T>* _this = (Head<T>*) _ref;
@@ -654,7 +648,7 @@ Stream<T> iter_List(void* _ref){
 	return _this->table.iter(_this->data);
 }
 template <typename T>
-void isEmpty_List(void* _ref){
+int isEmpty_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
 	return _this->table.isEmpty(_this->data);
 }
@@ -664,7 +658,7 @@ List<T> addLast_List(void* _ref, T element){
 	return _this->table.addLast(_this->data, element);
 }
 template <typename T>
-void contains_List(void* _ref, T element){
+int contains_List(void* _ref, T element){
 	List<T>* _this = (List<T>*) _ref;
 	return _this->table.contains(_this->data, element);
 }
@@ -800,9 +794,9 @@ Option<T> or_Option(void* _ref, FR<Option<T>> other){
 	return _ret;
 }
 template <typename T>
-Tuple<void, T> toTuple_Option(void* _ref, FR<T> other){
+Tuple<int, T> toTuple_Option(void* _ref, FR<T> other){
 	Option<T>* _this = (Option<T>*) _ref;
-	Tuple<void, T> _ret;
+	Tuple<int, T> _ret;
 	switch (_this->variant) {
 		case NoneVariant:
 			_ret = toTuple_None(&(_this->data.None));
@@ -934,10 +928,6 @@ char* generate_CAssignable(void* _ref){
 	CAssignable* _this = (CAssignable*) _ref;
 	return _this->table.generate(_this->data);
 }
-CType toCType_JType(void* _ref){
-	JType* _this = (JType*) _ref;
-	return _this->table.toCType(_this->data);
-}
 StringBuilder empty_StringBuilders(void* _ref){
 	StringBuilders* _this = (StringBuilders*) _ref;
 	return new_StringBuilder(Lists.empty());
@@ -1011,7 +1001,7 @@ auto lambda2(void* _ref, auto element){
 	return new_Stream<T>(new_EmptyHead<T>());
 }
 template <typename T>
-Stream<T> filter_Stream(void* _ref, F1R<T, void> predicate){
+Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate){
 	Stream<T>* _this = (Stream<T>*) _ref;
 	return (*_this).flatMap(lambda2);
 }
@@ -1081,11 +1071,11 @@ State<> new_State(char* input){
 	(*_this).segments = Lists.empty();
 	return _this;
 }
-void isShallow_State(void* _ref){
+int isShallow_State(void* _ref){
 	State* _this = (State*) _ref;
 	return (*_this).depth == 1;
 }
-void isLevel_State(void* _ref){
+int isLevel_State(void* _ref){
 	State* _this = (State*) _ref;
 	return (*_this).depth == 0;
 }
@@ -1291,7 +1281,7 @@ JDeclaration mapName_JDeclaration(void* _ref, F1R<char*, char*> mapper){
 }
 CDeclaration toCDeclaration_JDeclaration(void* _ref){
 	JDeclaration* _this = (JDeclaration*) _ref;
-	return new_CDeclaration((*_this).typeParameters, (*_this).type.toCType(), (*_this).name);
+	return new_CDeclaration((*_this).typeParameters, transformType((*_this).type), (*_this).name);
 }
 CAssignable toCAssignable_JDeclaration(void* _ref){
 	JDeclaration* _this = (JDeclaration*) _ref;
@@ -1427,9 +1417,9 @@ Option<T> or_Some(void* _ref, FR<Option<T>> other){
 	return (*_this);
 }
 template <typename T>
-Tuple<void, T> toTuple_Some(void* _ref, FR<T> other){
+Tuple<int, T> toTuple_Some(void* _ref, FR<T> other){
 	Some<T>* _this = (Some<T>*) _ref;
-	return new_Tuple<void, T>(true, (*_this).value);
+	return new_Tuple<int, T>(true, (*_this).value);
 }
 template <typename T>
 Option<T> toOption_None(void* _ref){
@@ -1469,9 +1459,9 @@ Option<T> or_None(void* _ref, FR<Option<T>> other){
 	return other.apply();
 }
 template <typename T>
-Tuple<void, T> toTuple_None(void* _ref, FR<T> other){
+Tuple<int, T> toTuple_None(void* _ref, FR<T> other){
 	None<T>* _this = (None<T>*) _ref;
-	return new_Tuple<void, T>(false, other.apply());
+	return new_Tuple<int, T>(false, other.apply());
 }
 Folder toFolder_ConditionEndLocator(void* _ref){
 	ConditionEndLocator _this = *((ConditionEndLocator*) _ref);
@@ -1598,19 +1588,19 @@ Option<T> next_EmptyHead(void* _ref){
 	return new_None<T>();
 }
 template <typename T>
-Collector<T, void> toCollector_AnyMatch(void* _ref){
+Collector<T, int> toCollector_AnyMatch(void* _ref){
 	AnyMatch<T> _this = *((AnyMatch<T>*) _ref);
 	CollectorData<T> data;
 	data.AnyMatch = _this;
 	return { AnyMatchVariant, data };
 }
 template <typename T>
-void createInitial_AnyMatch(void* _ref){
+int createInitial_AnyMatch(void* _ref){
 	AnyMatch<T>* _this = (AnyMatch<T>*) _ref;
 	return false;
 }
 template <typename T>
-void fold_AnyMatch(void* _ref, void aBoolean, T t){
+int fold_AnyMatch(void* _ref, int aBoolean, T t){
 	AnyMatch<T>* _this = (AnyMatch<T>*) _ref;
 	return aBoolean || (*_this).predicate.apply(t);
 }
@@ -1715,7 +1705,7 @@ JType toJType_JArrayType(void* _ref){
 }
 CType toCType_JArrayType(void* _ref){
 	JArrayType* _this = (JArrayType*) _ref;
-	return new_CPointerType((*_this).type.toCType());
+	return new_CPointerType(transformType((*_this).type));
 }
 JType toJType_JGenericType(void* _ref){
 	JGenericType _this = *((JGenericType*) _ref);
@@ -1725,7 +1715,7 @@ JType toJType_JGenericType(void* _ref){
 }
 CType toCType_JGenericType(void* _ref){
 	JGenericType* _this = (JGenericType*) _ref;
-	/*(*_this).typeArguments.iter().map(F? { alloc(JType), F?Table { toCType }}).toList()*/ newTypeArguments = (*_this).typeArguments.iter().map(F? { alloc(JType), F?Table { toCType }}).toList();
+	/*(*_this).typeArguments.iter().map(F? { alloc(Main), F?Table { transformType }}).toList()*/ newTypeArguments = (*_this).typeArguments.iter().map(F? { alloc(Main), F?Table { transformType }}).toList();
 	return new_CTemplateType((*_this).base, newTypeArguments);
 }
 Main<> new_Main(){
@@ -1770,6 +1760,14 @@ char* generateStatement_Main(void* _ref, int depth, char* content){
 char* generateIndent_Main(void* _ref, int depth){
 	Main* _this = (Main*) _ref;
 	return System.lineSeparator() + "\t".repeat(depth);
+}
+CType transformType_Main(void* _ref, JType jType){
+	Main* _this = (Main*) _ref;
+	return _switch;
+}
+CType transformPrimitiveType_Main(void* _ref, JPrimitiveType type){
+	Main* _this = (Main*) _ref;
+	return _switch;
 }
 Option<IOError> run_Main(void* _ref){
 	Main* _this = (Main*) _ref;
@@ -1871,7 +1869,7 @@ char* compileRootSegment_Main(void* _ref, char* input){
 	return (*_this).compileStructure("class", stripped).map(F? { alloc(CStructMember), F?Table { generate }}).orElseGet(lambda9);
 }
 auto lambda10(void* _ref, auto input){
-	return (*_this).parseType(input).toCType();
+	return transformType((*_this).parseType(input));
 }
 auto lambda11(void* _ref, auto slice){
 	return !slice.isEmpty();
@@ -2047,7 +2045,7 @@ auto lambda21(void* _ref, auto i){
 	/*stripped.charAt(i)*/ c = stripped.charAt(i);
 	return Character.isLetter(c) || (i != 0 && Character.isDigit(c));
 }
-void isIdentifier_Main(void* _ref, char* input){
+int isIdentifier_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	/*input.strip()*/ stripped = input.strip();
 	return IntStream.range(0, stripped.length()).allMatch(lambda21);
@@ -2112,7 +2110,7 @@ auto lambda27(void* _ref){
 		return (*_this).generateStatement("return _this->table." + declaration.name + "(" + joinedParameters + ")");
 	}
 	else {
-		/*(*_this).generateStatement(declaration.type.toCType().generate() + " _ret")*/ returnValueDefinition = (*_this).generateStatement(declaration.type.toCType().generate() + " _ret");
+		/*(*_this).generateStatement(transformType(declaration.type).generate() + " _ret")*/ returnValueDefinition = (*_this).generateStatement(transformType(declaration.type).generate() + " _ret");
 		/*variants.iter().map(lambda26).collect(new_Joiner())*/ cases = variants.iter().map(lambda26).collect(new_Joiner());
 		return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases + generateIndent(1) + "}" + (*_this).generateStatement("return _ret");
 	}
@@ -2694,14 +2692,14 @@ int findCallerStart_Main(void* _ref, char* withoutEnd){
 	}
 	return callerStart;
 }
-void isNumber_Main(void* _ref, char* input){
+int isNumber_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	if (input.startsWith(" - ")) {
 		return (*_this).allDigits(input.substring(1));
 	}
 	return (*_this).allDigits(input);
 }
-void allDigits_Main(void* _ref, char* input){
+int allDigits_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	return IntStream.range(0, input.length()).mapToObj(F? { alloc(input), F?Table { charAt }}).allMatch(F? { alloc(Character), F?Table { isDigit }});
 }
@@ -2790,7 +2788,7 @@ int findTypeSeparator_Main(void* _ref, char* beforeName){
 }
 char* compileType_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return (*_this).parseType(input).toCType().generate();
+	return transformType((*_this).parseType(input)).generate();
 }
 JType parseType_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
