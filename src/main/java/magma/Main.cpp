@@ -1,5 +1,5 @@
 struct PrimitiveType {
-	char* content;/*PrimitiveType(String content) {this.content = content;}*/
+	char* content;
 };
 template <typename T>
 struct HeadTable {
@@ -192,10 +192,7 @@ struct Stream {
 };
 struct RangeHead {
 	int length;
-	int counter;/*public RangeHead(int length) {
-			this.length = length;
-			this.counter = 0;
-		}*/
+	int counter;
 };
 struct Lists {
 };
@@ -217,13 +214,7 @@ struct State {
 	StringBuilder buffer;
 	List<char*> segments;
 	int index;
-	int depth;/*public State(String input) {
-			this.input = input;
-			this.index = 0;
-			this.buffer = StringBuilders.empty();
-			this.depth = 0;
-			this.segments = Lists.empty();
-		}*/
+	int depth;
 };
 struct PointerType {
 	Type type;
@@ -246,9 +237,7 @@ struct JDeclaration {
 	List<char*> typeParameters;
 	Option<char*> maybeBeforeType;
 	char* type;
-	char* name;/*public JDeclaration(String type, String name) {
-			this(Lists.empty(), Lists.empty(), new None<String>(), type, name);
-		}*/
+	char* name;
 };
 struct F1RDeclaration {
 	char* type;
@@ -284,20 +273,13 @@ struct MapHead {
 template <typename T>
 struct SingleHead {
 	T value;
-	int retrieved;/*public SingleHead(T value) {
-			this.value = value;
-			this.retrieved = false;
-		}*/
+	int retrieved;
 };
 template <typename T, typename R>
 struct FlatMapHead {
 	Head<T> head;
 	F1R<T, Stream<R>> mapper;
-	Option<Stream<R>> maybeCurrent;/*public FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper) {
-			this.head = head;
-			this.mapper = mapper;
-			this.maybeCurrent = new None<Stream<R>>();
-		}*/
+	Option<Stream<R>> maybeCurrent;
 };
 template <typename T>
 struct EmptyHead {
@@ -307,9 +289,7 @@ struct AnyMatch {
 	F1R<T, int> predicate;
 };
 struct Joiner {
-	char* delimiter;/*public Joiner() {
-			this("");
-		}*/
+	char* delimiter;
 };
 template <typename T>
 struct ListCollector {
@@ -319,29 +299,19 @@ struct Paths {
 struct CDeclaration {
 	List<char*> typeParameters;
 	char* type;
-	char* name;/*public CDeclaration(String type, String name) {
-			this(Lists.empty(), type, name);
-		}*/
+	char* name;
 };
 struct Main {
 	List<char*> functionDeclarations;
 	List<char*> globals;
 	List<char*> structures;
 	List<char*> functions;
-	int counter;/*public Main() {
-		this.structures = Lists.empty();
-
-		this.functionDeclarations = Lists.empty();
-		this.functions = Lists.empty();
-
-		this.globals = Lists.empty();
-		this.counter = 0;
-	}*/
+	int counter;
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
 PrimitiveType PrimitiveTypeInt = new_PrimitiveType("int");
-PrimitiveType new_PrimitiveType_PrimitiveType(char* content);
+PrimitiveType new_PrimitiveType(char* content);
 char* generate_PrimitiveType(void* _ref);
 char* toBaseName_PrimitiveType(void* _ref);
 template <typename T>
@@ -424,7 +394,7 @@ template <typename T>
 Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate);
 template <typename R, typename T>
 Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);
-RangeHead new_RangeHead_RangeHead(int length);
+RangeHead new_RangeHead(int length);
 Option<int> next_RangeHead(void* _ref);
 template <typename T>
 List<T> empty_Lists();
@@ -434,7 +404,7 @@ template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper);
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper);
-State new_State_State(char* input);
+State new_State(char* input);
 int isShallow_State(void* _ref);
 int isLevel_State(void* _ref);
 State append_State(void* _ref, char next);
@@ -454,7 +424,7 @@ char* generate_Identifier(void* _ref);
 char* toBaseName_Identifier(void* _ref);
 char* generate_Placeholder(void* _ref);
 char* toBaseName_Placeholder(void* _ref);
-JDeclaration new_JDeclaration_JDeclaration(char* type, char* name);
+JDeclaration new_JDeclaration(char* type, char* name);
 char* generate_JDeclaration(void* _ref);
 JDeclaration mapName_JDeclaration(void* _ref, F1R<char*, char*> mapper);
 JDeclaration mapTypeParameters_JDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
@@ -498,11 +468,11 @@ Stream<char> fromCharArray_Streams(void* _ref, char* array);
 template <typename T, typename R>
 Option<R> next_MapHead(void* _ref);
 template <typename T>
-SingleHead<T> new_SingleHead_SingleHead(T value);
+SingleHead<T> new_SingleHead(T value);
 template <typename T>
 Option<T> next_SingleHead(void* _ref);
 template <typename T, typename R>
-FlatMapHead<T, R> new_FlatMapHead_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper);
+FlatMapHead<T, R> new_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper);
 template <typename T, typename R>
 Option<R> next_FlatMapHead(void* _ref);
 template <typename T>
@@ -511,7 +481,7 @@ template <typename T>
 int createInitial_AnyMatch(void* _ref);
 template <typename T>
 int fold_AnyMatch(void* _ref, int aBoolean, T t);
-Joiner new_Joiner_Joiner();
+Joiner new_Joiner();
 char* createInitial_Joiner(void* _ref);
 char* fold_Joiner(void* _ref, char* current, char* element);
 template <typename T>
@@ -519,11 +489,11 @@ List<T> createInitial_ListCollector(void* _ref);
 template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t);
 Path get_Paths(char* first, /*String...*/ more);
-CDeclaration new_CDeclaration_CDeclaration(char* type, char* name);
+CDeclaration new_CDeclaration(char* type, char* name);
 CFunctionDeclaration mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper);
 CFunctionDeclaration mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
 char* generate_CDeclaration(void* _ref);
-Main new_Main_Main();
+Main new_Main();
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);
 char* wrap_Main(void* _ref, char* input);
 void main_Main(void* _ref, char** args);
@@ -577,7 +547,7 @@ Type toType_PrimitiveType(void* _ref){
 	data.PrimitiveType = _this;
 	return { PrimitiveTypeVariant, data };
 }
-PrimitiveType new_PrimitiveType_PrimitiveType(char* content){
+PrimitiveType new_PrimitiveType(char* content){
 	PrimitiveType _this;
 	(*_this).content = content;
 	return _this;
@@ -968,7 +938,7 @@ Head<int> toHead_RangeHead(void* _ref){
 	data.RangeHead = _this;
 	return { RangeHeadVariant, data };
 }
-RangeHead new_RangeHead_RangeHead(int length){
+RangeHead new_RangeHead(int length){
 	RangeHead _this;
 	(*_this).length = length;
 	(*_this).counter = 0;
@@ -1014,7 +984,7 @@ Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper){
 	Ok<T, X>* _this = (Ok<T, X>*) _ref;
 	return new_Ok<R, X>(mapper.apply((*_this).value));
 }
-State new_State_State(char* input){
+State new_State(char* input){
 	State _this;
 	(*_this).input = input;
 	(*_this).index = 0;
@@ -1182,7 +1152,7 @@ StructMember toStructMember_JDeclaration(void* _ref){
 	data.JDeclaration = _this;
 	return { JDeclarationVariant, data };
 }
-JDeclaration new_JDeclaration_JDeclaration(char* type, char* name){
+JDeclaration new_JDeclaration(char* type, char* name){
 	JDeclaration _this;
 	(*_this)(Lists.empty(), Lists.empty(), new_None<char*>(), type, name);
 	return _this;
@@ -1437,7 +1407,7 @@ Head<T> toHead_SingleHead(void* _ref){
 	return { SingleHeadVariant, data };
 }
 template <typename T>
-SingleHead<T> new_SingleHead_SingleHead(T value){
+SingleHead<T> new_SingleHead(T value){
 	SingleHead _this;
 	(*_this).value = value;
 	(*_this).retrieved = false;
@@ -1460,7 +1430,7 @@ Head<R> toHead_FlatMapHead(void* _ref){
 	return { FlatMapHeadVariant, data };
 }
 template <typename T, typename R>
-FlatMapHead<T, R> new_FlatMapHead_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper){
+FlatMapHead<T, R> new_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper){
 	FlatMapHead _this;
 	(*_this).head = head;
 	(*_this).mapper = mapper;
@@ -1519,7 +1489,7 @@ Collector<char*, char*> toCollector_Joiner(void* _ref){
 	data.Joiner = _this;
 	return { JoinerVariant, data };
 }
-Joiner new_Joiner_Joiner(){
+Joiner new_Joiner(){
 	Joiner _this;
 	(*_this)("");
 	return _this;
@@ -1558,7 +1528,7 @@ CFunctionDeclaration toCFunctionDeclaration_CDeclaration(void* _ref){
 	data.CDeclaration = _this;
 	return { CDeclarationVariant, data };
 }
-CDeclaration new_CDeclaration_CDeclaration(char* type, char* name){
+CDeclaration new_CDeclaration(char* type, char* name){
 	CDeclaration _this;
 	(*_this)(Lists.empty(), type, name);
 	return _this;
@@ -1576,7 +1546,7 @@ char* generate_CDeclaration(void* _ref){
 	var template = generateTemplateString((*_this).typeParameters);
 	return template + (*_this).type + " " + (*_this).name;
 }
-Main new_Main_Main(){
+Main new_Main(){
 	Main _this;
 	(*_this).structures = Lists.empty();
 	(*_this).functionDeclarations = Lists.empty();

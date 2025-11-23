@@ -1356,7 +1356,7 @@ public class Main {
 		final var modifiedMethodDeclaration = switch (methodDeclaration) {
 			case JConstructor constructor ->
 					(CFunctionDeclaration) new CDeclaration(constructor.type + this.joinTypeParameters(typeParameters),
-																									"new_" + constructor.type);
+																									"new");
 			case JDeclaration declaration -> new CDeclaration(declaration.typeParameters, declaration.type,
 																												declaration.name);
 			case Placeholder placeholder -> placeholder;
@@ -1375,7 +1375,7 @@ public class Main {
 		final var parameterTypes = parameters.stream().map(JDeclaration::type).toList();
 
 		return switch (methodDeclaration) {
-			case JConstructor _ -> new None<StructMember>();
+			case JConstructor _ -> new Some<StructMember>(new EmptyStructMember());
 			case JDeclaration member -> new Some<StructMember>(new F1RDeclaration(member.type, member.name, parameterTypes));
 			case Placeholder placeholder -> new Some<StructMember>(placeholder);
 		};
