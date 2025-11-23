@@ -478,6 +478,20 @@ public class Main {
 		}
 	}
 
+	private record CQuantity(CExpression expression) implements CExpression {
+		@Override
+		public String generate() {
+			return "(" + this.expression.generate() + ")";
+		}
+	}
+
+	private record CDereference(CExpression expression) implements CExpression {
+		@Override
+		public String generate() {
+			return "*" + this.expression.generate();
+		}
+	}
+
 	private record Identifier(String value) implements CType, JType, JExpression, CExpression {
 		@Override
 		public String generate() {
@@ -494,13 +508,9 @@ public class Main {
 			return this.value;
 		}
 
-		public CType toCType() {
-			return this;
-		}
-
 		@Override
 		public CExpression toExpression() {
-			return this;
+			return new CQuantity(new CDereference(new Identifier("_this")));
 		}
 	}
 
@@ -1071,7 +1081,7 @@ public class Main {
 
 	private static CType transformType(JType jType) {
 		return switch (jType) {
-			case Identifier identifier -> identifier.toCType();
+			case Identifier identifier -> identifier;
 			case JArrayType jArrayType -> jArrayType.toCType();
 			case JGenericType jGenericType -> jGenericType.toCType();
 			case JPrimitiveType jPrimitiveType -> transformPrimitiveType(jPrimitiveType);
@@ -1814,8 +1824,6 @@ public class Main {
 
 	private Option<JExpression> parseExpression(String input) {
 		final var stripped = input.strip();
-
-		if (stripped.equals("this")) return new Some<String>("(*_this)").map(JExpressionWrapper::new);
 		if (stripped.startsWith("switch ")) return new Some<String>("_switch").map(JExpressionWrapper::new);
 
 		final var i2 = stripped.lastIndexOf("::");
