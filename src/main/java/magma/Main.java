@@ -28,7 +28,7 @@ public class Main {
 		}
 	}
 
-	private sealed interface Head<T> permits RangeHead, EmptyHead, FlatMapHead, MapHead, SingleHead {
+	private interface Head<T> {
 		Option<T> next();
 	}
 

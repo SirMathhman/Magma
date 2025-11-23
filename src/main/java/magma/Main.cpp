@@ -1,25 +1,14 @@
 struct PrimitiveType {
 	char* content;/*PrimitiveType(String content) {this.content = content;}*/
 };
-enum HeadVariant {
-	RangeHeadVariant,
-	EmptyHeadVariant,
-	FlatMapHeadVariant,
-	MapHeadVariant,
-	SingleHeadVariant
-};
 template <typename T>
-union HeadData {
-	RangeHead<T> RangeHead;
-	EmptyHead<T> EmptyHead;
-	FlatMapHead<T> FlatMapHead;
-	MapHead<T> MapHead;
-	SingleHead<T> SingleHead;
+struct HeadTable {
+	Option<T> (*next)(void*);
 };
 template <typename T>
 struct Head {
-	HeadVariant variant;
-	HeadData<T> data;
+	HeadTable<T> table;
+	void* data;
 };
 template <typename T>
 struct ListTable {
@@ -602,21 +591,6 @@ Option<T> next_Head(void* _ref){
 	Head<T>* _this = (Head<T>*) _ref;
 	Option<T> _ret;
 	switch (_this->variant) {
-		case RangeHeadVariant:
-			_ret = next_RangeHead(&(_this->data.RangeHead));
-			break;
-		case EmptyHeadVariant:
-			_ret = next_EmptyHead(&(_this->data.EmptyHead));
-			break;
-		case FlatMapHeadVariant:
-			_ret = next_FlatMapHead(&(_this->data.FlatMapHead));
-			break;
-		case MapHeadVariant:
-			_ret = next_MapHead(&(_this->data.MapHead));
-			break;
-		case SingleHeadVariant:
-			_ret = next_SingleHead(&(_this->data.SingleHead));
-			break;
 	}
 	return _ret;
 }
