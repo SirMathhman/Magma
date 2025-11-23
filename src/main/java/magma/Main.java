@@ -413,12 +413,12 @@ public class Main {
 	private record CPointerType(CType type) implements CType {
 		@Override
 		public String generate() {
-			return this.type.generate() + Strings.from("*");
+			return Strings.concat(this.type.generate(), Strings.from("*"));
 		}
 
 		@Override
 		public String toBaseName() {
-			return this.type.toBaseName() + Strings.from("_ptr");
+			return Strings.concat(this.type.toBaseName(), Strings.from("_ptr"));
 		}
 	}
 
@@ -871,6 +871,10 @@ public class Main {
 		public static String from(String value) {
 			return value;
 		}
+
+		private static String concat(String left, String right) {
+			return left + right;
+		}
 	}
 
 	private List<String> functionDeclarations;
@@ -895,10 +899,11 @@ public class Main {
 		else {
 			final var typeNames = typeParameters
 					.iter()
-					.map(typeParam -> Strings.from("typename ") + typeParam)
+					.map(typeParam -> Strings.concat(Strings.from("typename "), typeParam))
 					.collect(new Joiner(Strings.from(", ")));
 
-			templateString = Strings.from("template <") + typeNames + Strings.from(">") + System.lineSeparator();
+			templateString =
+					Strings.concat(Strings.from("template <"), typeNames) + Strings.from(">") + System.lineSeparator();
 		}
 		return templateString;
 	}
@@ -920,7 +925,7 @@ public class Main {
 	}
 
 	private static String generateIndent(int depth) {
-		return System.lineSeparator() + Strings.from("\t").repeat(depth);
+		return Strings.concat(System.lineSeparator(), Strings.from("\t").repeat(depth));
 	}
 
 	private static CType transformType(JType jType) {
@@ -1046,7 +1051,7 @@ public class Main {
 	}
 
 	private Option<CStructMember> compileStructure(String type, String stripped) {
-		final var i = stripped.indexOf(type + Strings.from(" "));
+		final var i = stripped.indexOf(Strings.concat(type, Strings.from(" ")));
 		if (i < 0) return new None<CStructMember>();
 		final var beforeType = stripped.substring(0, i).strip();
 
@@ -1063,7 +1068,7 @@ public class Main {
 
 		if (annotations.contains(Strings.from("Actual"))) return new Some<CStructMember>(new EmptyStructMember());
 
-		final var afterKeyword = stripped.substring(i + (type + Strings.from(" ")).length()).strip();
+		final var afterKeyword = stripped.substring(i + (Strings.concat(type, Strings.from(" "))).length()).strip();
 
 		final var i1 = afterKeyword.indexOf(Strings.from("{"));
 		if (i1 < 0) return new None<CStructMember>();
@@ -1175,9 +1180,9 @@ public class Main {
 					templateString + Strings.from("union ") + name + Strings.from("Data {") + unionFields +
 																 System.lineSeparator() + Strings.from("}") + System.lineSeparator();
 
-			final var s = name + Strings.from("Variant variant");
+			final var s = Strings.concat(name, Strings.from("Variant variant"));
 			final var s1 = name + Strings.from("Data") + joinedTypeParameters + Strings.from(" data");
-			final var generatedFields = this.generateStatement(s) + this.generateStatement(s1);
+			final var generatedFields = Strings.concat(this.generateStatement(s), this.generateStatement(s1));
 			fields = fields.appendString(generatedFields);
 
 			dependencies = dependencies.appendString(generatedEnum).appendString(generatedUnion);
@@ -1216,7 +1221,7 @@ public class Main {
 
 	private String getString(CType implementee, String name, String joinedTypeParameters, String templateString) {
 		final var identifier = implementee.toBaseName();
-		final var thisType = name + joinedTypeParameters;
+		final var thisType = Strings.concat(name, joinedTypeParameters);
 		final var s = this.generateStatement(thisType + Strings.from(" _this = *((") + thisType + Strings.from("*) _ref)"
 		));
 		final var s1 =
@@ -1340,8 +1345,8 @@ public class Main {
 		String outputContent;
 		if (methodDeclaration instanceof JConstructor) {
 			final var compiled = maybeCompiled.orElse(Strings.from("?"));
-			outputContent = this.generateStatement(structName + Strings.from(" _this")) + compiled +
-											this.generateStatement(Strings.from("return ") + Strings.from("_this"));
+			outputContent = this.generateStatement(Strings.concat(structName, Strings.from(" _this"))) + compiled +
+											this.generateStatement(Strings.concat(Strings.from("return "), Strings.from("_this")));
 		} else if (methodDeclaration instanceof JDeclaration declaration) {
 			parameters = parameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), Strings.from("_ref")));
 
@@ -1368,7 +1373,8 @@ public class Main {
 							Strings.from(")"));
 				} else {
 					final var returnValueDefinition =
-							this.generateStatement(transformType(declaration.type).generate() + Strings.from(" _ret"));
+							this.generateStatement(Strings.concat(transformType(declaration.type).generate(),
+																										Strings.from(" _ret")));
 
 					final var cases =
 							variants.iter().map(variant -> this.generateCase(declaration, variant)).collect(new Joiner());
@@ -1536,7 +1542,7 @@ public class Main {
 			} else return generateIndent(indent) + Strings.from("else ") + this.compileMethodSegment(substring, indent);
 		}
 
-		if (stripped.startsWith(Strings.from("//"))) return generateIndent(indent) + stripped;
+		if (stripped.startsWith(Strings.from("//"))) return Strings.concat(generateIndent(indent), stripped);
 
 		return System.lineSeparator() + Strings.from("\t") + wrap(stripped);
 	}
@@ -1582,9 +1588,9 @@ public class Main {
 		final var stripped = input.strip();
 		if (stripped.equals(Strings.from("break"))) return Strings.from("break");
 
-		if (stripped.startsWith(Strings.from("return "))) return Strings.from("return ") +
-																														 this.compileExpressionOrPlaceholder(stripped.substring(
-																																 Strings.from("return ").length()));
+		if (stripped.startsWith(Strings.from("return "))) return Strings.concat(Strings.from("return "),
+																																						this.compileExpressionOrPlaceholder(stripped.substring(
+																																								Strings.from("return ").length())));
 
 		final var maybeAssignment = this.compileAssignment(stripped);
 		if (maybeAssignment instanceof Some<String>(var assignment)) return assignment;
@@ -1644,7 +1650,7 @@ public class Main {
 	private Option<String> post(String stripped, String slice) {
 		if (stripped.endsWith(slice)) {
 			final var instance = stripped.substring(0, stripped.length() - 2);
-			return new Some<String>(this.compileExpressionOrPlaceholder(instance) + slice);
+			return new Some<String>(Strings.concat(this.compileExpressionOrPlaceholder(instance), slice));
 		}
 
 		return new None<String>();
@@ -1711,7 +1717,7 @@ public class Main {
 					final String instance;
 					instance = value;
 					final String generated;
-					if (instance.equals(Strings.from("this"))) generated = Strings.from("_this->") + memberName;
+					if (instance.equals(Strings.from("this"))) generated = Strings.concat(Strings.from("_this->"), memberName);
 					else generated = instance + Strings.from(".") + memberName;
 
 					return new Some<String>(generated);
@@ -1739,7 +1745,8 @@ public class Main {
 		if (stripped.startsWith(Strings.from("!"))) {
 			final var substring = stripped.substring(1);
 			final var maybeInstance = this.parseCExpression(substring).map(CExpression::generate);
-			if (maybeInstance instanceof Some<String>(var instance)) return new Some<String>(Strings.from("!") + instance);
+			if (maybeInstance instanceof Some<String>(var instance))
+				return new Some<String>(Strings.concat(Strings.from("!"), instance));
 		}
 
 		if (this.isNumber(stripped)) return new Some<String>(stripped);
@@ -1770,8 +1777,11 @@ public class Main {
 
 			final var generatedName = this.generateName();
 
-			var paramList =
-					params.iter().map(param -> Strings.from("auto ") + param).toList().addFirst(Strings.from("void* _ref"));
+			var paramList = params
+					.iter()
+					.map(param -> Strings.concat(Strings.from("auto "), param))
+					.toList()
+					.addFirst(Strings.from("void* _ref"));
 
 			final var joined = this.joinStrings(Strings.from(", "), paramList);
 
@@ -1785,8 +1795,9 @@ public class Main {
 
 			this.functions = this.functions.addLast(
 					Strings.from("auto ") + generatedName + Strings.from("(void* _ref, auto ") + beforeContent +
-					Strings.from(")") + Strings.from("{") +
-					this.generateStatement(Strings.from("return ") + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
+					Strings.from(")") + Strings.from("{") + this.generateStatement(Strings.concat(Strings.from("return "),
+																																												this.compileExpressionOrPlaceholder(
+																																														maybeWithBraces))) +
 					System.lineSeparator() + Strings.from("}") + System.lineSeparator());
 
 			return new Some<String>(generatedName);
@@ -1885,7 +1896,7 @@ public class Main {
 
 		if (stripped.startsWith(Strings.from("new "))) {
 			final var type = stripped.substring(Strings.from("new ").length());
-			return new Some<String>(Strings.from("new_") + this.compileType(type));
+			return new Some<String>(Strings.concat(Strings.from("new_"), this.compileType(type)));
 		}
 
 		return new None<String>();
