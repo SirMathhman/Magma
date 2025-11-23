@@ -134,6 +134,10 @@ public class Main {
 		String generate();
 	}
 
+	private interface CAssignable {
+		String generate();
+	}
+
 	@Actual
 	private record JavaIOError(IOException e) implements IOError {
 		@Override
@@ -447,7 +451,8 @@ public class Main {
 		}
 	}
 
-	private record Placeholder(String input) implements Type, JMethodDeclaration, StructMember, CFunctionDeclaration {
+	private record Placeholder(String input)
+			implements Type, JMethodDeclaration, StructMember, CFunctionDeclaration, CAssignable {
 		@Override
 		public String generate() {
 			return wrap(this.input);
@@ -462,7 +467,7 @@ public class Main {
 	private record JConstructor(String type) implements JMethodDeclaration {}
 
 	private record JDeclaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
-															String type, String name) implements JMethodDeclaration, StructMember {
+															String type, String name) implements JMethodDeclaration, StructMember, CAssignable {
 		public JDeclaration(String type, String name) {
 			this(Lists.empty(), Lists.empty(), new None<String>(), type, name);
 		}
@@ -479,14 +484,6 @@ public class Main {
 															this.maybeBeforeType,
 															this.type,
 															mapper.apply(this.name));
-		}
-
-		public JDeclaration mapTypeParameters(F1R<List<String>, List<String>> mapper) {
-			return new JDeclaration(this.annotations,
-															mapper.apply(this.typeParameters),
-															this.maybeBeforeType,
-															this.type,
-															this.name);
 		}
 	}
 
@@ -846,7 +843,8 @@ public class Main {
 		}
 	}
 
-	private record CExpression(String content) {
+	private record CExpression(String content) implements CAssignable {
+		@Override
 		public String generate() {
 			return this.content;
 		}
@@ -1587,20 +1585,28 @@ public class Main {
 	}
 
 	private Option<String> compileAssignment(String stripped) {
-		final var i = stripped.indexOf("=");
-		if (i >= 0) {
-			final var destination = stripped.substring(0, i);
-			final var substring1 = stripped.substring(i + 1);
-			final var assignable = this
-					.parseExpression(destination)
-					.map(CExpression::generate)
-					.or(() -> this.parseDeclaration(destination).map(JDeclaration::generate))
-					.orElseGet(() -> wrap(destination));
+		final var index = stripped.indexOf("=");
+		if (index >= 0) {
+			final var destination = stripped.substring(0, index);
+			final var substring1 = stripped.substring(index + 1);
+			final var assignable = this.parseAssignable(destination);
 
-			return new Some<String>(assignable + " = " + this.compileExpressionOrPlaceholder(substring1));
+
+			final var maybeSource = this.parseExpression(substring1);
+			if (maybeSource instanceof Some<CExpression>(var source)) {
+				return new Some<String>(assignable.generate() + " = " + source.generate());
+			}
 		}
 
 		return new None<String>();
+	}
+
+	private CAssignable parseAssignable(String input) {
+		return this
+				.parseExpression(input)
+				.<CAssignable>map(value -> value)
+				.or(() -> this.parseDeclaration(input).map(value -> value))
+				.orElseGet(() -> new Placeholder(input));
 	}
 
 	private Option<String> post(String stripped, String slice) {
