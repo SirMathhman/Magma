@@ -846,6 +846,12 @@ public class Main {
 		}
 	}
 
+	private record CExpression(String content) {
+		public String generate() {
+			return this.content;
+		}
+	}
+
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structures;
@@ -1174,8 +1180,8 @@ public class Main {
 		final var generated =
 				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
 				"};" + System.lineSeparator();
-		this.structures = this.structures.addLast(generated);
 
+		this.structures = this.structures.addLast(generated);
 		return new Some<StructMember>(new EmptyStructMember());
 	}
 
@@ -1355,8 +1361,7 @@ public class Main {
 
 		final var modifiedMethodDeclaration = switch (methodDeclaration) {
 			case JConstructor constructor ->
-					(CFunctionDeclaration) new CDeclaration(constructor.type + this.joinTypeParameters(typeParameters),
-																									"new");
+					(CFunctionDeclaration) new CDeclaration(constructor.type + this.joinTypeParameters(typeParameters), "new");
 			case JDeclaration declaration -> new CDeclaration(declaration.typeParameters, declaration.type,
 																												declaration.name);
 			case Placeholder placeholder -> placeholder;
@@ -1557,10 +1562,12 @@ public class Main {
 		if (i >= 0) {
 			final var destination = stripped.substring(0, i);
 			final var substring1 = stripped.substring(i + 1);
-			return this
-								 .compileExpression(destination)
-								 .or(() -> this.parseDeclaration(destination).map(JDeclaration::generate))
-								 .orElseGet(() -> wrap(destination)) + " = " + this.compileExpressionOrPlaceholder(substring1);
+			final var assignable = this.parseExpression(destination)
+																 .map(CExpression::generate)
+																 .or(() -> this.parseDeclaration(destination).map(JDeclaration::generate))
+																 .orElseGet(() -> wrap(destination));
+
+			return assignable + " = " + this.compileExpressionOrPlaceholder(substring1);
 		}
 
 		final var maybeInvokable = this.compileInvokable(stripped);
@@ -1596,10 +1603,14 @@ public class Main {
 	}
 
 	private String compileExpressionOrPlaceholder(String input) {
-		return this.compileExpression(input).orElseGet(() -> wrap(input));
+		return this.parseExpression(input).map(CExpression::generate).orElseGet(() -> wrap(input));
 	}
 
-	private Option<String> compileExpression(String input) {
+	private Option<CExpression> parseExpression(String input) {
+		return this.getStringOption(input).map(CExpression::new);
+	}
+
+	private Option<String> getStringOption(String input) {
 		final var stripped = input.strip();
 		if (stripped.equals("this")) {
 			return new Some<String>("(*_this)");
@@ -1635,7 +1646,7 @@ public class Main {
 		if (i3 >= 0) {
 			final var substring = stripped.substring(0, i3);
 			final var substring1 = stripped.substring(i3 + "instanceof".length()).strip();
-			final var maybeInstance = this.compileExpression(substring);
+			final var maybeInstance = this.parseExpression(substring).map(CExpression::generate);
 			if (maybeInstance instanceof Some<String>(var instance)) {
 				final var i4 = substring1.indexOf("<");
 				final String substring2;
@@ -1654,7 +1665,7 @@ public class Main {
 			final var instanceString = stripped.substring(0, i);
 			final var memberName = stripped.substring(i + 1).strip();
 			if (this.isIdentifier(memberName)) {
-				final var maybeInstance = this.compileExpression(instanceString);
+				final var maybeInstance = this.parseExpression(instanceString).map(CExpression::generate);
 				if (maybeInstance instanceof Some<String>(var value)) {
 					final String instance;
 					instance = value;
@@ -1695,7 +1706,7 @@ public class Main {
 
 		if (stripped.startsWith("!")) {
 			final var substring = stripped.substring(1);
-			final var maybeInstance = this.compileExpression(substring);
+			final var maybeInstance = this.parseExpression(substring).map(CExpression::generate);
 			if (maybeInstance instanceof Some<String>(var instance)) {
 				return new Some<String>("!" + instance);
 			}
@@ -1798,8 +1809,8 @@ public class Main {
 		if (i1 >= 0) {
 			final var leftString = input.substring(0, i1);
 			final var right = input.substring(i1 + operator.length());
-			if (this.compileExpression(leftString) instanceof Some<String>(var leftCompiled)) {
-				if (this.compileExpression(right) instanceof Some<String>(var rightCompiled)) {
+			if (this.parseExpression(leftString).map(CExpression::generate) instanceof Some<String>(var leftCompiled)) {
+				if (this.parseExpression(right).map(CExpression::generate) instanceof Some<String>(var rightCompiled)) {
 					return new Some<String>(leftCompiled + " " + operator + " " + rightCompiled);
 				}
 			}
@@ -1866,7 +1877,7 @@ public class Main {
 
 	private Option<String> compileCaller(String input) {
 		final var stripped = input.strip();
-		final var maybeExpression = this.compileExpression(stripped);
+		final var maybeExpression = this.parseExpression(stripped).map(CExpression::generate);
 		if (maybeExpression instanceof Some<String>) {
 			return maybeExpression;
 		}
