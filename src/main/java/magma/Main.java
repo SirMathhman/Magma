@@ -175,6 +175,10 @@ public class Main {
 		String generate();
 	}
 
+	private sealed interface CRootSegment permits CStructure, JEnum, JUnion {
+		String generate();
+	}
+
 	@Actual
 	private record JavaIOError(IOException e) implements IOError {
 		@Override
@@ -1088,11 +1092,36 @@ public class Main {
 		}
 	}
 
-	public record CStructure(List<String> typeParameters, String name, List<CDefinable> fields) {
-		private String generate() {
+	public record CStructure(List<String> typeParameters, String name, List<CDefinable> fields) implements CRootSegment {
+		@Override
+		public String generate() {
 			final var joinedFields = this.fields().iter().map(CField::new).map(CField::generate).collect(new Joiner());
 
 			return generateTemplateString(this.typeParameters()) + "struct " + this.name() + " {" + joinedFields +
+						 System.lineSeparator() + "};" + System.lineSeparator();
+		}
+	}
+
+	private record JEnum(String name, List<String> variants) implements CRootSegment {
+		@Override
+		public String generate() {
+			final var enumFields = this
+					.variants()
+					.iter()
+					.map(variant -> variant + "Variant")
+					.map(variant -> generateIndent(1) + variant)
+					.collect(new Joiner(","));
+
+			return "enum " + this.name() + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
+		}
+	}
+
+	private record JUnion(List<String> typeParameters, String name, List<String> members) implements CRootSegment {
+		@Override
+		public String generate() {
+			final var unionFields = this.members().iter().map(Main::generateStatement).collect(new Joiner());
+
+			return generateTemplateString(this.typeParameters()) + "union " + this.name() + "Data {" + unionFields +
 						 System.lineSeparator() + "};" + System.lineSeparator();
 		}
 	}
@@ -1111,12 +1140,12 @@ public class Main {
 	private Environment environment = new Environment();
 	private List<String> functionDeclarations;
 	private List<String> globals;
-	private List<String> structures;
+	private List<CRootSegment> rootSegments;
 	private List<String> functions;
 	private int counter;
 
 	public Main() {
-		this.structures = Lists.empty();
+		this.rootSegments = Lists.empty();
 
 		this.functionDeclarations = Lists.empty();
 		this.functions = Lists.empty();
@@ -1180,6 +1209,8 @@ public class Main {
 		};
 	}
 
+	private static String generateStatement(String content) {return generateStatement(1, content);}
+
 	private Option<IOError> run() {
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 		final var target = source.resolveSibling("Main.cpp");
@@ -1194,7 +1225,7 @@ public class Main {
 	private String compile(String input) {
 		final var all = this.compileStatements(input, this::compileRootSegment);
 
-		final var joinedStructures = this.joinStrings("", this.structures);
+		final var joinedStructures = this.rootSegments.iter().map(CRootSegment::generate).collect(new Joiner());
 		final var joinedGlobals = this.joinStrings("", this.globals);
 
 		final var joinedFunctionDeclarations = this.joinStrings("", this.functionDeclarations);
@@ -1365,10 +1396,10 @@ public class Main {
 		final var templateString = generateTemplateString(typeParameters);
 		final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
-		var dependencies = StringBuilders.empty();
+		var dependencies = new JavaList<CRootSegment>();
 		this.functions = implementees
 				.iter()
-				.map(implementee -> this.getString(implementee, name, joinedTypeParameters, templateString))
+				.map(implementee -> this.generate(implementee, name, joinedTypeParameters, templateString))
 				.fold(this.functions, List::addLast);
 
 		var fields = recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList();
@@ -1395,20 +1426,14 @@ public class Main {
 		var members = within.right;
 
 		if (modifiersList.contains("sealed")) {
-			final var enumFields =
-					variants.iter().map(variant -> System.lineSeparator() + "\t" + variant + "Variant").collect(new Joiner(","));
+			final var jEnum = new JEnum(name, variants);
 
-			final var generatedEnum =
-					"enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
-
-			final var unionFields = variants
-					.iter()
-					.map(variant -> System.lineSeparator() + "\t" + variant + joinedTypeParameters + " " + variant + ";")
-					.collect(new Joiner());
-
-			final var generatedUnion =
-					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
-					System.lineSeparator();
+			final var generatedUnion = new JUnion(typeParameters,
+																						name,
+																						variants
+																								.iter()
+																								.map(variant -> variant + joinedTypeParameters + " " + variant)
+																								.toList());
 
 			final var s = name + "Variant";
 			final var s1 = name + "Data" + joinedTypeParameters;
@@ -1416,14 +1441,11 @@ public class Main {
 					.addLast(new CDeclaration(new Identifier(s), "variant"))
 					.addLast(new CDeclaration(new Identifier(s1), "data"));
 
-			dependencies = dependencies.appendString(generatedEnum).appendString(generatedUnion);
+			dependencies = dependencies.addLast(jEnum).addLast(generatedUnion);
 		} else if (type.equals("interface")) {
-			final var tableMembers =
-					members.iter().map(CStructMember::generate).map(this::generateStatement).collect(new Joiner(""));
-			final var vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" +
-												 System.lineSeparator();
-
-			dependencies = dependencies.appendString(vTable);
+			final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
+			final var cStructure = new CStructure(typeParameters, name + "Table", list);
+			dependencies = dependencies.addLast(cStructure);
 			fields = fields
 					.addLast(new CDeclaration(new Identifier(name + "Table" + joinedTypeParameters), "table"))
 					.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "data"));
@@ -1432,10 +1454,8 @@ public class Main {
 			fields = fields.addAllLast(joinedMembers);
 		}
 
-		final var s = new CStructure(typeParameters, name, fields).generate();
-		final var generated = dependencies + s;
-
-		this.structures = this.structures.addLast(generated);
+		final var s = new CStructure(typeParameters, name, fields);
+		this.rootSegments = this.rootSegments.addAllLast(dependencies.addLast(s));
 		return new Some<CStructMember>(new EmptyStructMember());
 	}
 
@@ -1444,13 +1464,13 @@ public class Main {
 		else return new None<CDefinable>();
 	}
 
-	private String getString(CType implementee, String name, String joinedTypeParameters, String templateString) {
+	private String generate(CType implementee, String name, String joinedTypeParameters, String templateString) {
 		final var identifier = implementee.toBaseName();
 		final var thisType = name + joinedTypeParameters;
-		final var s = this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
-		final var s1 = this.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
-		final var s2 = this.generateStatement("data." + name + " = _this");
-		final var s3 = this.generateStatement("return { " + name + "Variant, data }");
+		final var s = Main.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
+		final var s1 = Main.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
+		final var s2 = Main.generateStatement("data." + name + " = _this");
+		final var s3 = Main.generateStatement("return { " + name + "Variant, data }");
 		final var conversionF1RContent = s + s1 + s2 + s3;
 		return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _ref){" +
 					 conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
@@ -1463,8 +1483,6 @@ public class Main {
 
 		return joinedTypeParameters;
 	}
-
-	private String generateStatement(String content) {return generateStatement(1, content);}
 
 	private List<String> splitValues(String input) {
 		final var segments = input.split(Pattern.quote(","));
@@ -1574,13 +1592,13 @@ public class Main {
 		if (methodDeclaration instanceof JConstructor) {
 			final var compiled = maybeCompiled.orElse("?");
 			outputContent =
-					this.generateStatement(structName + " _this") + compiled + this.generateStatement("return " + "_this");
+					Main.generateStatement(structName + " _this") + compiled + Main.generateStatement("return " + "_this");
 		} else if (methodDeclaration instanceof JDeclaration declaration) {
 			cParameters = cParameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
 			final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
-			final var thisInitialization = this.generateStatement(
+			final var thisInitialization = Main.generateStatement(
 					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 
 			var finalParameters = cParameters;
@@ -1595,16 +1613,16 @@ public class Main {
 							.iter()
 							.collect(new Joiner(", "));
 
-					return this.generateStatement("return _this->table." + declaration.name + "(" + joinedParameters + ")");
+					return Main.generateStatement("return _this->table." + declaration.name + "(" + joinedParameters + ")");
 				} else {
 					final var returnValueDefinition =
-							this.generateStatement(transformType(declaration.type).generate() + " _ret");
+							Main.generateStatement(transformType(declaration.type).generate() + " _ret");
 
 					final var cases =
 							variants.iter().map(variant -> this.generateCase(declaration, variant)).collect(new Joiner());
 
 					return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
-								 generateIndent(1) + "}" + this.generateStatement("return _ret");
+								 generateIndent(1) + "}" + Main.generateStatement("return _ret");
 				}
 			});
 		} else outputContent = "?";
@@ -2042,7 +2060,7 @@ public class Main {
 
 			this.functions = this.functions.addLast(
 					"auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" +
-					this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
+					Main.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
 					System.lineSeparator() + "}" + System.lineSeparator());
 
 			return new Some<String>(generatedName);
@@ -2088,9 +2106,8 @@ public class Main {
 	private Option<JExpression> parseInvokable(String stripped) {
 		if (!stripped.endsWith(")")) return new None<JExpression>();
 
-		final var stripped1 = stripped;
-		final var length = stripped1.length();
-		final var withoutEnd = stripped1.substring(0, length - 1);
+		final var length = stripped.length();
+		final var withoutEnd = stripped.substring(0, length - 1);
 
 		final var callerStart = this.findCallerStart(withoutEnd);
 
