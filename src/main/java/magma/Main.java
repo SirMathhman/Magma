@@ -897,7 +897,7 @@ public class Main {
 	private record CFieldAccess(CExpression instance, String fieldName) implements CExpression {
 		@Override
 		public String generate() {
-			return this.instance.generate() + this.fieldName;
+			return this.instance.generate() + "." + this.fieldName;
 		}
 	}
 
