@@ -144,11 +144,13 @@ public class Main {
 		}
 	}
 
-	private record StringBuilder(List<Character> list) {
-		public StringBuilder() {
-			this(new JavaList<Character>());
+	private static class StringBuilders {
+		public static StringBuilder empty() {
+			return new StringBuilder(new JavaList<Character>());
 		}
+	}
 
+	private record StringBuilder(List<Character> list) {
 		public StringBuilder appendChar(char next) {
 			return new StringBuilder(this.list.addLast(next));
 		}
@@ -326,7 +328,7 @@ public class Main {
 		public State(String input) {
 			this.input = input;
 			this.index = 0;
-			this.buffer = new StringBuilder();
+			this.buffer = StringBuilders.empty();
 			this.depth = 0;
 			this.segments = new JavaList<String>();
 		}
@@ -1101,8 +1103,8 @@ public class Main {
 		final var templateString = generateTemplateString(typeParameters);
 		final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
-		var fields = new StringBuilder();
-		var dependencies = new StringBuilder();
+		var fields = StringBuilders.empty();
+		var dependencies = StringBuilders.empty();
 		this.functions = implementees
 				.stream()
 				.map(implementee -> this.getString(implementee, name, joinedTypeParameters, templateString))

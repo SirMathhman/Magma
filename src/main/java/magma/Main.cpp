@@ -181,10 +181,10 @@ struct CFunctionDeclaration {
 	CFunctionDeclarationTable table;
 	void* data;
 };
+struct StringBuilders {
+};
 struct StringBuilder {
-	List<char> list;/*public StringBuilder() {
-			this(new JavaList<Character>());
-		}*/
+	List<char> list;
 };
 template <typename T>
 struct Stream {
@@ -218,7 +218,7 @@ struct State {
 	int depth;/*public State(String input) {
 			this.input = input;
 			this.index = 0;
-			this.buffer = new StringBuilder();
+			this.buffer = StringBuilders.empty();
 			this.depth = 0;
 			this.segments = new JavaList<String>();
 		}*/
@@ -401,7 +401,7 @@ char* display_IOError(void* _ref);
 CFunctionDeclaration mapTypeParameters_CFunctionDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
 CFunctionDeclaration mapName_CFunctionDeclaration(void* _ref, F1R<char*, char*> mapper);
 char* generate_CFunctionDeclaration(void* _ref);
-StringBuilder new_StringBuilder_StringBuilder();
+StringBuilder empty_StringBuilders(void* _ref);
 StringBuilder appendChar_StringBuilder(void* _ref, char next);
 StringBuilder clear_StringBuilder(void* _ref);
 StringBuilder appendString_StringBuilder(void* _ref, char* chars);
@@ -876,10 +876,9 @@ char* generate_CFunctionDeclaration(void* _ref){
 	CFunctionDeclaration* _this = (CFunctionDeclaration*) _ref;
 	return _this->table.generate(_this->data);
 }
-StringBuilder new_StringBuilder_StringBuilder(){
-	StringBuilder _this;
-	(*_this)(new_JavaList<char>());
-	return _this;
+StringBuilder empty_StringBuilders(void* _ref){
+	StringBuilders* _this = (StringBuilders*) _ref;
+	return new_StringBuilder(new_JavaList<char>());
 }
 StringBuilder appendChar_StringBuilder(void* _ref, char next){
 	StringBuilder* _this = (StringBuilder*) _ref;
@@ -1010,7 +1009,7 @@ State new_State_State(char* input){
 	State _this;
 	(*_this).input = input;
 	(*_this).index = 0;
-	(*_this).buffer = new_StringBuilder();
+	(*_this).buffer = StringBuilders.empty();
 	(*_this).depth = 0;
 	(*_this).segments = new_JavaList<char*>();
 	return _this;
@@ -1819,8 +1818,8 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 	var name = beforeContent.strip();
 	var templateString = generateTemplateString(typeParameters);
 	var joinedTypeParameters = (*_this).joinTypeParameters(typeParameters);
-	var fields = new_StringBuilder();
-	var dependencies = new_StringBuilder();
+	var fields = StringBuilders.empty();
+	var dependencies = StringBuilders.empty();
 	(*_this).functions = implementees.stream().map(lambda14).fold((*_this).functions, F? { alloc(List), F?Table { addLast }});
 	var joinedRecordFields = recordFields.stream().map(F? { alloc(JDeclaration), F?Table { generate }}).map(F? { alloc((*_this)), F?Table { generateStatement }}).collect(new_Joiner());
 	var finalTypeParameters = typeParameters;
