@@ -1626,13 +1626,33 @@ public class Main {
 	}
 
 	private JType resolveExpression(JExpression source) {
-		if (source instanceof Identifier(var value)) {
-			final var maybeFound = this.environment.iter().flatMap(List::iter).filter(def -> def.name.equals(value)).next();
+		return switch (source) {
+			case Identifier(var value) -> {
+				final var maybeFound = this.resolveIdentifierInEnvironment(value);
 
-			if (maybeFound instanceof Some<JDeclaration>(var found)) return found.type;
-		}
+				if (maybeFound instanceof Some<JType>(var found)) yield found;
+				yield new Placeholder("Undefined identifier: " + value);
+			}
+			case JMemberAccess jMemberAccess -> {
+				final var instanceType = this.resolveExpression(jMemberAccess.instance);
+				if (instanceType.equals(JPrimitiveType.String)) {
 
-		return new Placeholder(source.toString());
+				}
+
+				yield new Placeholder("Not a valid member access" + instanceType);
+			}
+
+			case JExpressionWrapper jExpressionWrapper -> new Placeholder(jExpressionWrapper.content);
+		};
+	}
+
+	private Option<JType> resolveIdentifierInEnvironment(String identifier) {
+		return this.environment
+				.iter()
+				.flatMap(List::iter)
+				.filter(def -> def.name.equals(identifier))
+				.next()
+				.map(found -> found.type);
 	}
 
 	private JAssignable parseAssignable(String input) {
