@@ -194,10 +194,6 @@ struct RangeHead {
 	int length;
 	int counter;
 };
-template <typename T>
-struct JavaList {
-	java.util.List<T> nativeList;
-};
 template <typename T, typename X>
 struct Err {
 	X error;
@@ -298,9 +294,6 @@ struct ListCollector {
 };
 struct Paths {
 };
-struct JavaPath {
-	/*java.nio.file.Path*/ path;
-};
 struct Main {
 	List<char*> functionDeclarations;
 	List<char*> globals;
@@ -343,19 +336,7 @@ R fold_Stream(void* _ref, R initial, F2R<R, T, R> folder);template <typename C, 
 C collect_Stream(void* _ref, Collector<T, C> collector);template <typename T>
 List<T> toList_Stream(void* _ref);template <typename T>
 Stream<T> filter_Stream(void* _ref, Predicate<T> predicate);template <typename R, typename T>
-Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);public RangeHead_RangeHead(void* _ref, int length);Option<Integer> next_RangeHead(void* _ref);template <typename T>
-private JavaList_JavaList(void* _ref, java.util.List<T> nativeList);template <typename T>
-public JavaList_JavaList(void* _ref);template <typename T>
-JavaList<T> addLast_JavaList(void* _ref, T element);template <typename T>
-Stream<T> stream_JavaList(void* _ref);template <typename T>
-int isEmpty_JavaList(void* _ref);template <typename T>
-int contains_JavaList(void* _ref, T element);template <typename T>
-List<T> addFirst_JavaList(void* _ref, T element);template <typename T>
-List<T> addAll_JavaList(void* _ref, List<T> elements);template <typename T>
-int size_JavaList(void* _ref);template <typename T>
-T getFirst_JavaList(void* _ref);template <typename T>
-List<T> subList_JavaList(void* _ref, int start, int end);template <typename T>
-List<T> clear_JavaList(void* _ref);template <typename R, typename T, typename X>
+Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);public RangeHead_RangeHead(void* _ref, int length);Option<Integer> next_RangeHead(void* _ref);template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper);template <typename R, typename T, typename X>
 Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper);public State_State(void* _ref, char* input);int isShallow_State(void* _ref);int isLevel_State(void* _ref);State append_State(void* _ref, char next);Option<char> pop_State(void* _ref);State advance_State(void* _ref);State enter_State(void* _ref);State exit_State(void* _ref);Stream<char*> stream_State(void* _ref);Option<Tuple<State, char>> popAndAppendToTuple_State(void* _ref);Option<State> popAndAppendToOption_State(void* _ref);Option<char> peek_State(void* _ref);char* generate_PointerType(void* _ref);char* toBaseName_PointerType(void* _ref);char* generate_TemplateType(void* _ref);char* toBaseName_TemplateType(void* _ref);char* generate_Identifier(void* _ref);char* toBaseName_Identifier(void* _ref);char* generate_Placeholder(void* _ref);char* toBaseName_Placeholder(void* _ref);char* generate_Constructor(void* _ref);public Declaration_Declaration(void* _ref, char* type, char* name);char* generate_Declaration(void* _ref);Declaration mapName_Declaration(void* _ref, F1R<char*, char*> mapper);Declaration mapTypeParameters_Declaration(void* _ref, F1R<List<char*>, List<char*>> mapper);char* generate_F1RDeclaration(void* _ref);char* generate_EmptyStructMember(void* _ref);State apply_EscapedFolder(void* _ref, State state, char next);State apply_ValueFolder(void* _ref, State state, char next);template <typename R, typename T>
 Option<R> map_Some(void* _ref, F1R<T, R> mapper);template <typename T>
@@ -383,7 +364,7 @@ int createInitial_AnyMatch(void* _ref);template <typename T>
 int fold_AnyMatch(void* _ref, int aBoolean, T t);public Joiner_Joiner(void* _ref);char* createInitial_Joiner(void* _ref);char* fold_Joiner(void* _ref, char* current, char* element);template <typename T>
 List<T> createInitial_ListCollector(void* _ref);template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t);Path get_Paths(char* first, /*String...*/ more);
-Path resolveSibling_JavaPath(void* _ref, char* sibling);Option<IOError> writeString_JavaPath(void* _ref, char* output);Result<char*, IOError> readString_JavaPath(void* _ref);public Main_Main(void* _ref);char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);char* wrap_Main(void* _ref, char* input);void main_Main(void* _ref, char** args);char* generateStatement_Main(void* _ref, int depth, char* content);char* generateIndent_Main(void* _ref, int depth);Option<IOError> run_Main(void* _ref);char* compile_Main(void* _ref, char* input);char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures);char* compileStatements_Main(void* _ref, char* input, F1R<char*, char*> mapper);char* compileAll_Main(void* _ref, char* input, F1R<char*, char*> mapper, Folder folder);Stream<char*> divide_Main(void* _ref, char* input, Folder folder);State foldStatement_Main(void* _ref, State current, char next);char* compileRootSegment_Main(void* _ref, char* input);Option<StructMember> compileStructure_Main(void* _ref, char* type, char* stripped);char* getString_Main(void* _ref, Type implementee, char* name, char* joinedTypeParameters, char* templateString);char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters);char* generateStatement_Main(void* _ref, char* content);List<char*> splitValues_Main(void* _ref, char* input);int isIdentifier_Main(void* _ref, char* input);Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants);Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input);char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent);char* generateCase_Main(void* _ref, char* structName, Declaration declaration, char* variant);MethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName);MethodDeclaration toInterface_Main(void* _ref, Declaration value);Option<MethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName);Option<StructMember> compileEnumValues_Main(void* _ref, char* input, char* structName);Option<StructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue);char* compileMethodSegment_Main(void* _ref, char* input, int indent);Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input);char* compileMethodStatement_Main(void* _ref, char* input);Option<char*> post_Main(void* _ref, char* stripped, char* slice);char* compileExpressionOrPlaceholder_Main(void* _ref, char* input);Option<char*> compileExpression_Main(void* _ref, char* input);Option<char*> compileLambda_Main(void* _ref, char* stripped);char* generateName_Main(void* _ref);Option<char*> compileOperator_Main(void* _ref, char* input, char* operator);Option<char*> compileInvokable_Main(void* _ref, char* stripped);int findCallerStart_Main(void* _ref, char* withoutEnd);int isNumber_Main(void* _ref, char* input);int allDigits_Main(void* _ref, char* input);Option<char*> compileCaller_Main(void* _ref, char* input);Option<Declaration> parseDeclaration_Main(void* _ref, char* input);List<char*> collectAnnotations_Main(void* _ref, char* input);int findTypeSeparator_Main(void* _ref, char* beforeName);char* compileType_Main(void* _ref, char* input);Type parseType_Main(void* _ref, char* input);Type toType_PrimitiveType(void* _ref){
+public Main_Main(void* _ref);char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);char* wrap_Main(void* _ref, char* input);void main_Main(void* _ref, char** args);char* generateStatement_Main(void* _ref, int depth, char* content);char* generateIndent_Main(void* _ref, int depth);Option<IOError> run_Main(void* _ref);char* compile_Main(void* _ref, char* input);char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures);char* compileStatements_Main(void* _ref, char* input, F1R<char*, char*> mapper);char* compileAll_Main(void* _ref, char* input, F1R<char*, char*> mapper, Folder folder);Stream<char*> divide_Main(void* _ref, char* input, Folder folder);State foldStatement_Main(void* _ref, State current, char next);char* compileRootSegment_Main(void* _ref, char* input);Option<StructMember> compileStructure_Main(void* _ref, char* type, char* stripped);char* getString_Main(void* _ref, Type implementee, char* name, char* joinedTypeParameters, char* templateString);char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters);char* generateStatement_Main(void* _ref, char* content);List<char*> splitValues_Main(void* _ref, char* input);int isIdentifier_Main(void* _ref, char* input);Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants);Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input);char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent);char* generateCase_Main(void* _ref, char* structName, Declaration declaration, char* variant);MethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName);MethodDeclaration toInterface_Main(void* _ref, Declaration value);Option<MethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName);Option<StructMember> compileEnumValues_Main(void* _ref, char* input, char* structName);Option<StructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue);char* compileMethodSegment_Main(void* _ref, char* input, int indent);Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input);char* compileMethodStatement_Main(void* _ref, char* input);Option<char*> post_Main(void* _ref, char* stripped, char* slice);char* compileExpressionOrPlaceholder_Main(void* _ref, char* input);Option<char*> compileExpression_Main(void* _ref, char* input);Option<char*> compileLambda_Main(void* _ref, char* stripped);char* generateName_Main(void* _ref);Option<char*> compileOperator_Main(void* _ref, char* input, char* operator);Option<char*> compileInvokable_Main(void* _ref, char* stripped);int findCallerStart_Main(void* _ref, char* withoutEnd);int isNumber_Main(void* _ref, char* input);int allDigits_Main(void* _ref, char* input);Option<char*> compileCaller_Main(void* _ref, char* input);Option<Declaration> parseDeclaration_Main(void* _ref, char* input);List<char*> collectAnnotations_Main(void* _ref, char* input);int findTypeSeparator_Main(void* _ref, char* beforeName);char* compileType_Main(void* _ref, char* input);Type parseType_Main(void* _ref, char* input);Type toType_PrimitiveType(void* _ref){
 	PrimitiveType _this = *((PrimitiveType*) _ref);
 	TypeData data;
 	data.PrimitiveType = _this;
@@ -877,76 +858,6 @@ Option<Integer> next_RangeHead(void* _ref){
 	else {
 		return new_None<Integer>();
 	}
-}
-template <typename T>
-List<T> toList_JavaList(void* _ref){
-	JavaList<T> _this = *((JavaList<T>*) _ref);
-	ListData<T> data;
-	data.JavaList = _this;
-	return { JavaListVariant, data };
-}
-template <typename T>
-private JavaList_JavaList(void* _ref, java.util.List<T> nativeList){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	_this->nativeList = new_ArrayList<T>(nativeList);
-}
-template <typename T>
-public JavaList_JavaList(void* _ref){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	this(new_ArrayList<T>());
-}
-template <typename T>
-JavaList<T> addLast_JavaList(void* _ref, T element){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	_this->nativeList.add(element);
-	return this;
-}
-template <typename T>
-Stream<T> stream_JavaList(void* _ref){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	return new_Stream<Integer>(new_RangeHead(_this->nativeList.size())).map(F? { alloc(_this->nativeList), F?Table { get }});
-}
-template <typename T>
-int isEmpty_JavaList(void* _ref){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	return _this->nativeList.isEmpty();
-}
-template <typename T>
-int contains_JavaList(void* _ref, T element){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	return _this->nativeList.contains(element);
-}
-template <typename T>
-List<T> addFirst_JavaList(void* _ref, T element){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	_this->nativeList.addFirst(element);
-	return this;
-}
-template <typename T>
-List<T> addAll_JavaList(void* _ref, List<T> elements){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	return elements.stream().fold(this, F? { alloc(JavaList), F?Table { addLast }});
-}
-template <typename T>
-int size_JavaList(void* _ref){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	return _this->nativeList.size();
-}
-template <typename T>
-T getFirst_JavaList(void* _ref){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	return _this->nativeList.getFirst();
-}
-template <typename T>
-List<T> subList_JavaList(void* _ref, int start, int end){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	return new_JavaList<T>(_this->nativeList.subList(start, end));
-}
-template <typename T>
-List<T> clear_JavaList(void* _ref){
-	JavaList<T>* _this = (JavaList<T>*) _ref;
-	_this->nativeList.clear();
-	return this;
 }
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
@@ -1502,35 +1413,6 @@ template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t){
 	ListCollector<T>* _this = (ListCollector<T>*) _ref;
 	return tList.addLast(t);
-}
-Path toPath_JavaPath(void* _ref){
-	JavaPath _this = *((JavaPath*) _ref);
-	PathData data;
-	data.JavaPath = _this;
-	return { JavaPathVariant, data };
-}
-Path resolveSibling_JavaPath(void* _ref, char* sibling){
-	JavaPath* _this = (JavaPath*) _ref;
-	return new_JavaPath(_this->path.resolveSibling(sibling));
-}
-Option<IOError> writeString_JavaPath(void* _ref, char* output){
-	JavaPath* _this = (JavaPath*) _ref;
-	/*try {
-				Files.writeString(this.path, output);
-				return new None<IOError>();
-			}*/
-	/*catch (IOException e) {
-				return new Some<IOError>(new JavaIOError(e));
-			}*/
-}
-Result<char*, IOError> readString_JavaPath(void* _ref){
-	JavaPath* _this = (JavaPath*) _ref;
-	/*try {
-				return new Ok<String, IOError>(Files.readString(this.path));
-			}*/
-	/*catch (IOException e) {
-				return new Err<String, IOError>(new JavaIOError(e));
-			}*/
 }
 public Main_Main(void* _ref){
 	Main* _this = (Main*) _ref;

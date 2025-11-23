@@ -228,8 +228,8 @@ public class Main {
 		}
 	}
 
+	@Actual
 	private record JavaList<T>(java.util.List<T> nativeList) implements List<T> {
-
 		private JavaList(java.util.List<T> nativeList) {
 			this.nativeList = new ArrayList<T>(nativeList);
 		}
@@ -778,6 +778,7 @@ public class Main {
 		}
 	}
 
+	@Actual
 	private record JavaPath(java.nio.file.Path path) implements Path {
 		@Override
 		public Path resolveSibling(String sibling) {
