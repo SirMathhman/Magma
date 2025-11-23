@@ -1310,7 +1310,7 @@ public class Main {
 		final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
 		final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 
-		this.functionDeclarations = this.functionDeclarations.addLast(header + ";");
+		this.functionDeclarations = this.functionDeclarations.addLast(header + ";" + System.lineSeparator());
 		this.functions = this.functions.addLast(generated);
 
 		final var parameterTypes = parameters.stream().map(Declaration::type).toList();
