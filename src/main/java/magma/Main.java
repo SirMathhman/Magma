@@ -151,7 +151,7 @@ public class Main {
 	}
 
 	private sealed interface JType
-			permits Identifier, JArrayType, JFunctionalType, JGenericType, JPrimitiveType, JStructureType, Placeholder {}
+			permits Identifier, JArrayType, JFunctionalType, JGenericType, JPrimitiveType, JObjectType, Placeholder {}
 
 	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
 
@@ -1017,7 +1017,7 @@ public class Main {
 			return this;
 		}
 
-		public Option<JStructureType> resolveCurrent() {
+		public Option<JObjectType> resolveCurrent() {
 			return this.frames.iterReversed().map(Frame::toStructureType).flatMap(Option::iter).next();
 		}
 
@@ -1053,8 +1053,8 @@ public class Main {
 			return this;
 		}
 
-		public Option<JStructureType> toStructureType() {
-			return this.maybeName.map(name -> new JStructureType(name, this.definitions));
+		public Option<JObjectType> toStructureType() {
+			return this.maybeName.map(name -> new JObjectType(name, this.definitions));
 		}
 
 		public Frame withName(String name) {
@@ -1062,7 +1062,11 @@ public class Main {
 		}
 	}
 
-	private record JStructureType(String name, List<JDeclaration> members) implements JType {}
+	private record JObjectType(String name, List<JDeclaration> members) implements JType {
+		private Option<JType> resolve(String name) {
+			return this.members.iter().filter(member -> member.name.equals(name)).next().map(JDeclaration::type);
+		}
+	}
 
 	private Environment environment = new Environment();
 	private List<String> functionDeclarations;
@@ -1119,7 +1123,7 @@ public class Main {
 			case JPrimitiveType jPrimitiveType -> transformPrimitiveType(jPrimitiveType);
 			case Placeholder placeholder -> placeholder.toCType();
 			case JFunctionalType jFunctionalType -> new Placeholder(jFunctionalType.toString());
-			case JStructureType jStructureType -> new Identifier(jStructureType.name);
+			case JObjectType jStructureType -> new Identifier(jStructureType.name);
 		};
 	}
 
@@ -1826,6 +1830,11 @@ public class Main {
 				final var instanceType = this.resolveExpression(jMemberAccess.instance);
 				if (instanceType.equals(JPrimitiveType.String)) {
 				}
+
+				if (instanceType instanceof JObjectType type) yield type
+						.resolve(jMemberAccess.memberName)
+						.orElseGet(() -> new Placeholder(
+								"Member '" + jMemberAccess.memberName + "' not defined in " + jMemberAccess.instance));
 
 				yield new Placeholder("Not a valid member access: " + instanceType);
 			}
