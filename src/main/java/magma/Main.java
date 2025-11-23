@@ -1592,7 +1592,7 @@ public class Main {
 	private Option<String> compileExpression(String input) {
 		final var stripped = input.strip();
 		if (stripped.equals("this")) {
-			return new Some<String>("*_this");
+			return new Some<String>("(*_this)");
 		}
 
 		if (stripped.startsWith("switch ")) {
