@@ -146,7 +146,7 @@ public class Main {
 
 	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
 
-	sealed private interface JExpression extends JAssignable permits Identifier, JExpressionWrapper {
+	sealed private interface JExpression extends JAssignable permits Identifier, JExpressionWrapper, JMemberAccess {
 		default CAssignable toCAssignable() {
 			return this.toCExpression();
 		}
@@ -884,6 +884,30 @@ public class Main {
 		public CType toCType() {
 			final var newTypeArguments = this.typeArguments.iter().map(Main::transformType).toList();
 			return new CTemplateType(this.base, newTypeArguments);
+		}
+	}
+
+	private record CPointerAccess(CExpression instance, String fieldName) implements CExpression {
+		@Override
+		public String generate() {
+			return this.instance.generate() + "->" + this.fieldName;
+		}
+	}
+
+	private record CFieldAccess(CExpression instance, String fieldName) implements CExpression {
+		@Override
+		public String generate() {
+			return this.instance.generate() + this.fieldName;
+		}
+	}
+
+	private record JMemberAccess(JExpression instance, String memberName) implements JExpression {
+		@Override
+		public CExpression toCExpression() {
+			final var cExpression = this.instance.toCExpression();
+			if (this.instance instanceof Identifier(var value) && value.equals("this"))
+				return new CPointerAccess(new Identifier("_this"), this.memberName);
+			else return new CFieldAccess(cExpression, this.memberName);
 		}
 	}
 
@@ -1681,16 +1705,9 @@ public class Main {
 			final var instanceString = stripped.substring(0, i);
 			final var memberName = stripped.substring(i + 1).strip();
 			if (this.isIdentifier(memberName)) {
-				final var maybeInstance = this.parseCExpression(instanceString).map(CExpression::generate);
-				if (maybeInstance instanceof Some<String>(var value)) {
-					final String instance;
-					instance = value;
-					final String generated;
-					if (instance.equals("this")) generated = "_this->" + memberName;
-					else generated = instance + "." + memberName;
-
-					return new Some<String>(generated).map(JExpressionWrapper::new);
-				}
+				final var maybeInstance = this.parseExpression(instanceString);
+				if (maybeInstance instanceof Some(var value))
+					return new Some<JExpression>(new JMemberAccess(value, memberName));
 			}
 		}
 
