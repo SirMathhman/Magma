@@ -197,6 +197,8 @@ struct RangeHead {
 			this.counter = 0;
 		}*/
 };
+struct Lists {
+};
 template <typename T, typename X>
 struct Err {
 	X error;
@@ -220,7 +222,7 @@ struct State {
 			this.index = 0;
 			this.buffer = StringBuilders.empty();
 			this.depth = 0;
-			this.segments = new JavaList<String>();
+			this.segments = Lists.empty();
 		}*/
 };
 struct PointerType {
@@ -245,7 +247,7 @@ struct JDeclaration {
 	Option<char*> maybeBeforeType;
 	char* type;
 	char* name;/*public JDeclaration(String type, String name) {
-			this(new JavaList<String>(), new JavaList<String>(), new None<String>(), type, name);
+			this(Lists.empty(), Lists.empty(), new None<String>(), type, name);
 		}*/
 };
 struct F1RDeclaration {
@@ -318,7 +320,7 @@ struct CDeclaration {
 	List<char*> typeParameters;
 	char* type;
 	char* name;/*public CDeclaration(String type, String name) {
-			this(new JavaList<String>(), type, name);
+			this(Lists.empty(), type, name);
 		}*/
 };
 struct Main {
@@ -327,12 +329,12 @@ struct Main {
 	List<char*> structures;
 	List<char*> functions;
 	int counter;/*public Main() {
-		this.structures = new JavaList<String>();
+		this.structures = Lists.empty();
 
-		this.functionDeclarations = new JavaList<String>();
-		this.functions = new JavaList<String>();
+		this.functionDeclarations = Lists.empty();
+		this.functions = Lists.empty();
 
-		this.globals = new JavaList<String>();
+		this.globals = Lists.empty();
 		this.counter = 0;
 	}*/
 };
@@ -424,6 +426,10 @@ template <typename R, typename T>
 Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);
 RangeHead new_RangeHead_RangeHead(int length);
 Option<int> next_RangeHead(void* _ref);
+template <typename T>
+List<T> empty_Lists();
+template <typename T>
+List<T> of_Lists(void* _ref, /*T...*/ elements);
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper);
 template <typename R, typename T, typename X>
@@ -878,7 +884,7 @@ char* generate_CFunctionDeclaration(void* _ref){
 }
 StringBuilder empty_StringBuilders(void* _ref){
 	StringBuilders* _this = (StringBuilders*) _ref;
-	return new_StringBuilder(new_JavaList<char>());
+	return new_StringBuilder(Lists.empty());
 }
 StringBuilder appendChar_StringBuilder(void* _ref, char next){
 	StringBuilder* _this = (StringBuilder*) _ref;
@@ -981,6 +987,11 @@ Option<int> next_RangeHead(void* _ref){
 		return new_None<int>();
 	}
 }
+template <typename T>
+List<T> of_Lists(void* _ref, /*T...*/ elements){
+	Lists* _this = (Lists*) _ref;
+	return Streams.fromObjArray(elements).collect(new_ListCollector<T>());
+}
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
@@ -1011,7 +1022,7 @@ State new_State_State(char* input){
 	(*_this).index = 0;
 	(*_this).buffer = StringBuilders.empty();
 	(*_this).depth = 0;
-	(*_this).segments = new_JavaList<char*>();
+	(*_this).segments = Lists.empty();
 	return _this;
 }
 int isShallow_State(void* _ref){
@@ -1179,7 +1190,7 @@ StructMember toStructMember_JDeclaration(void* _ref){
 }
 JDeclaration new_JDeclaration_JDeclaration(char* type, char* name){
 	JDeclaration _this;
-	(*_this)(new_JavaList<char*>(), new_JavaList<char*>(), new_None<char*>(), type, name);
+	(*_this)(Lists.empty(), Lists.empty(), new_None<char*>(), type, name);
 	return _this;
 }
 CDeclaration toCDeclaration_JDeclaration(void* _ref){
@@ -1544,7 +1555,7 @@ Collector<T, List<T>> toCollector_ListCollector(void* _ref){
 template <typename T>
 List<T> createInitial_ListCollector(void* _ref){
 	ListCollector<T>* _this = (ListCollector<T>*) _ref;
-	return new_JavaList<T>();
+	return Lists.empty();
 }
 template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t){
@@ -1559,7 +1570,7 @@ CFunctionDeclaration toCFunctionDeclaration_CDeclaration(void* _ref){
 }
 CDeclaration new_CDeclaration_CDeclaration(char* type, char* name){
 	CDeclaration _this;
-	(*_this)(new_JavaList<char*>(), type, name);
+	(*_this)(Lists.empty(), type, name);
 	return _this;
 }
 CFunctionDeclaration mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper){
@@ -1577,10 +1588,10 @@ char* generate_CDeclaration(void* _ref){
 }
 Main new_Main_Main(){
 	Main _this;
-	(*_this).structures = new_JavaList<char*>();
-	(*_this).functionDeclarations = new_JavaList<char*>();
-	(*_this).functions = new_JavaList<char*>();
-	(*_this).globals = new_JavaList<char*>();
+	(*_this).structures = Lists.empty();
+	(*_this).functionDeclarations = Lists.empty();
+	(*_this).functions = Lists.empty();
+	(*_this).globals = Lists.empty();
 	(*_this).counter = 0;
 	return _this;
 }
@@ -1753,7 +1764,7 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 	}
 	var beforeType = stripped.substring(0, i).strip();
 	char* modifiers;
-	List<char*> annotations = new_JavaList<char*>();
+	List<char*> annotations = Lists.empty();
 	var i5 = beforeType.lastIndexOf("\n");
 	if (i5 >= 0) {
 		var substring = beforeType.substring(0, i5);
@@ -1778,21 +1789,21 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 		return new_None<StructMember>();
 	}
 	var inputContent = withEnd.substring(0, withEnd.length() - 1);
-	List<char*> variants = new_JavaList<char*>();
+	List<char*> variants = Lists.empty();
 	var i2 = beforeContent.indexOf("permits ");
 	if (i2 >= 0) {
 		var substring1 = beforeContent.substring(i2 + "permits ".length());
 		beforeContent = beforeContent.substring(0, i2);
 		variants = (*_this).splitValues(substring1);
 	}
-	List<Type> implementees = new_JavaList<Type>();
+	List<Type> implementees = Lists.empty();
 	var i4 = beforeContent.indexOf("implements ");
 	if (i4 >= 0) {
 		var implementeesString = beforeContent.substring(i4 + "implements ".length());
 		beforeContent = beforeContent.substring(0, i4).strip();
 		implementees = (*_this).divide(implementeesString, lambda11).map(F? { alloc(String), F?Table { strip }}).filter(lambda10).map(F? { alloc((*_this)), F?Table { parseType }}).toList();
 	}
-	List<JDeclaration> recordFields = new_JavaList<JDeclaration>();
+	List<JDeclaration> recordFields = Lists.empty();
 	if (beforeContent.endsWith(")")) {
 		var substring = beforeContent.substring(0, beforeContent.length() - 1);
 		var i3 = substring.indexOf("(");
@@ -1801,7 +1812,7 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 			recordFields = (*_this).divide(substring.substring(i3 + 1), lambda12).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
 		}
 	}
-	List<char*> typeParameters = new_JavaList<char*>();
+	List<char*> typeParameters = Lists.empty();
 	var i3 = beforeContent.indexOf(" < ");
 	if (i3 >= 0) {
 		var substring1 = beforeContent.substring(i3 + 1).strip();
@@ -2346,7 +2357,7 @@ Option<char*> compileLambda_Main(void* _ref, char* stripped){
 		var maybeWithBraces = stripped.substring(i1 + 2).strip();
 		List<char*> params;
 		if ((*_this).isIdentifier(beforeContent)) {
-			params = new_JavaList<char*>().addLast(beforeContent);
+			params = Lists.of(beforeContent);
 		}
 		else 
 		if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
@@ -2494,7 +2505,7 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 			return new_Some<JDeclaration>(new_JDeclaration(type, name));
 		}
 		var beforeType = beforeName.substring(0, typeSeparator).strip();
-		List<char*> copy = new_JavaList<char*>();
+		List<char*> copy = Lists.empty();
 		if (beforeType.endsWith(">")) {
 			var substring = beforeType.substring(0, beforeType.length() - 1);
 			var i = substring.indexOf(" < ");
@@ -2504,7 +2515,7 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 				beforeType = substring.substring(0, i);
 			}
 		}
-		List<char*> annotations = new_JavaList<char*>();
+		List<char*> annotations = Lists.empty();
 		var i = beforeType.lastIndexOf("\n");
 		if (i >= 0) {
 			annotations = (*_this).collectAnnotations(beforeType.substring(0, i));

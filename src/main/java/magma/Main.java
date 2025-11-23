@@ -146,7 +146,7 @@ public class Main {
 
 	private static class StringBuilders {
 		public static StringBuilder empty() {
-			return new StringBuilder(new JavaList<Character>());
+			return new StringBuilder(Lists.empty());
 		}
 	}
 
@@ -239,13 +239,27 @@ public class Main {
 		}
 	}
 
+	private static class Lists {
+		@Actual
+		public static <T> List<T> empty() {
+			return new JavaList<T>();
+		}
+
+		@SafeVarargs
+		public static <T> List<T> of(T... elements) {
+			return Streams.fromObjArray(elements).collect(new ListCollector<T>());
+		}
+	}
+
 	@Actual
-	private record JavaList<T>(java.util.List<T> nativeList) implements List<T> {
+	private static final class JavaList<T> implements List<T> {
+		private final java.util.List<T> nativeList;
+
 		private JavaList(java.util.List<T> nativeList) {
 			this.nativeList = new ArrayList<T>(nativeList);
 		}
 
-		public JavaList() {
+		private JavaList() {
 			this(new ArrayList<T>());
 		}
 
@@ -299,7 +313,6 @@ public class Main {
 			this.nativeList.clear();
 			return this;
 		}
-
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {
@@ -330,7 +343,7 @@ public class Main {
 			this.index = 0;
 			this.buffer = StringBuilders.empty();
 			this.depth = 0;
-			this.segments = new JavaList<String>();
+			this.segments = Lists.empty();
 		}
 
 		private boolean isShallow() {
@@ -455,7 +468,7 @@ public class Main {
 	private record JDeclaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
 															String type, String name) implements JMethodDeclaration, StructMember {
 		public JDeclaration(String type, String name) {
-			this(new JavaList<String>(), new JavaList<String>(), new None<String>(), type, name);
+			this(Lists.empty(), Lists.empty(), new None<String>(), type, name);
 		}
 
 		private CDeclaration toCDeclaration() {
@@ -776,7 +789,7 @@ public class Main {
 	private static class ListCollector<T> implements Collector<T, List<T>> {
 		@Override
 		public List<T> createInitial() {
-			return new JavaList<T>();
+			return Lists.empty();
 		}
 
 		@Override
@@ -821,7 +834,7 @@ public class Main {
 
 	private record CDeclaration(List<String> typeParameters, String type, String name) implements CFunctionDeclaration {
 		public CDeclaration(String type, String name) {
-			this(new JavaList<String>(), type, name);
+			this(Lists.empty(), type, name);
 		}
 
 		@Override
@@ -848,12 +861,12 @@ public class Main {
 	private int counter;
 
 	public Main() {
-		this.structures = new JavaList<String>();
+		this.structures = Lists.empty();
 
-		this.functionDeclarations = new JavaList<String>();
-		this.functions = new JavaList<String>();
+		this.functionDeclarations = Lists.empty();
+		this.functions = Lists.empty();
 
-		this.globals = new JavaList<String>();
+		this.globals = Lists.empty();
 		this.counter = 0;
 	}
 
@@ -1011,7 +1024,7 @@ public class Main {
 		final var beforeType = stripped.substring(0, i).strip();
 
 		final String modifiers;
-		List<String> annotations = new JavaList<String>();
+		List<String> annotations = Lists.empty();
 
 		final var i5 = beforeType.lastIndexOf("\n");
 		if (i5 >= 0) {
@@ -1041,7 +1054,7 @@ public class Main {
 		}
 		final var inputContent = withEnd.substring(0, withEnd.length() - 1);
 
-		List<String> variants = new JavaList<String>();
+		List<String> variants = Lists.empty();
 		final var i2 = beforeContent.indexOf("permits ");
 		if (i2 >= 0) {
 			final var substring1 = beforeContent.substring(i2 + "permits ".length());
@@ -1050,7 +1063,7 @@ public class Main {
 			variants = this.splitValues(substring1);
 		}
 
-		List<Type> implementees = new JavaList<Type>();
+		List<Type> implementees = Lists.empty();
 		final var i4 = beforeContent.indexOf("implements ");
 		if (i4 >= 0) {
 			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
@@ -1063,7 +1076,7 @@ public class Main {
 					.toList();
 		}
 
-		List<JDeclaration> recordFields = new JavaList<JDeclaration>();
+		List<JDeclaration> recordFields = Lists.empty();
 		if (beforeContent.endsWith(")")) {
 			final var substring = beforeContent.substring(0, beforeContent.length() - 1);
 			final var i3 = substring.indexOf("(");
@@ -1077,7 +1090,7 @@ public class Main {
 			}
 		}
 
-		List<String> typeParameters = new JavaList<String>();
+		List<String> typeParameters = Lists.empty();
 		final var i3 = beforeContent.indexOf("<");
 		if (i3 >= 0) {
 			final var substring1 = beforeContent.substring(i3 + 1).strip();
@@ -1712,7 +1725,7 @@ public class Main {
 
 			List<String> params;
 			if (this.isIdentifier(beforeContent)) {
-				params = new JavaList<String>().addLast(beforeContent);
+				params = Lists.of(beforeContent);
 			} else if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
 				final var substring = beforeContent.substring(1, beforeContent.length() - 1);
 				params =
@@ -1891,7 +1904,7 @@ public class Main {
 
 			var beforeType = beforeName.substring(0, typeSeparator).strip();
 
-			List<String> copy = new JavaList<String>();
+			List<String> copy = Lists.empty();
 			if (beforeType.endsWith(">")) {
 				final var substring = beforeType.substring(0, beforeType.length() - 1);
 				final var i = substring.indexOf("<");
@@ -1902,7 +1915,7 @@ public class Main {
 				}
 			}
 
-			List<String> annotations = new JavaList<String>();
+			List<String> annotations = Lists.empty();
 			final var i = beforeType.lastIndexOf("\n");
 			if (i >= 0) {
 				annotations = this.collectAnnotations(beforeType.substring(0, i));
