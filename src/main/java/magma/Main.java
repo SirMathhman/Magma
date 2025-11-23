@@ -1335,9 +1335,8 @@ public class Main {
 
 	private MethodDeclaration parseMethodDeclaration(String declaration, String structName) {
 		return this
-				.parseDeclaration(declaration)
-				.map(this::toInterface)
-				.or(() -> this.parseConstructor(declaration, structName))
+				.parseConstructor(declaration, structName)
+				.or(() -> this.parseDeclaration(declaration).map(this::toInterface))
 				.orElseGet(() -> new Placeholder(declaration));
 	}
 
@@ -1346,11 +1345,20 @@ public class Main {
 	}
 
 	private Option<MethodDeclaration> parseConstructor(String declaration, String structName) {
-		if (declaration.strip().equals(structName)) {
+		final var stripped = declaration.strip();
+		if (stripped.equals(structName)) {
 			return new Some<MethodDeclaration>(new Constructor(structName));
-		} else {
-			return new None<MethodDeclaration>();
 		}
+
+		final var i = stripped.lastIndexOf(" ");
+		if (i >= 0) {
+			final var substring = stripped.substring(i + 1).strip();
+			if (substring.equals(structName)) {
+				return new Some<MethodDeclaration>(new Constructor(structName));
+			}
+		}
+
+		return new None<MethodDeclaration>();
 	}
 
 	private Option<StructMember> compileEnumValues(String input, String structName) {

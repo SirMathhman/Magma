@@ -184,7 +184,9 @@ struct IOError {
 	void* data;
 };
 struct StringBuilder {
-	List<char> list;
+	List<char> list;/*public StringBuilder() {
+			this(new JavaList<Character>());
+		}*/
 };
 template <typename T>
 struct Stream {
@@ -192,7 +194,10 @@ struct Stream {
 };
 struct RangeHead {
 	int length;
-	int counter;
+	int counter;/*public RangeHead(int length) {
+			this.length = length;
+			this.counter = 0;
+		}*/
 };
 template <typename T, typename X>
 struct Err {
@@ -212,7 +217,13 @@ struct State {
 	StringBuilder buffer;
 	List<char*> segments;
 	int index;
-	int depth;
+	int depth;/*public State(String input) {
+			this.input = input;
+			this.index = 0;
+			this.buffer = new StringBuilder();
+			this.depth = 0;
+			this.segments = new JavaList<String>();
+		}*/
 };
 struct PointerType {
 	Type type;
@@ -235,7 +246,9 @@ struct Declaration {
 	List<char*> typeParameters;
 	Option<char*> maybeBeforeType;
 	char* type;
-	char* name;
+	char* name;/*public Declaration(String type, String name) {
+			this(new JavaList<String>(), new JavaList<String>(), new None<String>(), type, name);
+		}*/
 };
 struct F1RDeclaration {
 	char* type;
@@ -271,13 +284,20 @@ struct MapHead {
 template <typename T>
 struct SingleHead {
 	T value;
-	int retrieved;
+	int retrieved;/*public SingleHead(T value) {
+			this.value = value;
+			this.retrieved = false;
+		}*/
 };
 template <typename T, typename R>
 struct FlatMapHead {
 	Head<T> head;
 	F1R<T, Stream<R>> mapper;
-	Option<Stream<R>> maybeCurrent;
+	Option<Stream<R>> maybeCurrent;/*public FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper) {
+			this.head = head;
+			this.mapper = mapper;
+			this.maybeCurrent = new None<Stream<R>>();
+		}*/
 };
 template <typename T>
 struct EmptyHead {
@@ -287,7 +307,9 @@ struct AnyMatch {
 	F1R<T, int> predicate;
 };
 struct Joiner {
-	char* delimiter;
+	char* delimiter;/*public Joiner() {
+			this("");
+		}*/
 };
 template <typename T>
 struct ListCollector {
@@ -299,7 +321,15 @@ struct Main {
 	List<char*> globals;
 	List<char*> structures;
 	List<char*> functions;
-	int counter;
+	int counter;/*public Main() {
+		this.structures = new JavaList<String>();
+
+		this.functionDeclarations = new JavaList<String>();
+		this.functions = new JavaList<String>();
+
+		this.globals = new JavaList<String>();
+		this.counter = 0;
+	}*/
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
@@ -364,7 +394,7 @@ C createInitial_Collector(void* _ref);
 template <typename T, typename C>
 C fold_Collector(void* _ref, C c, T t);
 char* display_IOError(void* _ref);
-public StringBuilder_StringBuilder(void* _ref);
+StringBuilder new_StringBuilder();
 StringBuilder appendChar_StringBuilder(void* _ref, char next);
 StringBuilder clear_StringBuilder(void* _ref);
 StringBuilder appendString_StringBuilder(void* _ref, char* chars);
@@ -385,13 +415,13 @@ template <typename T>
 Stream<T> filter_Stream(void* _ref, F1R<T, int> predicate);
 template <typename R, typename T>
 Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper);
-public RangeHead_RangeHead(void* _ref, int length);
+RangeHead new_RangeHead(int length);
 Option<Integer> next_RangeHead(void* _ref);
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper);
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper);
-public State_State(void* _ref, char* input);
+State new_State(char* input);
 int isShallow_State(void* _ref);
 int isLevel_State(void* _ref);
 State append_State(void* _ref, char next);
@@ -412,7 +442,7 @@ char* toBaseName_Identifier(void* _ref);
 char* generate_Placeholder(void* _ref);
 char* toBaseName_Placeholder(void* _ref);
 char* generate_Constructor(void* _ref);
-public Declaration_Declaration(void* _ref, char* type, char* name);
+Declaration new_Declaration(char* type, char* name);
 char* generate_Declaration(void* _ref);
 Declaration mapName_Declaration(void* _ref, F1R<char*, char*> mapper);
 Declaration mapTypeParameters_Declaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
@@ -455,12 +485,10 @@ Stream<T> fromObjArray_Streams(void* _ref, T* elements);
 Stream<char> fromCharArray_Streams(void* _ref, char* array);
 template <typename T, typename R>
 Option<R> next_MapHead(void* _ref);
-template <typename T>
-public SingleHead_SingleHead(void* _ref, T value);
+SingleHead new_SingleHead(T value);
 template <typename T>
 Option<T> next_SingleHead(void* _ref);
-template <typename T, typename R>
-public FlatMapHead_FlatMapHead(void* _ref, Head<T> head, F1R<T, Stream<R>> mapper);
+FlatMapHead new_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper);
 template <typename T, typename R>
 Option<R> next_FlatMapHead(void* _ref);
 template <typename T>
@@ -469,7 +497,7 @@ template <typename T>
 int createInitial_AnyMatch(void* _ref);
 template <typename T>
 int fold_AnyMatch(void* _ref, int aBoolean, T t);
-public Joiner_Joiner(void* _ref);
+Joiner new_Joiner();
 char* createInitial_Joiner(void* _ref);
 char* fold_Joiner(void* _ref, char* current, char* element);
 template <typename T>
@@ -477,7 +505,7 @@ List<T> createInitial_ListCollector(void* _ref);
 template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t);
 Path get_Paths(char* first, /*String...*/ more);
-public Main_Main(void* _ref);
+Main new_Main();
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);
 char* wrap_Main(void* _ref, char* input);
 void main_Main(void* _ref, char** args);
@@ -916,9 +944,10 @@ char* display_IOError(void* _ref){
 	}
 	return _ret;
 }
-public StringBuilder_StringBuilder(void* _ref){
-	StringBuilder* _this = (StringBuilder*) _ref;
+StringBuilder new_StringBuilder(){
+	StringBuilder _this;
 	this(new_JavaList<char>());
+	return _this;
 }
 StringBuilder appendChar_StringBuilder(void* _ref, char next){
 	StringBuilder* _this = (StringBuilder*) _ref;
@@ -1004,10 +1033,11 @@ Head<Integer> toHead_RangeHead(void* _ref){
 	data.RangeHead = _this;
 	return { RangeHeadVariant, data };
 }
-public RangeHead_RangeHead(void* _ref, int length){
-	RangeHead* _this = (RangeHead*) _ref;
+RangeHead new_RangeHead(int length){
+	RangeHead _this;
 	_this->length = length;
 	_this->counter = 0;
+	return _this;
 }
 Option<Integer> next_RangeHead(void* _ref){
 	RangeHead* _this = (RangeHead*) _ref;
@@ -1044,13 +1074,14 @@ Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper){
 	Ok<T, X>* _this = (Ok<T, X>*) _ref;
 	return new_Ok<R, X>(mapper.apply(_this->value));
 }
-public State_State(void* _ref, char* input){
-	State* _this = (State*) _ref;
+State new_State(char* input){
+	State _this;
 	_this->input = input;
 	_this->index = 0;
 	_this->buffer = new_StringBuilder();
 	_this->depth = 0;
 	_this->segments = new_JavaList<char*>();
+	return _this;
 }
 int isShallow_State(void* _ref){
 	State* _this = (State*) _ref;
@@ -1209,9 +1240,10 @@ StructMember toStructMember_Declaration(void* _ref){
 	data.Declaration = _this;
 	return { DeclarationVariant, data };
 }
-public Declaration_Declaration(void* _ref, char* type, char* name){
-	Declaration* _this = (Declaration*) _ref;
+Declaration new_Declaration(char* type, char* name){
+	Declaration _this;
 	this(new_JavaList<char*>(), new_JavaList<char*>(), new_None<char*>(), type, name);
+	return _this;
 }
 char* generate_Declaration(void* _ref){
 	Declaration* _this = (Declaration*) _ref;
@@ -1462,11 +1494,11 @@ Head<T> toHead_SingleHead(void* _ref){
 	data.SingleHead = _this;
 	return { SingleHeadVariant, data };
 }
-template <typename T>
-public SingleHead_SingleHead(void* _ref, T value){
-	SingleHead<T>* _this = (SingleHead<T>*) _ref;
+SingleHead new_SingleHead(T value){
+	SingleHead _this;
 	_this->value = value;
 	_this->retrieved = false;
+	return _this;
 }
 template <typename T>
 Option<T> next_SingleHead(void* _ref){
@@ -1484,12 +1516,12 @@ Head<R> toHead_FlatMapHead(void* _ref){
 	data.FlatMapHead = _this;
 	return { FlatMapHeadVariant, data };
 }
-template <typename T, typename R>
-public FlatMapHead_FlatMapHead(void* _ref, Head<T> head, F1R<T, Stream<R>> mapper){
-	FlatMapHead<T, R>* _this = (FlatMapHead<T, R>*) _ref;
+FlatMapHead new_FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper){
+	FlatMapHead _this;
 	_this->head = head;
 	_this->mapper = mapper;
 	_this->maybeCurrent = new_None<Stream<R>>();
+	return _this;
 }
 template <typename T, typename R>
 Option<R> next_FlatMapHead(void* _ref){
@@ -1543,9 +1575,10 @@ Collector<char*, char*> toCollector_Joiner(void* _ref){
 	data.Joiner = _this;
 	return { JoinerVariant, data };
 }
-public Joiner_Joiner(void* _ref){
-	Joiner* _this = (Joiner*) _ref;
+Joiner new_Joiner(){
+	Joiner _this;
 	this("");
+	return _this;
 }
 char* createInitial_Joiner(void* _ref){
 	Joiner* _this = (Joiner*) _ref;
@@ -1575,13 +1608,14 @@ List<T> fold_ListCollector(void* _ref, List<T> tList, T t){
 	ListCollector<T>* _this = (ListCollector<T>*) _ref;
 	return tList.addLast(t);
 }
-public Main_Main(void* _ref){
-	Main* _this = (Main*) _ref;
+Main new_Main(){
+	Main _this;
 	_this->structures = new_JavaList<char*>();
 	_this->functionDeclarations = new_JavaList<char*>();
 	_this->functions = new_JavaList<char*>();
 	_this->globals = new_JavaList<char*>();
 	_this->counter = 0;
+	return _this;
 }
 auto lambda8(void* _ref, auto typeParam){
 	return "typename " + typeParam;
@@ -2019,11 +2053,11 @@ auto lambda27(void* _ref, auto ()){
 	return new_Placeholder(declaration);
 }
 auto lambda28(void* _ref, auto ()){
-	return _this->parseConstructor(declaration, structName);
+	return _this->parseDeclaration(declaration).map(F? { alloc(this), F?Table { toInterface }});
 }
 MethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	return _this->parseDeclaration(declaration).map(F? { alloc(this), F?Table { toInterface }}).or(lambda28).orElseGet(lambda27);
+	return _this->parseConstructor(declaration, structName).or(lambda28).orElseGet(lambda27);
 }
 MethodDeclaration toInterface_Main(void* _ref, Declaration value){
 	Main* _this = (Main*) _ref;
@@ -2031,12 +2065,18 @@ MethodDeclaration toInterface_Main(void* _ref, Declaration value){
 }
 Option<MethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	if (declaration.strip().equals(structName)) {
+	var stripped = declaration.strip();
+	if (stripped.equals(structName)) {
 		return new_Some<MethodDeclaration>(new_Constructor(structName));
 	}
-	else {
-		return new_None<MethodDeclaration>();
+	var i = stripped.lastIndexOf(" ");
+	if (i >= 0) {
+		var substring = stripped.substring(i + 1).strip();
+		if (substring.equals(structName)) {
+			return new_Some<MethodDeclaration>(new_Constructor(structName));
+		}
 	}
+	return new_None<MethodDeclaration>();
 }
 auto lambda29(void* _ref, auto slice){
 	return !slice.isEmpty();
