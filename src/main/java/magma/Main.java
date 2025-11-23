@@ -1317,9 +1317,19 @@ public class Main {
 			final var thisInitialization = this.generateStatement(
 					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 
+			List<JDeclaration> finalParameters = parameters;
 			outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
 				if (variants.isEmpty()) {
-					return this.generateStatement("return _this->table." + declaration.name + "(_this->data)");
+					final var joinedParameters = finalParameters
+							.subList(1, finalParameters.size())
+							.stream()
+							.map(parameter -> parameter.name)
+							.toList()
+							.addFirst("_this->data")
+							.stream()
+							.collect(new Joiner(", "));
+
+					return this.generateStatement("return _this->table." + declaration.name + "(" + joinedParameters + ")");
 				} else {
 					final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
 
