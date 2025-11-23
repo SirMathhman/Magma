@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 
 public class Main {
 	private enum CPrimitiveType implements CType {
-		Void(Strings.from("void")), Char(Strings.from("char")), Int(Strings.from("int"));
+		Void("void"), Char("char"), Int("int");
 
 		private final String content;
 
@@ -413,20 +413,20 @@ public class Main {
 	private record CPointerType(CType type) implements CType {
 		@Override
 		public String generate() {
-			return this.type.generate() + Strings.from("*");
+			return this.type.generate() + "*";
 		}
 
 		@Override
 		public String toBaseName() {
-			return this.type.toBaseName() + Strings.from("_ptr");
+			return this.type.toBaseName() + "_ptr";
 		}
 	}
 
 	private record CTemplateType(String base, List<CType> list) implements CType {
 		@Override
 		public String generate() {
-			final var typeArguments = this.list.iter().map(CType::generate).collect(new Joiner(Strings.from(", ")));
-			return this.base + Strings.from("<") + typeArguments + Strings.from(">");
+			final var typeArguments = this.list.iter().map(CType::generate).collect(new Joiner(", "));
+			return this.base + "<" + typeArguments + ">";
 		}
 
 		@Override
@@ -443,7 +443,7 @@ public class Main {
 
 		@Override
 		public String toString() {
-			return Strings.from("");
+			return "";
 		}
 
 		@Override
@@ -510,16 +510,15 @@ public class Main {
 		@Override
 		public String generate() {
 			final var joinedParameterTypes =
-					Strings.from("(") + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(Strings.from(", "))) +
-					Strings.from(")");
-			return this.type.generate() + Strings.from(" (*") + this.name + Strings.from(")") + joinedParameterTypes;
+					"(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")";
+			return this.type.generate() + " (*" + this.name + ")" + joinedParameterTypes;
 		}
 	}
 
 	private static final class EmptyStructMember implements CStructMember {
 		@Override
 		public String generate() {
-			return Strings.from("");
+			return "";
 		}
 	}
 
@@ -753,12 +752,12 @@ public class Main {
 
 	private record Joiner(String delimiter) implements Collector<String, String> {
 		public Joiner() {
-			this(Strings.from(""));
+			this("");
 		}
 
 		@Override
 		public String createInitial() {
-			return Strings.from("");
+			return "";
 		}
 
 		@Override
@@ -833,7 +832,7 @@ public class Main {
 		@Override
 		public String generate() {
 			final var template = generateTemplateString(this.typeParameters);
-			return template + this.type.generate() + Strings.from(" ") + this.name;
+			return template + this.type.generate() + " " + this.name;
 		}
 	}
 
@@ -867,12 +866,6 @@ public class Main {
 		}
 	}
 
-	private static class Strings {
-		public static String from(String value) {
-			return value;
-		}
-	}
-
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structures;
@@ -891,22 +884,18 @@ public class Main {
 
 	private static String generateTemplateString(List<String> typeParameters) {
 		final String templateString;
-		if (typeParameters.isEmpty()) templateString = Strings.from("");
+		if (typeParameters.isEmpty()) templateString = "";
 		else {
-			final var typeNames = typeParameters
-					.iter()
-					.map(typeParam -> Strings.from("typename ") + typeParam)
-					.collect(new Joiner(Strings.from(", ")));
+			final var typeNames = typeParameters.iter().map(typeParam -> "typename " + typeParam).collect(new Joiner(", "));
 
-			templateString = Strings.from("template <") + typeNames + Strings.from(">") + System.lineSeparator();
+			templateString = "template <" + typeNames + ">" + System.lineSeparator();
 		}
 		return templateString;
 	}
 
 	private static String wrap(String input) {
-		final var replaced =
-				input.replace(Strings.from("/*"), Strings.from("start")).replace(Strings.from("*/"), Strings.from("end"));
-		return Strings.from("/*") + replaced + Strings.from("*/");
+		final var replaced = input.replace("/*", "start").replace("*/", "end");
+		return "/*" + replaced + "*/";
 	}
 
 	public static void main(String[] args) {
@@ -916,11 +905,11 @@ public class Main {
 	}
 
 	private static String generateStatement(int depth, String content) {
-		return generateIndent(depth) + content + Strings.from("");
+		return generateIndent(depth) + content + ";";
 	}
 
 	private static String generateIndent(int depth) {
-		return System.lineSeparator() + Strings.from("\t").repeat(depth);
+		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
 	private static CType transformType(JType jType) {
@@ -939,18 +928,13 @@ public class Main {
 			case Void -> CPrimitiveType.Void;
 			case String -> new CPointerType(CPrimitiveType.Char);
 			case Char -> CPrimitiveType.Char;
-			case Var -> new Placeholder(Strings.from("var"));
+			case Var -> new Placeholder("var");
 		};
 	}
 
 	private Option<IOError> run() {
-		final var source = Paths.get(Strings.from("."),
-																 Strings.from("src"),
-																 Strings.from("main"),
-																 Strings.from("java"),
-																 Strings.from("magma"),
-																 Strings.from("Main.java"));
-		final var target = source.resolveSibling(Strings.from("Main.cpp"));
+		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+		final var target = source.resolveSibling("Main.cpp");
 		final var input = source.readString().mapValue(this::compile);
 
 		return switch (input) {
@@ -962,11 +946,11 @@ public class Main {
 	private String compile(String input) {
 		final var all = this.compileStatements(input, this::compileRootSegment);
 
-		final var joinedStructures = this.joinStrings(Strings.from(""), this.structures);
-		final var joinedGlobals = this.joinStrings(Strings.from(""), this.globals);
+		final var joinedStructures = this.joinStrings("", this.structures);
+		final var joinedGlobals = this.joinStrings("", this.globals);
 
-		final var joinedFunctionDeclarations = this.joinStrings(Strings.from(""), this.functionDeclarations);
-		final var joinedFunctions = this.joinStrings(Strings.from(""), this.functions);
+		final var joinedFunctionDeclarations = this.joinStrings("", this.functionDeclarations);
+		final var joinedFunctions = this.joinStrings("", this.functions);
 		return joinedStructures + joinedGlobals + joinedFunctionDeclarations + joinedFunctions + all;
 	}
 
@@ -979,7 +963,7 @@ public class Main {
 	}
 
 	private String compileAll(String input, F1R<String, String> mapper, Folder folder) {
-		return this.divide(input, folder).map(mapper).collect(new Joiner(Strings.from("")));
+		return this.divide(input, folder).map(mapper).collect(new Joiner(""));
 	}
 
 	private Stream<String> divide(String input, Folder folder) {
@@ -1034,26 +1018,22 @@ public class Main {
 
 	private String compileRootSegment(String input) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty()) return Strings.from("");
+		if (stripped.isEmpty()) return "";
 
-		if (stripped.startsWith(Strings.from("package ")) || stripped.startsWith(Strings.from("import ")))
-			return Strings.from("");
+		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
-		return this
-				.compileStructure(Strings.from("class"), stripped)
-				.map(CStructMember::generate)
-				.orElseGet(() -> wrap(stripped));
+		return this.compileStructure("class", stripped).map(CStructMember::generate).orElseGet(() -> wrap(stripped));
 	}
 
 	private Option<CStructMember> compileStructure(String type, String stripped) {
-		final var i = stripped.indexOf(type + Strings.from(" "));
+		final var i = stripped.indexOf(type + " ");
 		if (i < 0) return new None<CStructMember>();
 		final var beforeType = stripped.substring(0, i).strip();
 
 		final String modifiers;
 		List<String> annotations = Lists.empty();
 
-		final var i5 = beforeType.lastIndexOf(Strings.from("\n"));
+		final var i5 = beforeType.lastIndexOf("\n");
 		if (i5 >= 0) {
 			final var substring = beforeType.substring(0, i5);
 			final var substring1 = beforeType.substring(i5 + 1);
@@ -1061,31 +1041,31 @@ public class Main {
 			modifiers = substring1;
 		} else modifiers = beforeType;
 
-		if (annotations.contains(Strings.from("Actual"))) return new Some<CStructMember>(new EmptyStructMember());
+		if (annotations.contains("Actual")) return new Some<CStructMember>(new EmptyStructMember());
 
-		final var afterKeyword = stripped.substring(i + (type + Strings.from(" ")).length()).strip();
+		final var afterKeyword = stripped.substring(i + (type + " ").length()).strip();
 
-		final var i1 = afterKeyword.indexOf(Strings.from("{"));
+		final var i1 = afterKeyword.indexOf("{");
 		if (i1 < 0) return new None<CStructMember>();
 		var beforeContent = afterKeyword.substring(0, i1).strip();
 
 		final var withEnd = afterKeyword.substring(i1 + 1).strip();
-		if (!withEnd.endsWith(Strings.from("}"))) return new None<CStructMember>();
+		if (!withEnd.endsWith("}")) return new None<CStructMember>();
 		final var inputContent = withEnd.substring(0, withEnd.length() - 1);
 
 		List<String> variants = Lists.empty();
-		final var i2 = beforeContent.indexOf(Strings.from("permits "));
+		final var i2 = beforeContent.indexOf("permits ");
 		if (i2 >= 0) {
-			final var substring1 = beforeContent.substring(i2 + Strings.from("permits ").length());
+			final var substring1 = beforeContent.substring(i2 + "permits ".length());
 			beforeContent = beforeContent.substring(0, i2);
 
 			variants = this.splitValues(substring1);
 		}
 
 		List<CType> implementees = Lists.empty();
-		final var i4 = beforeContent.indexOf(Strings.from("implements "));
+		final var i4 = beforeContent.indexOf("implements ");
 		if (i4 >= 0) {
-			final var implementeesString = beforeContent.substring(i4 + Strings.from("implements ").length());
+			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
 			beforeContent = beforeContent.substring(0, i4).strip();
 			implementees = this
 					.divide(implementeesString, (state, character) -> new ValueFolder().apply(state, character))
@@ -1096,9 +1076,9 @@ public class Main {
 		}
 
 		List<JDeclaration> recordFields = Lists.empty();
-		if (beforeContent.endsWith(Strings.from(")"))) {
+		if (beforeContent.endsWith(")")) {
 			final var substring = beforeContent.substring(0, beforeContent.length() - 1);
-			final var i3 = substring.indexOf(Strings.from("("));
+			final var i3 = substring.indexOf("(");
 			if (i3 >= 0) {
 				beforeContent = substring.substring(0, i3);
 				recordFields = this
@@ -1110,10 +1090,10 @@ public class Main {
 		}
 
 		List<String> typeParameters = Lists.empty();
-		final var i3 = beforeContent.indexOf(Strings.from("<"));
+		final var i3 = beforeContent.indexOf("<");
 		if (i3 >= 0) {
 			final var substring1 = beforeContent.substring(i3 + 1).strip();
-			if (substring1.endsWith(Strings.from(">"))) {
+			if (substring1.endsWith(">")) {
 				beforeContent = beforeContent.substring(0, i3);
 				final var substring = substring1.substring(0, substring1.length() - 1);
 				typeParameters = this.splitValues(substring);
@@ -1123,7 +1103,7 @@ public class Main {
 		if (!this.isIdentifier(beforeContent)) return new None<CStructMember>();
 
 		var modifiersList = Streams
-				.fromObjArray(modifiers.split(Pattern.quote(Strings.from(" "))))
+				.fromObjArray(modifiers.split(Pattern.quote(" ")))
 				.map(String::strip)
 				.filter(slice -> !slice.isEmpty())
 				.toList();
@@ -1155,44 +1135,36 @@ public class Main {
 				.flatMap(Option::stream)
 				.toList();
 
-		if (modifiersList.contains(Strings.from("sealed"))) {
-			final var enumFields = variants
-					.iter()
-					.map(variant -> System.lineSeparator() + Strings.from("\t") + variant + Strings.from("Variant"))
-					.collect(new Joiner(Strings.from(",")));
+		if (modifiersList.contains("sealed")) {
+			final var enumFields =
+					variants.iter().map(variant -> System.lineSeparator() + "\t" + variant + "Variant").collect(new Joiner(","));
 
 			final var generatedEnum =
-					Strings.from("enum ") + name + Strings.from("Variant {") + enumFields + System.lineSeparator() +
-					Strings.from("}") + System.lineSeparator();
+					"enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
 
 			final var unionFields = variants
 					.iter()
-					.map(variant -> System.lineSeparator() + Strings.from("\t") + variant + joinedTypeParameters +
-													Strings.from(" ") + variant + Strings.from(""))
+					.map(variant -> System.lineSeparator() + "\t" + variant + joinedTypeParameters + " " + variant + ";")
 					.collect(new Joiner());
 
 			final var generatedUnion =
-					templateString + Strings.from("union ") + name + Strings.from("Data {") + unionFields +
-																 System.lineSeparator() + Strings.from("}") + System.lineSeparator();
+					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
+					System.lineSeparator();
 
-			final var s = name + Strings.from("Variant variant");
-			final var s1 = name + Strings.from("Data") + joinedTypeParameters + Strings.from(" data");
+			final var s = name + "Variant variant";
+			final var s1 = name + "Data" + joinedTypeParameters + " data";
 			final var generatedFields = this.generateStatement(s) + this.generateStatement(s1);
 			fields = fields.appendString(generatedFields);
 
 			dependencies = dependencies.appendString(generatedEnum).appendString(generatedUnion);
-		} else if (type.equals(Strings.from("interface"))) {
-			final var table =
-					this.generateStatement(name + Strings.from("Table") + joinedTypeParameters + Strings.from(" table"));
-			final var data = this.generateStatement(Strings.from("void* data"));
+		} else if (type.equals("interface")) {
+			final var table = this.generateStatement(name + "Table" + joinedTypeParameters + " table");
+			final var data = this.generateStatement("void* data");
 
-			final var tableMembers = members
-					.iter()
-					.map(CStructMember::generate)
-					.map(this::generateStatement)
-					.collect(new Joiner(Strings.from("")));
-			final var vTable = templateString + Strings.from("struct ") + name + Strings.from("Table {") + tableMembers +
-												 System.lineSeparator() + Strings.from("}") + System.lineSeparator();
+			final var tableMembers =
+					members.iter().map(CStructMember::generate).map(this::generateStatement).collect(new Joiner(""));
+			final var vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" +
+												 System.lineSeparator();
 
 			dependencies = dependencies.appendString(vTable);
 			fields = fields.appendString(table).appendString(data);
@@ -1207,8 +1179,8 @@ public class Main {
 		}
 
 		final var generated =
-				dependencies + templateString + Strings.from("struct ") + name + Strings.from(" {") + joinedRecordFields +
-				fields + System.lineSeparator() + Strings.from("}") + System.lineSeparator();
+				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
+				"};" + System.lineSeparator();
 
 		this.structures = this.structures.addLast(generated);
 		return new Some<CStructMember>(new EmptyStructMember());
@@ -1217,23 +1189,19 @@ public class Main {
 	private String getString(CType implementee, String name, String joinedTypeParameters, String templateString) {
 		final var identifier = implementee.toBaseName();
 		final var thisType = name + joinedTypeParameters;
-		final var s = this.generateStatement(thisType + Strings.from(" _this = *((") + thisType + Strings.from("*) _ref)"
-		));
-		final var s1 =
-				this.generateStatement(identifier + Strings.from("Data") + joinedTypeParameters + Strings.from(" data"));
-		final var s2 = this.generateStatement(Strings.from("data.") + name + Strings.from(" = _this"));
-		final var s3 = this.generateStatement(Strings.from("return { ") + name + Strings.from("Variant, data }"));
+		final var s = this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
+		final var s1 = this.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
+		final var s2 = this.generateStatement("data." + name + " = _this");
+		final var s3 = this.generateStatement("return { " + name + "Variant, data }");
 		final var conversionF1RContent = s + s1 + s2 + s3;
-		return templateString + implementee.generate() + Strings.from(" to") + identifier + Strings.from("_") + name +
-					 Strings.from("(void* _ref){") + conversionF1RContent + System.lineSeparator() + Strings.from("}") +
-					 System.lineSeparator();
+		return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _ref){" +
+					 conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
 	}
 
 	private String joinTypeParameters(List<String> typeParameters) {
 		final String joinedTypeParameters;
-		if (typeParameters.isEmpty()) joinedTypeParameters = Strings.from("");
-		else joinedTypeParameters =
-				Strings.from("<") + typeParameters.iter().collect(new Joiner(Strings.from(", "))) + Strings.from(">");
+		if (typeParameters.isEmpty()) joinedTypeParameters = "";
+		else joinedTypeParameters = "<" + typeParameters.iter().collect(new Joiner(", ")) + ">";
 
 		return joinedTypeParameters;
 	}
@@ -1241,7 +1209,7 @@ public class Main {
 	private String generateStatement(String content) {return generateStatement(1, content);}
 
 	private List<String> splitValues(String input) {
-		final var segments = input.split(Pattern.quote(Strings.from(",")));
+		final var segments = input.split(Pattern.quote(","));
 		final var list = Arrays.stream(segments).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 		return new JavaList<String>(list);
 	}
@@ -1261,22 +1229,22 @@ public class Main {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) return new None<CStructMember>();
 
-		final var maybeEnum = this.compileStructure(Strings.from("enum"), input);
+		final var maybeEnum = this.compileStructure("enum", input);
 		if (maybeEnum instanceof Some<CStructMember>) return maybeEnum;
 
-		final var maybeInterface = this.compileStructure(Strings.from("interface"), input);
+		final var maybeInterface = this.compileStructure("interface", input);
 		if (maybeInterface instanceof Some<CStructMember>) return maybeInterface;
 
-		final var maybeRecord = this.compileStructure(Strings.from("record"), input);
+		final var maybeRecord = this.compileStructure("record", input);
 		if (maybeRecord instanceof Some<CStructMember>) return maybeRecord;
 
-		final var maybeClass = this.compileStructure(Strings.from("class"), input);
+		final var maybeClass = this.compileStructure("class", input);
 		if (maybeClass instanceof Some<CStructMember>) return maybeClass;
 
 		final var maybeEnumValues = this.compileEnumValues(input, structName);
 		if (maybeEnumValues instanceof Some<CStructMember>) return maybeEnumValues;
 
-		if (stripped.endsWith(Strings.from(";"))) {
+		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
 			final var maybeDeclaration = this.parseDeclaration(substring);
 			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration))
@@ -1293,12 +1261,12 @@ public class Main {
 																							List<String> typeParameters,
 																							List<String> variants,
 																							String input) {
-		final var i = input.indexOf(Strings.from("("));
+		final var i = input.indexOf("(");
 		if (i < 0) return new None<CStructMember>();
 
 		final var declarationString = input.substring(0, i);
 		final var substring1 = input.substring(i + 1);
-		final var i1 = substring1.indexOf(Strings.from(")"));
+		final var i1 = substring1.indexOf(")");
 		if (i1 < 0) return new None<CStructMember>();
 		final var parametersString = substring1.substring(0, i1);
 		final var withBraces = substring1.substring(i1 + 1).strip();
@@ -1317,39 +1285,34 @@ public class Main {
 		final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName);
 
 		Option<String> maybeCompiled = new None<String>();
-		if (methodDeclaration instanceof JDeclaration declaration &&
-				declaration.annotations.contains(Strings.from("Actual"))) {
-			final var compiledParameters =
-					parameters.iter().map(CDeclaration::generate).collect(new Joiner(Strings.from(", ")));
+		if (methodDeclaration instanceof JDeclaration declaration && declaration.annotations.contains("Actual")) {
+			final var compiledParameters = parameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
 
-			final var modifiedMethodDeclaration =
-					declaration.mapName(name -> name + Strings.from("_") + structName).toCDeclaration();
+			final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName).toCDeclaration();
 
 			this.functionDeclarations = this.functionDeclarations.addLast(
-					modifiedMethodDeclaration.generate() + Strings.from("(") + compiledParameters + Strings.from(")") +
-					System.lineSeparator());
+					modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
 
 			return new Some<CStructMember>(new EmptyStructMember());
 		}
 
-		if (withBraces.startsWith(Strings.from("{")) && withBraces.endsWith(Strings.from("}"))) {
+		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final var inputContent = withBraces.substring(1, withBraces.length() - 1);
 			maybeCompiled = new Some<String>(this.compileMethodsSegments(inputContent, 1));
 		}
 
 		String outputContent;
 		if (methodDeclaration instanceof JConstructor) {
-			final var compiled = maybeCompiled.orElse(Strings.from("?"));
-			outputContent = this.generateStatement(structName + Strings.from(" _this")) + compiled +
-											this.generateStatement(Strings.from("return ") + Strings.from("_this"));
+			final var compiled = maybeCompiled.orElse("?");
+			outputContent =
+					this.generateStatement(structName + " _this") + compiled + this.generateStatement("return " + "_this");
 		} else if (methodDeclaration instanceof JDeclaration declaration) {
-			parameters = parameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), Strings.from("_ref")));
+			parameters = parameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
 			final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
 			final var thisInitialization = this.generateStatement(
-					structName + joinedTypeParameters + Strings.from("* _this = (") + structName + joinedTypeParameters +
-					Strings.from("*) _ref"));
+					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 
 			var finalParameters = parameters;
 			outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
@@ -1359,35 +1322,30 @@ public class Main {
 							.iter()
 							.map(parameter -> parameter.name)
 							.toList()
-							.addFirst(Strings.from("_this->data"))
+							.addFirst("_this->data")
 							.iter()
-							.collect(new Joiner(Strings.from(", ")));
+							.collect(new Joiner(", "));
 
-					return this.generateStatement(
-							Strings.from("return _this->table.") + declaration.name + Strings.from("(") + joinedParameters +
-							Strings.from(")"));
+					return this.generateStatement("return _this->table." + declaration.name + "(" + joinedParameters + ")");
 				} else {
 					final var returnValueDefinition =
-							this.generateStatement(transformType(declaration.type).generate() + Strings.from(" _ret"));
+							this.generateStatement(transformType(declaration.type).generate() + " _ret");
 
 					final var cases =
 							variants.iter().map(variant -> this.generateCase(declaration, variant)).collect(new Joiner());
 
-					return returnValueDefinition + generateIndent(1) + Strings.from("switch (") + Strings.from("_this->variant"
-					) +
-								 Strings.from(") {") + cases + generateIndent(1) + Strings.from("}") +
-								 this.generateStatement(Strings.from("return _ret"));
+					return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
+								 generateIndent(1) + "}" + this.generateStatement("return _ret");
 				}
 			});
-		} else outputContent = Strings.from("?");
+		} else outputContent = "?";
 
-		final var compiledParameters =
-				parameters.iter().map(CDeclaration::generate).collect(new Joiner(Strings.from(", ")));
+		final var compiledParameters = parameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
 
 		final var modifiedMethodDeclaration = switch (methodDeclaration) {
 			case JConstructor constructor -> {
 				final var type = this.toConstructorReturnType(constructor.type, typeParameters);
-				yield (CFunctionDeclaration) new CDeclaration(type, Strings.from("new"));
+				yield (CFunctionDeclaration) new CDeclaration(type, "new");
 			}
 			case JDeclaration declaration -> declaration.toCDeclaration();
 			case Placeholder placeholder -> placeholder;
@@ -1395,13 +1353,12 @@ public class Main {
 
 		final var mapped = modifiedMethodDeclaration
 				.mapTypeParameters(typeParameters0 -> typeParameters0.addAll(typeParameters))
-				.mapName(name -> name + Strings.from("_") + structName);
+				.mapName(name -> name + "_" + structName);
 
-		final var header = mapped.generate() + Strings.from("(") + compiledParameters + Strings.from(")");
-		final var generated = header + Strings.from("{") + outputContent + System.lineSeparator() + Strings.from("}") +
-													System.lineSeparator();
+		final var header = mapped.generate() + "(" + compiledParameters + ")";
+		final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 
-		this.functionDeclarations = this.functionDeclarations.addLast(header + Strings.from("") + System.lineSeparator());
+		this.functionDeclarations = this.functionDeclarations.addLast(header + ";" + System.lineSeparator());
 		this.functions = this.functions.addLast(generated);
 
 		final var parameterTypes = parameters.iter().map(CDeclaration::type).toList();
@@ -1429,20 +1386,9 @@ public class Main {
 	}
 
 	private String generateCase(JDeclaration declaration, String variant) {
-		return generateIndent(2) + Strings.from("case ") + variant + Strings.from("Variant:") + generateStatement(3,
-																																																							Strings.from(
-																																																									"_ret = ") +
-																																																							declaration.name +
-																																																							Strings.from(
-																																																									"_"
-																																																							) +
-																																																							variant +
-																																																							Strings.from(
-																																																									"(&(_this->data.") +
-																																																							variant +
-																																																							Strings.from(
-																																																									"))")) +
-					 generateStatement(3, Strings.from("break"));
+		return generateIndent(2) + "case " + variant + "Variant:" +
+					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&(_this->data." + variant + "))") +
+					 generateStatement(3, "break");
 	}
 
 	private JMethodDeclaration parseMethodDeclaration(String declaration, String structName) {
@@ -1460,7 +1406,7 @@ public class Main {
 		final var stripped = declaration.strip();
 		if (stripped.equals(structName)) return new Some<JMethodDeclaration>(new JConstructor(structName));
 
-		final var i = stripped.lastIndexOf(Strings.from(" "));
+		final var i = stripped.lastIndexOf(" ");
 		if (i >= 0) {
 			final var substring = stripped.substring(i + 1).strip();
 			if (substring.equals(structName)) return new Some<JMethodDeclaration>(new JConstructor(structName));
@@ -1471,7 +1417,7 @@ public class Main {
 
 	private Option<CStructMember> compileEnumValues(String input, String structName) {
 		final var stripped = input.strip();
-		if (!stripped.endsWith(Strings.from(";"))) return new None<CStructMember>();
+		if (!stripped.endsWith(";")) return new None<CStructMember>();
 
 		final var enumValues = this
 				.divide(stripped.substring(0, stripped.length() - 1),
@@ -1492,17 +1438,17 @@ public class Main {
 	}
 
 	private Option<CStructMember> compileEnumValue(String structName, String enumValue) {
-		if (enumValue.endsWith(Strings.from(")"))) {
+		if (enumValue.endsWith(")")) {
 			final var substring = enumValue.substring(0, enumValue.length() - 1);
-			final var i = substring.indexOf(Strings.from("("));
+			final var i = substring.indexOf("(");
 			if (i >= 0) {
 				final var name = substring.substring(0, i);
 				if (!this.isIdentifier(name)) return new None<CStructMember>();
 
 				final var substring2 = substring.substring(i + 1);
 				final var generated =
-						structName + Strings.from(" ") + structName + name + Strings.from(" = ") + Strings.from("new_") +
-						structName + Strings.from("(") + substring2 + Strings.from(")") + Strings.from("") + System.lineSeparator();
+						structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" +
+						System.lineSeparator();
 
 				this.globals = this.globals.addLast(generated);
 				return new Some<CStructMember>(new EmptyStructMember());
@@ -1514,37 +1460,37 @@ public class Main {
 
 	private String compileMethodSegment(String input, int indent) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty()) return Strings.from("");
+		if (stripped.isEmpty()) return "";
 
-		final var maybeIf = this.compileConditional(Strings.from("if"), indent, stripped);
+		final var maybeIf = this.compileConditional("if", indent, stripped);
 		if (maybeIf instanceof Some<String>(var result)) return result;
 
-		final var maybeWhile = this.compileConditional(Strings.from("while"), indent, stripped);
+		final var maybeWhile = this.compileConditional("while", indent, stripped);
 		if (maybeWhile instanceof Some<String>(var result)) return result;
 
-		if (stripped.endsWith(Strings.from(";"))) {
+		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
-			return generateIndent(indent) + this.compileMethodStatement(substring) + Strings.from("");
+			return generateIndent(indent) + this.compileMethodStatement(substring) + ";";
 		}
 
-		if (stripped.startsWith(Strings.from("else "))) {
-			final var substring = stripped.substring(Strings.from("else ").length()).strip();
-			if (substring.startsWith(Strings.from("{")) && substring.endsWith(Strings.from("}"))) {
+		if (stripped.startsWith("else ")) {
+			final var substring = stripped.substring("else ".length()).strip();
+			if (substring.startsWith("{") && substring.endsWith("}")) {
 				final var substring1 = substring.substring(1, substring.length() - 1);
-				return generateIndent(indent) + Strings.from("else {") + this.compileMethodsSegments(substring1, indent + 1) +
-							 generateIndent(indent) + Strings.from("}");
-			} else return generateIndent(indent) + Strings.from("else ") + this.compileMethodSegment(substring, indent);
+				return generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
+							 generateIndent(indent) + "}";
+			} else return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent);
 		}
 
-		if (stripped.startsWith(Strings.from("//"))) return generateIndent(indent) + stripped;
+		if (stripped.startsWith("//")) return generateIndent(indent) + stripped;
 
-		return System.lineSeparator() + Strings.from("\t") + wrap(stripped);
+		return System.lineSeparator() + "\t" + wrap(stripped);
 	}
 
 	private Option<String> compileConditional(String type, int indent, String input) {
 		if (input.startsWith(type)) {
 			final var substring = input.substring(type.length()).strip();
-			if (substring.startsWith(Strings.from("("))) {
+			if (substring.startsWith("(")) {
 				final var afterConditionStart = substring.substring(1).strip();
 
 				final var divisions = this
@@ -1556,22 +1502,21 @@ public class Main {
 				if (divisions.size() < 2) return new None<String>();
 
 				final var first = divisions.getFirst();
-				final var maybeWithBraces = this.joinStrings(Strings.from(""), divisions.subList(1, divisions.size()));
+				final var maybeWithBraces = this.joinStrings("", divisions.subList(1, divisions.size()));
 
-				if (!first.endsWith(Strings.from(")"))) return new None<String>();
+				if (!first.endsWith(")")) return new None<String>();
 				final var condition = first.substring(0, first.length() - 1);
 
-				if (maybeWithBraces.startsWith(Strings.from("{")) && maybeWithBraces.endsWith(Strings.from("}"))) {
+				if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
 					final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 					return new Some<String>(
-							generateIndent(indent) + type + Strings.from(" (") + this.compileExpressionOrPlaceholder(condition) +
-							Strings.from(") {") + this.compileMethodsSegments(content, indent + 1) + generateIndent(indent) +
-							Strings.from("}"));
+							generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
+							this.compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 				}
 
 				return new Some<String>(
-						generateIndent(indent) + type + Strings.from(" (") + this.compileExpressionOrPlaceholder(condition) +
-						Strings.from(") ") + this.compileMethodSegment(maybeWithBraces, indent + 1));
+						generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") " +
+						this.compileMethodSegment(maybeWithBraces, indent + 1));
 			}
 		}
 
@@ -1580,11 +1525,10 @@ public class Main {
 
 	private String compileMethodStatement(String input) {
 		final var stripped = input.strip();
-		if (stripped.equals(Strings.from("break"))) return Strings.from("break");
+		if (stripped.equals("break")) return "break";
 
-		if (stripped.startsWith(Strings.from("return "))) return Strings.from("return ") +
-																														 this.compileExpressionOrPlaceholder(stripped.substring(
-																																 Strings.from("return ").length()));
+		if (stripped.startsWith("return "))
+			return "return " + this.compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 
 		final var maybeAssignment = this.compileAssignment(stripped);
 		if (maybeAssignment instanceof Some<String>(var assignment)) return assignment;
@@ -1592,10 +1536,10 @@ public class Main {
 		final var maybeInvokable = this.compileInvokable(stripped);
 		if (maybeInvokable instanceof Some<String>(var value)) return value;
 
-		final var instance = this.post(stripped, Strings.from("++"));
+		final var instance = this.post(stripped, "++");
 		if (instance instanceof Some<String>(var x)) return x;
 
-		final var instance0 = this.post(stripped, Strings.from("--"));
+		final var instance0 = this.post(stripped, "--");
 		if (instance0 instanceof Some<String>(var x)) return x;
 
 		final var maybeDeclaration = this.parseDeclaration(input);
@@ -1605,15 +1549,15 @@ public class Main {
 	}
 
 	private Option<String> compileAssignment(String stripped) {
-		final var index = stripped.indexOf(Strings.from("="));
+		final var index = stripped.indexOf("=");
 		if (index >= 0) {
 			final var destination = stripped.substring(0, index);
 			final var substring1 = stripped.substring(index + 1);
 			final var assignable = this.parseAssignable(destination);
 			final var maybeSource = this.parseCExpression(substring1);
 
-			if (maybeSource instanceof Some<CExpression>(var source)) return new Some<String>(
-					this.transformAssignable(assignable, source).generate() + Strings.from(" = ") + source.generate());
+			if (maybeSource instanceof Some<CExpression>(var source))
+				return new Some<String>(this.transformAssignable(assignable, source).generate() + " = " + source.generate());
 		}
 
 		return new None<String>();
@@ -1664,44 +1608,44 @@ public class Main {
 
 	private Option<String> getStringOption(String input) {
 		final var stripped = input.strip();
-		if (stripped.equals(Strings.from("this"))) return new Some<String>(Strings.from("(*_this)"));
+		if (stripped.equals("this")) return new Some<String>("(*_this)");
 
-		if (stripped.startsWith(Strings.from("switch "))) return new Some<String>(Strings.from("_switch"));
+		if (stripped.startsWith("switch ")) return new Some<String>("_switch");
 
-		final var i2 = stripped.lastIndexOf(Strings.from("::"));
+		final var i2 = stripped.lastIndexOf("::");
 		if (i2 >= 0) {
 			final var substring = stripped.substring(0, i2);
 			final var name = stripped.substring(i2 + 2).strip();
 			if (this.isIdentifier(name)) {
 				final var compiled = this.compileExpressionOrPlaceholder(substring);
-				final var functionalInterfaceName = Strings.from("F?");
-				return new Some<String>(functionalInterfaceName + Strings.from(" { alloc(") + compiled + Strings.from("), ") +
-																functionalInterfaceName + Strings.from("Table { ") + name + Strings.from(" }}"));
+				final var functionalInterfaceName = "F?";
+				return new Some<String>(
+						functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name +
+						" }}");
 			}
 		}
 
-		if (stripped.startsWith(Strings.from("'")) && stripped.endsWith(Strings.from("'")))
-			return new Some<String>(stripped);
+		if (stripped.startsWith("'") && stripped.endsWith("'")) return new Some<String>(stripped);
 
 		final var maybeLambda = this.compileLambda(stripped);
 		if (maybeLambda instanceof Some<String>) return maybeLambda;
 
-		final var i3 = stripped.indexOf(Strings.from("instanceof"));
+		final var i3 = stripped.indexOf("instanceof");
 		if (i3 >= 0) {
 			final var substring = stripped.substring(0, i3);
-			final var substring1 = stripped.substring(i3 + Strings.from("instanceof").length()).strip();
+			final var substring1 = stripped.substring(i3 + "instanceof".length()).strip();
 			final var maybeInstance = this.parseCExpression(substring).map(CExpression::generate);
 			if (maybeInstance instanceof Some<String>(var instance)) {
-				final var i4 = substring1.indexOf(Strings.from("<"));
+				final var i4 = substring1.indexOf("<");
 				final String substring2;
 				if (i4 >= 0) substring2 = substring1.substring(0, i4);
 				else substring2 = substring1;
 
-				return new Some<String>(instance + Strings.from(".variant = ?.") + substring2 + Strings.from("Variant"));
+				return new Some<String>(instance + ".variant = ?." + substring2 + "Variant");
 			}
 		}
 
-		final var i = stripped.lastIndexOf(Strings.from("."));
+		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
 			final var instanceString = stripped.substring(0, i);
 			final var memberName = stripped.substring(i + 1).strip();
@@ -1711,8 +1655,8 @@ public class Main {
 					final String instance;
 					instance = value;
 					final String generated;
-					if (instance.equals(Strings.from("this"))) generated = Strings.from("_this->") + memberName;
-					else generated = instance + Strings.from(".") + memberName;
+					if (instance.equals("this")) generated = "_this->" + memberName;
+					else generated = instance + "." + memberName;
 
 					return new Some<String>(generated);
 				}
@@ -1723,35 +1667,34 @@ public class Main {
 		if (maybeInvokable instanceof Some<String>) return maybeInvokable;
 
 		final var maybeOperator = this
-				.compileOperator(stripped, Strings.from("=="))
-				.or(() -> this.compileOperator(stripped, Strings.from("!=")))
-				.or(() -> this.compileOperator(stripped, Strings.from("<")))
-				.or(() -> this.compileOperator(stripped, Strings.from("+")))
-				.or(() -> this.compileOperator(stripped, Strings.from("-")))
-				.or(() -> this.compileOperator(stripped, Strings.from("&&")))
-				.or(() -> this.compileOperator(stripped, Strings.from("||")))
-				.or(() -> this.compileOperator(stripped, Strings.from(">=")));
+				.compileOperator(stripped, "==")
+				.or(() -> this.compileOperator(stripped, "!="))
+				.or(() -> this.compileOperator(stripped, "<"))
+				.or(() -> this.compileOperator(stripped, "+"))
+				.or(() -> this.compileOperator(stripped, "-"))
+				.or(() -> this.compileOperator(stripped, "&&"))
+				.or(() -> this.compileOperator(stripped, "||"))
+				.or(() -> this.compileOperator(stripped, ">="));
 
 		if (maybeOperator instanceof Some<String>) return maybeOperator;
 
 		if (this.isIdentifier(stripped)) return new Some<String>(stripped);
 
-		if (stripped.startsWith(Strings.from("!"))) {
+		if (stripped.startsWith("!")) {
 			final var substring = stripped.substring(1);
 			final var maybeInstance = this.parseCExpression(substring).map(CExpression::generate);
-			if (maybeInstance instanceof Some<String>(var instance)) return new Some<String>(Strings.from("!") + instance);
+			if (maybeInstance instanceof Some<String>(var instance)) return new Some<String>("!" + instance);
 		}
 
 		if (this.isNumber(stripped)) return new Some<String>(stripped);
 
-		if (stripped.startsWith(Strings.from("\"")) && stripped.endsWith(Strings.from("\"")))
-			return new Some<String>(stripped);
+		if (stripped.startsWith("\"") && stripped.endsWith("\"")) return new Some<String>(stripped);
 
 		return new None<String>();
 	}
 
 	private Option<String> compileLambda(String input) {
-		final var index = input.indexOf(Strings.from("->"));
+		final var index = input.indexOf("->");
 		if (index < 0) return new None<String>();
 
 		final var beforeContent = input.substring(0, index).strip();
@@ -1759,42 +1702,40 @@ public class Main {
 
 		List<String> params;
 		if (this.isIdentifier(beforeContent)) params = Lists.of(beforeContent);
-		else if (beforeContent.startsWith(Strings.from("(")) && beforeContent.endsWith(Strings.from(")"))) {
+		else if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
 			final var substring = beforeContent.substring(1, beforeContent.length() - 1);
 			params = this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 		} else return new None<String>();
 
-		if (maybeWithBraces.startsWith(Strings.from("{")) && maybeWithBraces.endsWith(Strings.from("}"))) {
+		if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
 			final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 			final var compiled = this.compileMethodsSegments(content, 1);
 
 			final var generatedName = this.generateName();
 
-			var paramList =
-					params.iter().map(param -> Strings.from("auto ") + param).toList().addFirst(Strings.from("void* _ref"));
+			var paramList = params.iter().map(param -> "auto " + param).toList().addFirst("void* _ref");
 
-			final var joined = this.joinStrings(Strings.from(", "), paramList);
+			final var joined = this.joinStrings(", ", paramList);
 
 			this.functions = this.functions.addLast(
-					Strings.from("auto ") + generatedName + Strings.from("(") + joined + Strings.from("){") + compiled +
-					System.lineSeparator() + Strings.from("}") + System.lineSeparator());
+					"auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" +
+					System.lineSeparator());
 
 			return new Some<String>(generatedName);
 		} else {
 			final var generatedName = this.generateName();
 
 			this.functions = this.functions.addLast(
-					Strings.from("auto ") + generatedName + Strings.from("(void* _ref, auto ") + beforeContent +
-					Strings.from(")") + Strings.from("{") +
-					this.generateStatement(Strings.from("return ") + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
-					System.lineSeparator() + Strings.from("}") + System.lineSeparator());
+					"auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" +
+					this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
+					System.lineSeparator() + "}" + System.lineSeparator());
 
 			return new Some<String>(generatedName);
 		}
 	}
 
 	private String generateName() {
-		final var generatedName = Strings.from("lambda") + this.counter;
+		final var generatedName = "lambda" + this.counter;
 		this.counter++;
 		return generatedName;
 	}
@@ -1823,14 +1764,14 @@ public class Main {
 			final var right = input.substring(i1 + operator.length());
 			if (this.parseCExpression(leftString).map(CExpression::generate) instanceof Some<String>(var leftCompiled))
 				if (this.parseCExpression(right).map(CExpression::generate) instanceof Some<String>(var rightCompiled))
-					return new Some<String>(leftCompiled + Strings.from(" ") + operator + Strings.from(" ") + rightCompiled);
+					return new Some<String>(leftCompiled + " " + operator + " " + rightCompiled);
 		}
 
 		return new None<String>();
 	}
 
 	private Option<String> compileInvokable(String stripped) {
-		if (stripped.endsWith(Strings.from(")"))) {
+		if (stripped.endsWith(")")) {
 			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
 
 			final var callerStart = this.findCallerStart(withoutEnd);
@@ -1841,11 +1782,11 @@ public class Main {
 				final var joinedArguments = this
 						.divide(arguments, new EscapedFolder(new ValueFolder()))
 						.map(this::compileExpressionOrPlaceholder)
-						.collect(new Joiner(Strings.from(", ")));
+						.collect(new Joiner(", "));
 
 				final var maybeCaller = this.compileCaller(callerString);
 				if (maybeCaller instanceof Some<String>(var value))
-					return new Some<String>(value + Strings.from("(") + joinedArguments + Strings.from(")"));
+					return new Some<String>(value + "(" + joinedArguments + ")");
 			}
 		}
 
@@ -1870,7 +1811,7 @@ public class Main {
 	}
 
 	private boolean isNumber(String input) {
-		if (input.startsWith(Strings.from("-"))) return this.allDigits(input.substring(1));
+		if (input.startsWith("-")) return this.allDigits(input.substring(1));
 		return this.allDigits(input);
 	}
 
@@ -1883,9 +1824,9 @@ public class Main {
 		final var maybeExpression = this.parseCExpression(stripped).map(CExpression::generate);
 		if (maybeExpression instanceof Some<String>) return maybeExpression;
 
-		if (stripped.startsWith(Strings.from("new "))) {
-			final var type = stripped.substring(Strings.from("new ").length());
-			return new Some<String>(Strings.from("new_") + this.compileType(type));
+		if (stripped.startsWith("new ")) {
+			final var type = stripped.substring("new ".length());
+			return new Some<String>("new_" + this.compileType(type));
 		}
 
 		return new None<String>();
@@ -1893,7 +1834,7 @@ public class Main {
 
 	private Option<JDeclaration> parseDeclaration(String input) {
 		final var stripped = input.strip();
-		final var nameSeparator = stripped.lastIndexOf(Strings.from(" "));
+		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
 			final var beforeName = stripped.substring(0, nameSeparator).strip();
 			final var name = stripped.substring(nameSeparator + 1).strip();
@@ -1910,9 +1851,9 @@ public class Main {
 			var beforeType = beforeName.substring(0, typeSeparator).strip();
 
 			List<String> copy = Lists.empty();
-			if (beforeType.endsWith(Strings.from(">"))) {
+			if (beforeType.endsWith(">")) {
 				final var substring = beforeType.substring(0, beforeType.length() - 1);
-				final var i = substring.indexOf(Strings.from("<"));
+				final var i = substring.indexOf("<");
 				if (i >= 0) {
 					final var substring2 = substring.substring(i + 1);
 					copy = this.splitValues(substring2);
@@ -1921,7 +1862,7 @@ public class Main {
 			}
 
 			List<String> annotations = Lists.empty();
-			final var i = beforeType.lastIndexOf(Strings.from("\n"));
+			final var i = beforeType.lastIndexOf("\n");
 			if (i >= 0) {
 				annotations = this.collectAnnotations(beforeType.substring(0, i));
 
@@ -1940,7 +1881,7 @@ public class Main {
 
 	private List<String> collectAnnotations(String input) {
 		return Streams
-				.fromObjArray(input.split(Pattern.quote(Strings.from("\n"))))
+				.fromObjArray(input.split(Pattern.quote("\n")))
 				.filter(slice -> !slice.isEmpty())
 				.map(slice -> slice.substring(1))
 				.map(String::strip)
@@ -1988,15 +1929,15 @@ public class Main {
 			}
 		}
 
-		if (stripped.endsWith(Strings.from("[]"))) {
+		if (stripped.endsWith("[]")) {
 			final var slice = stripped.substring(0, stripped.length() - 2);
 			final var type = this.parseType(slice);
 			return new JArrayType(type);
 		}
 
-		if (stripped.endsWith(Strings.from(">"))) {
+		if (stripped.endsWith(">")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
-			final var i = substring.indexOf(Strings.from("<"));
+			final var i = substring.indexOf("<");
 			if (i >= 0) {
 				final var base = substring.substring(0, i);
 				final var parameters = substring.substring(i + 1);
