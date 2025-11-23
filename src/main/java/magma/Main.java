@@ -31,7 +31,7 @@ public class Main {
 	}
 
 	private enum JPrimitiveType implements JType {
-		Int, Void, Boolean, String, Char, Var
+		Int, Void, Boolean, Char, Var
 	}
 
 	private interface Head<T> {
@@ -151,7 +151,8 @@ public class Main {
 	}
 
 	private sealed interface JType
-			permits Identifier, JArrayType, JFunctionalType, JGenericType, JPrimitiveType, JObjectType, Placeholder {}
+			permits Identifier, JArrayType, JFunctionalType, JGenericType, JObjectType, JPrimitiveType, JRecursiveType,
+			Placeholder {}
 
 	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
 
@@ -505,11 +506,6 @@ public class Main {
 		@Override
 		public String generate() {
 			return this.value;
-		}
-
-		@Override
-		public String toString() {
-			return "";
 		}
 
 		@Override
@@ -983,8 +979,11 @@ public class Main {
 		}
 	}
 
-	private record JFunctionalType(List<JType> parameterTypes, JType returnType) implements JType {}
-
+	private record JFunctionalType(List<JType> parameterTypes, JType returnType) implements JType {
+		public JFunctionalType(JType returnType) {
+			this(new JavaList<JType>(), returnType);
+		}
+	}
 
 	private static class Environment {
 		private List<Frame> frames = new JavaList<Frame>();
@@ -1068,6 +1067,26 @@ public class Main {
 		}
 	}
 
+	private static final class JRecursiveType implements JType {
+		private Option<JType> internal = new None<JType>();
+
+		public static JType create(F1R<JType, JType> mapper) {
+			final var created = new JRecursiveType();
+			final var apply = mapper.apply(created);
+			created.set(apply);
+			return created;
+		}
+
+		private void set(JType created) {
+			this.internal = new Some<JType>(created);
+		}
+	}
+
+	private static final JType StringType = JRecursiveType.create(StringType -> {
+		final var methods = Lists.of(new JDeclaration(new JFunctionalType(StringType), "strip"));
+		return new JObjectType("String", methods);
+	});
+
 	private Environment environment = new Environment();
 	private List<String> functionDeclarations;
 	private List<String> globals;
@@ -1124,6 +1143,7 @@ public class Main {
 			case Placeholder placeholder -> placeholder.toCType();
 			case JFunctionalType jFunctionalType -> new Placeholder(jFunctionalType.toString());
 			case JObjectType jStructureType -> new Identifier(jStructureType.name);
+			case JRecursiveType jRecursiveType -> new Placeholder("???");
 		};
 	}
 
@@ -1131,7 +1151,6 @@ public class Main {
 		return switch (type) {
 			case Int, Boolean -> CPrimitiveType.Int;
 			case Void -> CPrimitiveType.Void;
-			case String -> new CPointerType(CPrimitiveType.Char);
 			case Char -> CPrimitiveType.Char;
 			case Var -> new Placeholder("var");
 		};
@@ -1828,14 +1847,14 @@ public class Main {
 
 			case JMemberAccess access -> {
 				final var instanceType = this.resolveExpression(access.instance);
-				if (instanceType.equals(JPrimitiveType.String)) {
-				}
+				if (instanceType instanceof JRecursiveType recursiveType)
+					if (recursiveType.internal instanceof Some<JType>(var internal) && internal instanceof JObjectType objectType)
+						yield this.getJType(access, objectType, instanceType);
 
-				if (instanceType instanceof JObjectType type) yield type
-						.resolve(access.memberName)
-						.orElseGet(() -> new Placeholder("Member '" + access.memberName + "' not defined in " + access.instance));
+				if (instanceType instanceof JObjectType type) yield this.getJType(access, type, instanceType);
 
-				yield new Placeholder("Cannot access member '" + access.memberName + "' in '" + instanceType + "'");
+				yield new Placeholder(
+						"Cannot access member '" + access.memberName + "' in '" + instanceType + "', not an object.");
 			}
 
 			case JExpressionWrapper jExpressionWrapper ->
@@ -1844,6 +1863,12 @@ public class Main {
 				yield this.resolveCaller(jInvokable.caller);
 			}
 		};
+	}
+
+	private JType getJType(JMemberAccess access, JObjectType type, JType instanceType) {
+		return type
+				.resolve(access.memberName)
+				.orElseGet(() -> new Placeholder("Member '" + access.memberName + "' not defined in '" + instanceType + "'"));
 	}
 
 	private JType resolveCaller(JCaller caller) {
@@ -2186,7 +2211,7 @@ public class Main {
 				return JPrimitiveType.Void;
 			}
 			case "String" -> {
-				return JPrimitiveType.String;
+				return StringType;
 			}
 			case "Character" -> {
 				return JPrimitiveType.Char;
