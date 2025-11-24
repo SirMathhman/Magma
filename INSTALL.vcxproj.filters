@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\mathm\IdeaProjects\Magma\CMakeFiles\7f7edb1c572d397fd95670cac0872a36\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{FA628E28-FE7F-397E-A3B8-5FDE87BA879B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
