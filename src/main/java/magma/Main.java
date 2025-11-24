@@ -1340,10 +1340,12 @@ public class Main {
 	private List<CRootSegment> structures;
 	private List<CFunction> functions;
 	private int counter;
+	private List<CEnum> enums;
 
 	public Main() {
 		this.structures = Lists.empty();
 
+		this.enums = Lists.empty();
 		this.structureForwardDeclarations = Lists.empty();
 
 		this.functionDeclarations = Lists.empty();
@@ -1416,10 +1418,7 @@ public class Main {
 	private static Option<JObjectType> extractType(JObjectMember jObjectMember) {
 		return switch (jObjectMember) {
 			case JObject jObject -> new Some<JObjectType>(jObject.toType());
-			case EmptyStructMember _ -> new None<JObjectType>();
-			case JField _ -> new None<JObjectType>();
-			case JMethod _ -> new None<JObjectType>();
-			case Placeholder _ -> new None<JObjectType>();
+			case EmptyStructMember _, JField _, JMethod _, Placeholder _ -> new None<JObjectType>();
 		};
 	}
 
@@ -1456,14 +1455,6 @@ public class Main {
 		final var arguments = jInvokable.arguments().iter().map(this::transformExpression).toList();
 		final var caller = jInvokable.caller();
 		if (caller instanceof JMemberAccess(var instance, var memberName)) {
-			if (instance instanceof Identifier(String value))
-				if (this.environment.resolveType(value) instanceof Some<JObjectType>(var objType)) {
-					final var baseName = objType.stringify();
-
-					final var newArguments = arguments.addFirst(CNumber.NULL);
-					return new CInvocation(new Identifier(memberName + "_" + baseName), newArguments);
-				}
-
 			final var jType = this.resolveExpression(instance);
 			final var baseName = jType.stringify();
 
@@ -1502,8 +1493,9 @@ public class Main {
 		final var joinedFunctionDeclarations = this.joinStrings(this.functionDeclarations);
 		final var joinedFunctions = this.functions.iter().map(CFunction::generate).collect(new Joiner());
 
-		return joinedStructureForwardDeclarations + joinedStructures + joinedGlobals + joinedFunctionDeclarations +
-					 joinedFunctions + all;
+		final var joinedEnums = this.enums.iter().map(CEnum::generate).collect(new Joiner());
+		return joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedGlobals +
+					 joinedFunctionDeclarations + joinedFunctions + all;
 	}
 
 	private String joinStrings(List<String> structures) {
@@ -1700,9 +1692,7 @@ public class Main {
 	private Option<CStructMember> transformObject(JObject object) {
 		if (object.annotations.contains("Actual")) return new Some<CStructMember>(new EmptyStructMember());
 
-		List<CRootSegment> dependencies = new JavaList<CRootSegment>();
 		this.functions = object.createConversionFunctions().iter().fold(this.functions, List::addLast);
-
 		final var within = this.environment.within(env -> {
 			this.environment = env.withObject(object);
 
@@ -1726,37 +1716,52 @@ public class Main {
 		var members = within.right;
 
 		var fields = object.collectCFields();
-		if (object.type().equals("interface")) if (object.modifiersList().contains("sealed")) {
-			final var elements = this.flattenSealedStructure(object.name(), object.typeParameters(), object.variants());
-
-			fields = fields
-					.addLast(new CDeclaration(new Identifier(object.name() + "Variant"), "variant"))
-					.addLast(new CDeclaration(new Identifier(
-							object.name() + "Data" + Main.joinTypeParameters(object.typeParameters())), "data"));
-
-			dependencies = dependencies.addAllLast(elements);
-		} else {
-			final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
-			final var cStructure = new CStructure(object.typeParameters(), object.name() + "Table", list);
-
-			dependencies = dependencies.addLast(cStructure);
-			fields = fields
-					.addLast(new CDeclaration(new Identifier(
-							object.name() + "Table" + Main.joinTypeParameters(object.typeParameters())), "table"))
-					.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "data"));
-		}
+		if (object.type().equals("interface"))
+			if (object.modifiersList().contains("sealed")) fields = this.handleSealedInterface(object, fields);
+			else fields = this.handleUnsealedInterface(object, members, fields);
 		else fields = fields.addAllLast(this.retainFields(members));
-
 		// TODO: create a constructor for records
 		// TODO: create a default empty constructor for a class with no fields
 
-		final var elements = dependencies.addLast(new CStructure(object.typeParameters(), object.name(), fields));
+		this.structures = this.structures.addLast(new CStructure(object.typeParameters(), object.name(), fields));
 
 		this.structureForwardDeclarations = this.structureForwardDeclarations.addLast(
 				generateTemplateString(object.typeParameters) + "struct " + object.name + ";" + System.lineSeparator());
 
-		this.structures = this.structures.addAllLast(elements);
 		return new Some<CStructMember>(new EmptyStructMember());
+	}
+
+	private List<CDefinable> handleUnsealedInterface(JObject object,
+																									 List<CStructMember> members,
+																									 List<CDefinable> fields) {
+		final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
+		final var cStructure = new CStructure(object.typeParameters(), object.name() + "Table", list);
+		this.structures = this.structures.addLast(cStructure);
+		fields = fields
+				.addLast(new CDeclaration(new Identifier(
+						object.name() + "Table" + Main.joinTypeParameters(object.typeParameters())), "table"))
+				.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "data"));
+		return fields;
+	}
+
+	private List<CDefinable> handleSealedInterface(JObject object, List<CDefinable> fields) {
+		var name = object.name();
+		var typeParameters = object.typeParameters();
+		var variants = object.variants();
+		final var jEnum = new CEnum(name, variants);
+
+		final var joinedTypeParameters = Main.joinTypeParameters(typeParameters);
+		final var unionMembers = variants.iter().map(variant -> variant + joinedTypeParameters + " " + variant).toList();
+		final var union = new CUnion(typeParameters, name, unionMembers);
+
+		fields = fields
+				.addLast(new CDeclaration(new Identifier(object.name() + "Variant"), "variant"))
+				.addLast(new CDeclaration(new Identifier(
+						object.name() + "Data" + Main.joinTypeParameters(object.typeParameters())), "data"));
+
+		this.enums = this.enums.addLast(jEnum);
+		this.structures = this.structures.addLast(union);
+		return fields;
 	}
 
 	private Option<JDeclaration> extractField(JObjectMember prototype) {
@@ -1903,15 +1908,6 @@ public class Main {
 		}).flatMap(Option::iter).filter(member -> !(member instanceof CFunctionDeclaration)).toList();
 	}
 
-	private List<CRootSegment> flattenSealedStructure(String name, List<String> typeParameters, List<String> variants) {
-		final var jEnum = new CEnum(name, variants);
-
-		final var joinedTypeParameters = Main.joinTypeParameters(typeParameters);
-		final var unionMembers = variants.iter().map(variant -> variant + joinedTypeParameters + " " + variant).toList();
-		final var union = new CUnion(typeParameters, name, unionMembers);
-		return Lists.of(jEnum, union);
-	}
-
 	private Option<CDefinable> retainDefinables(CStructMember member) {
 		return switch (member) {
 			case CField(var declaration) -> new Some<CDefinable>(declaration);
@@ -1929,7 +1925,7 @@ public class Main {
 
 	private boolean isIdentifier(String input) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty()) return false;
+		if (stripped.isEmpty() || stripped.equals("return")) return false;
 
 		return IntStream.range(0, stripped.length()).allMatch(i -> {
 			final var c = stripped.charAt(i);
@@ -2266,6 +2262,9 @@ public class Main {
 
 		final var maybeFound = this.environment.resolveExpression(value).map(JDeclaration::type);
 		if (maybeFound instanceof Some<JType>(var found)) return found;
+
+		if (this.environment.resolveType(value) instanceof Some<JObjectType>(var resolved)) return resolved;
+
 		return new Placeholder("Undefined identifier: " + value);
 	}
 
