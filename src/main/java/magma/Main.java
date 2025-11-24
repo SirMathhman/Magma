@@ -1007,11 +1007,11 @@ public class Main {
 		}
 
 		public Environment defineAllExpressions(List<JDeclaration> declarations) {
-			return new Environment(this.frames.mapLast(last -> last.defineAll(declarations)));
+			return new Environment(this.frames.mapLast(last -> last.defineAllExpressions(declarations)));
 		}
 
 		public Environment defineExpression(JDeclaration declaration) {
-			return new Environment(this.frames.mapLast(last -> last.define(declaration)));
+			return new Environment(this.frames.mapLast(last -> last.defineExpression(declaration)));
 		}
 
 		public Option<JObjectType> resolveCurrent() {
@@ -1033,46 +1033,45 @@ public class Main {
 
 	private static class Frame {
 		private final Option<JObject> maybeObject;
-		private List<JObjectType> types = new JavaList<JObjectType>();
-		private List<JDeclaration> definitions;
+		private final List<JDeclaration> definedExpressions;
+		private final List<JObjectType> definedTypes;
 
-		private Frame(Option<JObject> maybeName, List<JDeclaration> defined) {
+		private Frame(Option<JObject> maybeName, List<JObjectType> definedTypes, List<JDeclaration> definedExpressions) {
 			this.maybeObject = maybeName;
-			this.definitions = defined;
+			this.definedTypes = definedTypes;
+			this.definedExpressions = definedExpressions;
 		}
 
 		public Frame() {
-			this(new None<JObject>(), new JavaList<JDeclaration>());
+			this(new None<JObject>(), new JavaList<JObjectType>(), new JavaList<JDeclaration>());
 		}
 
-		public Frame defineAll(List<JDeclaration> declarations) {
-			return new Frame(this.maybeObject, this.definitions.addAllLast(declarations));
+		public Frame defineAllExpressions(List<JDeclaration> definitions) {
+			return new Frame(this.maybeObject, this.definedTypes, this.definedExpressions.addAllLast(definitions));
 		}
 
 		public Option<JDeclaration> resolveExpression(String identifier) {
-			return this.definitions.iter().filter(define -> define.name.equals(identifier)).next();
+			return this.definedExpressions.iter().filter(define -> define.name.equals(identifier)).next();
 		}
 
-		public Frame define(JDeclaration declaration) {
-			this.definitions = this.definitions.addLast(declaration);
-			return this;
+		public Frame defineExpression(JDeclaration declaration) {
+			return new Frame(this.maybeObject, this.definedTypes, this.definedExpressions.addLast(declaration));
 		}
 
 		public Option<JObjectType> toStructureType() {
-			return this.maybeObject.map(obj -> new JObjectType(obj.name, this.definitions));
+			return this.maybeObject.map(obj -> new JObjectType(obj.name, this.definedExpressions));
 		}
 
 		public Frame withObject(JObject name) {
-			return new Frame(new Some<JObject>(name), this.definitions);
+			return new Frame(new Some<JObject>(name), this.definedTypes, this.definedExpressions);
 		}
 
 		public Option<JObjectType> resolveType(String name) {
-			return this.types.iter().filter(type -> type.name.equals(name)).next();
+			return this.definedTypes.iter().filter(type -> type.name.equals(name)).next();
 		}
 
 		public Frame defineAllTypes(List<JObjectType> types) {
-			this.types = this.types.addAllLast(types);
-			return this;
+			return new Frame(this.maybeObject, this.definedTypes.addAllLast(types), this.definedExpressions);
 		}
 	}
 
