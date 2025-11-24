@@ -1261,12 +1261,15 @@ public class Main {
 	private Environment environment = new Environment();
 	private List<String> functionDeclarations;
 	private List<String> globals;
-	private List<CRootSegment> rootSegments;
+	private List<String> structureForwardDeclarations;
+	private List<CRootSegment> structures;
 	private List<CFunction> functions;
 	private int counter;
 
 	public Main() {
-		this.rootSegments = Lists.empty();
+		this.structures = Lists.empty();
+
+		this.structureForwardDeclarations = Lists.empty();
 
 		this.functionDeclarations = Lists.empty();
 		this.functions = Lists.empty();
@@ -1411,13 +1414,15 @@ public class Main {
 	private String compile(String input) {
 		final var all = this.compileStatements(input, this::compileRootSegment);
 
-		final var joinedStructures = this.rootSegments.iter().map(CRootSegment::generate).collect(new Joiner());
+		final var joinedStructureForwardDeclarations = this.joinStrings(this.structureForwardDeclarations);
+		final var joinedStructures = this.structures.iter().map(CRootSegment::generate).collect(new Joiner());
 		final var joinedGlobals = this.joinStrings(this.globals);
 
 		final var joinedFunctionDeclarations = this.joinStrings(this.functionDeclarations);
 		final var joinedFunctions = this.functions.iter().map(CFunction::generate).collect(new Joiner());
 
-		return joinedStructures + joinedGlobals + joinedFunctionDeclarations + joinedFunctions + all;
+		return joinedStructureForwardDeclarations + joinedStructures + joinedGlobals + joinedFunctionDeclarations +
+					 joinedFunctions + all;
 	}
 
 	private String joinStrings(List<String> structures) {
@@ -1666,7 +1671,11 @@ public class Main {
 		// TODO: create a default empty constructor for a class with no fields
 
 		final var elements = dependencies.addLast(new CStructure(object.typeParameters(), object.name(), fields));
-		this.rootSegments = this.rootSegments.addAllLast(elements);
+
+		this.structureForwardDeclarations = this.structureForwardDeclarations.addLast(
+				generateTemplateString(object.typeParameters) + "struct " + object.name + ";" + System.lineSeparator());
+
+		this.structures = this.structures.addAllLast(elements);
 		return new Some<CStructMember>(new EmptyStructMember());
 	}
 
