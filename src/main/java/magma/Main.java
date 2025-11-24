@@ -32,7 +32,7 @@ public class Main {
 		}
 
 		@Override
-		public List<Identifier> extractIdentifiers() {
+		public List<CNamedType> extractIdentifiers() {
 			return Lists.empty();
 		}
 	}
@@ -118,12 +118,16 @@ public class Main {
 		<R> Result<R, X> mapValue(F1R<T, R> mapper);
 	}
 
-	private sealed interface CType permits Identifier, Placeholder, CPointerType, CPrimitiveType, CTemplateType {
+	private sealed interface CNamedType extends CType permits CTemplateType, Identifier {
+
+	}
+
+	private sealed interface CType permits CNamedType, CPointerType, CPrimitiveType, Placeholder {
 		String generate();
 
 		String toBaseName();
 
-		List<Identifier> extractIdentifiers();
+		List<CNamedType> extractIdentifiers();
 	}
 
 	private sealed interface JMethodDeclaration permits JConstructor, JDeclaration, Placeholder {}
@@ -174,7 +178,7 @@ public class Main {
 	private sealed interface CDefinable permits CDeclaration, CFunctionDeclaration, Placeholder {
 		String generate();
 
-		List<Identifier> extractIdentifiers();
+		List<CNamedType> extractIdentifiers();
 
 		CDefinable mapTypeParameters(F1R<List<String>, List<String>> mapper);
 
@@ -184,7 +188,7 @@ public class Main {
 	private sealed interface CStructureOrUnion permits CStructure, CUnion {
 		String generate();
 
-		List<Identifier> listDependencies();
+		List<CNamedType> listDependencies();
 
 		String name();
 	}
@@ -496,12 +500,12 @@ public class Main {
 		}
 
 		@Override
-		public List<Identifier> extractIdentifiers() {
+		public List<CNamedType> extractIdentifiers() {
 			return this.type.extractIdentifiers();
 		}
 	}
 
-	private record CTemplateType(String base, List<CType> typeArguments) implements CType {
+	private record CTemplateType(String base, List<CType> typeArguments) implements CNamedType {
 		private CTemplateType(String base, List<CType> typeArguments) {
 			this.base = base;
 			this.typeArguments = typeArguments;
@@ -521,12 +525,8 @@ public class Main {
 		}
 
 		@Override
-		public List<Identifier> extractIdentifiers() {
-			return this.typeArguments
-					.iter()
-					.map(CType::extractIdentifiers)
-					.flatMap(List::iter)
-					.collect(new ListCollector<Identifier>());
+		public List<CNamedType> extractIdentifiers() {
+			return Lists.of(this);
 		}
 	}
 
@@ -544,7 +544,7 @@ public class Main {
 		}
 	}
 
-	private record Identifier(String value) implements CType, JType, JExpression, CExpression {
+	private record Identifier(String value) implements CNamedType, JType, JExpression, CExpression {
 		private Identifier(String value) {
 			this.value = value;
 		}
@@ -570,7 +570,7 @@ public class Main {
 		}
 
 		@Override
-		public List<Identifier> extractIdentifiers() {
+		public List<CNamedType> extractIdentifiers() {
 			return Lists.of(this);
 		}
 
@@ -599,7 +599,7 @@ public class Main {
 		}
 
 		@Override
-		public List<Identifier> extractIdentifiers() {
+		public List<CNamedType> extractIdentifiers() {
 			return Lists.empty();
 		}
 
@@ -686,7 +686,7 @@ public class Main {
 		}
 
 		@Override
-		public List<Identifier> extractIdentifiers() {
+		public List<CNamedType> extractIdentifiers() {
 			return this.type
 					.extractIdentifiers()
 					.addAllLast(this.parameterTypes.iter().map(CType::extractIdentifiers).flatMap(List::iter).toList());
@@ -1035,7 +1035,7 @@ public class Main {
 		}
 
 		@Override
-		public List<Identifier> extractIdentifiers() {
+		public List<CNamedType> extractIdentifiers() {
 			return this.type.extractIdentifiers();
 		}
 	}
@@ -1261,12 +1261,12 @@ public class Main {
 		}
 
 		@Override
-		public List<Identifier> listDependencies() {
+		public List<CNamedType> listDependencies() {
 			return this.fields
 					.iter()
 					.map(CDefinable::extractIdentifiers)
 					.flatMap(List::iter)
-					.collect(new ListCollector<Identifier>());
+					.collect(new ListCollector<CNamedType>());
 		}
 	}
 
@@ -1279,7 +1279,7 @@ public class Main {
 					.map(variant -> generateIndent(1) + variant)
 					.collect(new Joiner(","));
 
-			return "enum " + this.name() + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
+			return "enum " + this.name + " {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
 		}
 	}
 
@@ -1295,7 +1295,7 @@ public class Main {
 		}
 
 		@Override
-		public List<Identifier> listDependencies() {
+		public List<CNamedType> listDependencies() {
 			return this.members.iter().map(CDefinable::extractIdentifiers).flatMap(List::iter).toList();
 		}
 	}
@@ -1610,8 +1610,8 @@ public class Main {
 	private List<CStructureOrUnion> createTopologicallySortedList() {
 		final var dependencyMap = this.structuresOrUnions
 				.iter()
-				.map(value -> new Tuple<String, List<Identifier>>(value.name(), value.listDependencies()))
-				.collect(new MapCollector<String, List<Identifier>>());
+				.map(value -> new Tuple<String, List<CNamedType>>(value.name(), value.listDependencies()))
+				.collect(new MapCollector<String, List<CNamedType>>());
 
 		return this.structuresOrUnions;
 	}
@@ -1878,15 +1878,15 @@ public class Main {
 		var name = object.name();
 		var typeParameters = object.typeParameters();
 		var variants = object.variants();
-		final var jEnum = new CEnum(name, variants);
+		final var jEnum = new CEnum(name + "Tag", variants);
 
 		final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList();
 		final var unionMembers = variants.iter().map(variant -> this.createUnionField(variant, typeArguments)).toList();
 		final var union = new CUnion(typeParameters, name, unionMembers);
 
 		fields = fields
-				.addLast(new CDeclaration(new Identifier(object.name() + "Variant"), "variant"))
-				.addLast(new CDeclaration(this.createStructureType(name, object.typeParameters), "data"));
+				.addLast(new CDeclaration(new Identifier(object.name() + "Tag"), "variant"))
+				.addLast(new CDeclaration(this.createStructureType(name + "Data", object.typeParameters), "data"));
 
 		this.enums = this.enums.addLast(jEnum);
 		this.structuresOrUnions = this.structuresOrUnions.addLast(union);
