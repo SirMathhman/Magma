@@ -179,7 +179,8 @@ public class Main {
 		String generate();
 	}
 
-	private interface JObjectMemberPrototype {}
+	private sealed interface JObjectMemberPrototype
+			permits EmptyStructMember, JField, JMethodPrototype, JObjectPrototype, Placeholder {}
 
 	@Actual
 	private record JavaIOError(IOException e) implements IOError {
@@ -204,10 +205,6 @@ public class Main {
 
 		public StringBuilder clear() {
 			return new StringBuilder(this.list.clear());
-		}
-
-		public StringBuilder appendString(String chars) {
-			return Streams.fromCharArray(chars.toCharArray()).fold(this, StringBuilder::appendChar);
 		}
 
 		@Override
@@ -751,10 +748,6 @@ public class Main {
 		public static <T> Iter<T> fromObjArray(T[] elements) {
 			return new Iter<Integer>(new RangeHead(elements.length)).map(index -> elements[index]);
 		}
-
-		public static Iter<Character> fromCharArray(char[] array) {
-			return new Iter<Integer>(new RangeHead(array.length)).map(index -> array[index]);
-		}
 	}
 
 	private record MapHead<T, R>(Head<T> head, F1R<T, R> mapper) implements Head<R> {
@@ -1144,7 +1137,6 @@ public class Main {
 		// TODO: This return type needs to be a CFunction
 		private CFunction createConversionType(CType implementee) {
 			var joinedTypeParameters = Main.joinTypeParameters(this.typeParameters());
-			var templateString = generateTemplateString(this.typeParameters());
 			//TODO: turn this into proper AST generation
 
 			final var identifier = implementee.toBaseName();
@@ -1163,9 +1155,6 @@ public class Main {
 		}
 	}
 
-	@Deprecated
-	private record JObjectMemberPrototypeWrapper(CStructMember member) implements JObjectMemberPrototype {}
-
 	public record CFunctionHeader(CFunctionDeclaration definition, List<CDeclaration> parameters) {
 		private String generate() {
 			final var compiledParameters = this.parameters().iter().map(CDeclaration::generate).collect(new Joiner(", "));
@@ -1178,6 +1167,11 @@ public class Main {
 			return this.header().generate() + "{" + this.content() + System.lineSeparator() + "}" + System.lineSeparator();
 		}
 	}
+
+	private record JMethodPrototype(List<String> typeParameters, List<JDeclaration> parameters,
+																	JMethodDeclaration methodDeclaration, String content) implements JObjectMemberPrototype {}
+
+	private record JField(JDeclaration declaration) implements JObjectMemberPrototype {}
 
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
@@ -1483,7 +1477,9 @@ public class Main {
 			// But if environment becomes immutable, then we have to pass withName as a parameter here eventually
 			final var members = this
 					.divide(object.inputContent, new EscapedFolder(this::foldStatement))
-					.map(slice -> this.partiallyParseObjectMember(object, slice).flatMap(this::transformObjectMember))
+					.map(slice -> this
+							.partiallyParseObjectMember(object, slice)
+							.flatMap(wrapper -> this.getCStructMemberOption(object, wrapper)))
 					.flatMap(Option::iter)
 					.toList();
 
@@ -1519,6 +1515,74 @@ public class Main {
 		return new Some<CStructMember>(new EmptyStructMember());
 	}
 
+	private Option<CStructMember> getCStructMemberOption(JObjectPrototype object, JObjectMemberPrototype wrapper) {
+		return switch (wrapper) {
+			case JObjectPrototype objectPrototype -> this.transformObject(objectPrototype);
+			case JMethodPrototype jFunctionProto ->
+					new Some<CStructMember>(this.completeMethodProto(jFunctionProto, object));
+			case Placeholder placeholder -> new Some<CStructMember>(placeholder);
+			case EmptyStructMember _ -> new None<CStructMember>();
+			case JField jField -> new Some<CStructMember>(new CField(jField.declaration.toCDeclaration()));
+		};
+	}
+
+	private CStructMember completeMethodProto(JMethodPrototype jFunctionProto, JObjectPrototype object) {
+		Option<String> maybeCompiled = new None<String>();
+		if (jFunctionProto.methodDeclaration() instanceof JDeclaration declaration &&
+				declaration.annotations.contains("Actual")) {
+			var cParameters = jFunctionProto.parameters().iter().map(JDeclaration::toCDeclaration).toList();
+			final var compiledParameters = cParameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
+
+			final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + object.name).toCDeclaration();
+
+			this.functionDeclarations = this.functionDeclarations.addLast(
+					modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
+
+			return new EmptyStructMember();
+		}
+
+		if (jFunctionProto.content.startsWith("{") && jFunctionProto.content.endsWith("}")) {
+			final var inputContent = jFunctionProto.content.substring(1, jFunctionProto.content().length() - 1);
+
+			final var within = this.environment.withinScoped((env) -> {
+				return env.defineAll(jFunctionProto.parameters()).within(() -> {
+					return new Some<String>(this.compileMethodsSegments(inputContent, 1));
+				});
+			});
+
+			this.environment = within.left;
+			maybeCompiled = within.right;
+		}
+
+		var cParameters = jFunctionProto.parameters().iter().map(JDeclaration::toCDeclaration).toList();
+		if (jFunctionProto.methodDeclaration() instanceof JDeclaration)
+			cParameters = cParameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
+
+		final var outputContent = this.computeMethodBody(jFunctionProto.typeParameters(),
+																										 jFunctionProto.methodDeclaration(),
+																										 cParameters,
+																										 maybeCompiled, object.name, object.variants);
+
+		final var mapped =
+				this.transformMethodDeclaration(object.name, jFunctionProto.typeParameters(), jFunctionProto.methodDeclaration());
+		final var header = new CFunctionHeader(mapped, cParameters);
+		final var cFunction = new CFunction(header, outputContent);
+
+		this.functionDeclarations = this.functionDeclarations.addLast(header.generate() + ";" + System.lineSeparator());
+		this.functions = this.functions.addLast(cFunction);
+
+		final var parameterTypes = cParameters.iter().map(CDeclaration::type).toList();
+		return switch (jFunctionProto.methodDeclaration) {
+			case JConstructor _ -> new EmptyStructMember();
+			case JDeclaration member -> {
+				final var cDeclaration = member.toCDeclaration();
+				final var f1RDeclaration = new FunctionDeclaration(cDeclaration.type, cDeclaration.name, parameterTypes);
+				yield new CField(f1RDeclaration);
+			}
+			case Placeholder placeholder -> placeholder;
+		};
+	}
+
 	private Option<JObjectMemberPrototype> partiallyParseObjectMember(JObjectPrototype object, String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) return new None<JObjectMemberPrototype>();
@@ -1537,22 +1601,48 @@ public class Main {
 		if (maybeClass instanceof Some<JObjectPrototype>(var class0)) return new Some<JObjectMemberPrototype>(class0);
 
 		final var maybeEnumValues = this.compileEnumValues(input, object.name());
-		if (maybeEnumValues instanceof Some<CStructMember>(var enumValues))
-			return new Some<JObjectMemberPrototype>(new JObjectMemberPrototypeWrapper(enumValues));
+		if (maybeEnumValues instanceof Some<JObjectMemberPrototype>(var enumValues))
+			return new Some<JObjectMemberPrototype>(enumValues);
 
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
 			final var maybeDeclaration = this.parseDeclaration(substring);
 			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) {
 				this.environment = this.environment.define(declaration);
-				return new Some<JObjectMemberPrototype>(new JObjectMemberPrototypeWrapper(new CField(declaration.toCDeclaration())));
+				return new Some<JObjectMemberPrototype>(new JField(declaration));
 			}
 		}
 
-		final var maybeMethod = this.compileMethod(object.name(), object.typeParameters(), object.variants(), stripped);
+		final var maybeMethod = this.compileMethod(object, stripped);
 		if (maybeMethod instanceof Some<JObjectMemberPrototype>(var temp)) return new Some<JObjectMemberPrototype>(temp);
-
 		return new Some<JObjectMemberPrototype>(new Placeholder(stripped));
+	}
+
+	private Option<JObjectMemberPrototype> compileMethod(JObjectPrototype object, String stripped) {
+		String structName = object.name();
+		final var i = stripped.indexOf("(");
+		if (i < 0) return new None<JObjectMemberPrototype>();
+
+		final var declarationString = stripped.substring(0, i);
+		final var substring1 = stripped.substring(i + 1);
+		final var i1 = substring1.indexOf(")");
+		if (i1 < 0) return new None<JObjectMemberPrototype>();
+		final var parametersString = substring1.substring(0, i1);
+		final var withBraces = substring1.substring(i1 + 1).strip();
+
+		final var parameters = this
+				.divide(parametersString, new ValueFolder())
+				.map(String::strip)
+				.filter(slice -> !slice.isEmpty())
+				.toList()
+				.iter()
+				.map(this::parseDeclaration)
+				.flatMap(Option::iter)
+				.toList();
+
+		final var declaration = this.parseMethodDeclaration(declarationString, structName);
+		final var proto = new JMethodPrototype(object.typeParameters(), parameters, declaration, withBraces);
+		return new Some<JObjectMemberPrototype>(proto);
 	}
 
 	private List<CDefinable> retainFields(List<CStructMember> members) {
@@ -1592,96 +1682,33 @@ public class Main {
 		});
 	}
 
-	private Option<CStructMember> transformObjectMember(JObjectMemberPrototype wrapper) {
-		if (wrapper instanceof JObjectMemberPrototypeWrapper(var member)) return new Some<CStructMember>(member);
-		else if (wrapper instanceof JObjectPrototype objectPrototype) return this.transformObject(objectPrototype);
-		else return new None<CStructMember>();
-	}
-
-	private Option<JObjectMemberPrototype> compileMethod(String structName,
-																											 List<String> typeParameters,
-																											 List<String> variants,
-																											 String input) {
-		final var i = input.indexOf("(");
-		if (i < 0) return new None<JObjectMemberPrototype>();
-
-		final var declarationString = input.substring(0, i);
-		final var substring1 = input.substring(i + 1);
-		final var i1 = substring1.indexOf(")");
-		if (i1 < 0) return new None<JObjectMemberPrototype>();
-		final var parametersString = substring1.substring(0, i1);
-		final var withBraces = substring1.substring(i1 + 1).strip();
-
-		final var parameters = this
-				.divide(parametersString, new ValueFolder())
-				.map(String::strip)
-				.filter(slice -> !slice.isEmpty())
-				.toList()
-				.iter()
-				.map(this::parseDeclaration)
-				.flatMap(Option::iter)
-				.toList();
-
-		var cParameters = parameters.iter().map(JDeclaration::toCDeclaration).toList();
-
-		final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName);
-
-		Option<String> maybeCompiled = new None<String>();
-		if (methodDeclaration instanceof JDeclaration declaration && declaration.annotations.contains("Actual")) {
-			final var compiledParameters = cParameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
-
-			final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName).toCDeclaration();
-
-			this.functionDeclarations = this.functionDeclarations.addLast(
-					modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
-
-			return new Some<JObjectMemberPrototype>(new EmptyStructMember());
-		}
-
-		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-			final var inputContent = withBraces.substring(1, withBraces.length() - 1);
-
-			final var within = this.environment.withinScoped((env) -> {
-				return env.defineAll(parameters).within(() -> {
-					return new Some<String>(this.compileMethodsSegments(inputContent, 1));
-				});
-			});
-
-			this.environment = within.left;
-			maybeCompiled = within.right;
-		}
-
-		String outputContent;
+	private String computeMethodBody(List<String> typeParameters,
+																	 JMethodDeclaration methodDeclaration,
+																	 List<CDeclaration> cParameters,
+																	 Option<String> maybeContent,
+																	 String structName,
+																	 List<String> structureVariants) {
 		if (methodDeclaration instanceof JConstructor) {
-			final var compiled = maybeCompiled.orElse("?");
-			outputContent =
-					Main.generateStatement(structName + " _this") + compiled + Main.generateStatement("return " + "_this");
-		} else if (methodDeclaration instanceof JDeclaration declaration) {
-			cParameters = cParameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
+			final var compiled = maybeContent.orElse("?");
+			return Main.generateStatement(structName + " _this") + compiled + Main.generateStatement("return " + "_this");
+		}
+
+		if (methodDeclaration instanceof JDeclaration declaration) {
 			final var joinedTypeParameters = Main.joinTypeParameters(typeParameters);
 
 			final var thisInitialization = Main.generateStatement(
 					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 
-			var finalParameters = cParameters;
-			outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
+			final var body = maybeContent.orElseGet(() -> {
 				final var type = transformType(declaration.type);
-				final var list =
-						finalParameters.subList(1, finalParameters.size()).iter().map(parameter -> parameter.name).toList();
-				return this.createBodyForAbstractMethod(variants, type, declaration.name, list);
+				final var list = cParameters.subList(1, cParameters.size()).iter().map(parameter -> parameter.name).toList();
+				return this.createBodyForAbstractMethod(structureVariants, type, declaration.name, list);
 			});
-		} else outputContent = "?";
 
-		final var mapped = this.transformMethodDeclaration(structName, typeParameters, methodDeclaration);
-		final var header = new CFunctionHeader(mapped, cParameters);
-		final var cFunction = new CFunction(header, outputContent);
+			return thisInitialization + body;
+		}
 
-		this.functionDeclarations = this.functionDeclarations.addLast(header.generate() + ";" + System.lineSeparator());
-		this.functions = this.functions.addLast(cFunction);
-
-		final var parameterTypes = cParameters.iter().map(CDeclaration::type).toList();
-
-		return this.getJObjectMemberPrototypeOption(methodDeclaration, parameterTypes);
+		return "?";
 	}
 
 	private String createBodyForAbstractMethod(List<String> variants,
@@ -1700,19 +1727,6 @@ public class Main {
 			return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
 						 generateIndent(1) + "}" + Main.generateStatement("return _ret");
 		}
-	}
-
-	private Option<JObjectMemberPrototype> getJObjectMemberPrototypeOption(JMethodDeclaration methodDeclaration,
-																																				 List<CType> parameterTypes) {
-		return switch (methodDeclaration) {
-			case JConstructor _ -> new Some<JObjectMemberPrototype>(new EmptyStructMember());
-			case JDeclaration member -> {
-				final var cDeclaration = member.toCDeclaration();
-				final var f1RDeclaration = new FunctionDeclaration(cDeclaration.type, cDeclaration.name, parameterTypes);
-				yield new Some<JObjectMemberPrototype>(new JObjectMemberPrototypeWrapper(f1RDeclaration));
-			}
-			case Placeholder placeholder -> new Some<JObjectMemberPrototype>(placeholder);
-		};
 	}
 
 	private CFunctionDeclaration transformMethodDeclaration(String structName,
@@ -1777,9 +1791,9 @@ public class Main {
 		return new None<JMethodDeclaration>();
 	}
 
-	private Option<CStructMember> compileEnumValues(String input, String structName) {
+	private Option<JObjectMemberPrototype> compileEnumValues(String input, String structName) {
 		final var stripped = input.strip();
-		if (!stripped.endsWith(";")) return new None<CStructMember>();
+		if (!stripped.endsWith(";")) return new None<JObjectMemberPrototype>();
 
 		final var enumValues = this
 				.divide(stripped.substring(0, stripped.length() - 1),
@@ -1793,10 +1807,10 @@ public class Main {
 			final var areAnyInvalid =
 					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>));
 
-			if (areAnyInvalid) return new None<CStructMember>();
+			if (areAnyInvalid) return new None<JObjectMemberPrototype>();
 		}
 
-		return new Some<CStructMember>(new EmptyStructMember());
+		return new Some<JObjectMemberPrototype>(new EmptyStructMember());
 	}
 
 	private Option<CStructMember> compileEnumValue(String structName, String enumValue) {
