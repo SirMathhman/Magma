@@ -945,8 +945,8 @@ template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t);
 Path get_Paths(char* first, /*String...*/ more);
 CDeclaration new_CDeclaration(CType type, char* name);
-CDeclaration mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper);
-CDeclaration mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
+CDefinable mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper);
+CDefinable mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
 char* generate_CDeclaration(void* _ref);
 List<CNamedType> extractIdentifiers_CDeclaration(void* _ref);
 char* generate_CExpressionWrapper(void* _ref);
@@ -2592,11 +2592,11 @@ CDeclaration new_CDeclaration(CType type, char* name){
 	(*_this)(empty_Lists(&(Lists)), type, name);
 	return _this;
 }
-CDeclaration mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper){
+CDefinable mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper){
 	CDeclaration* _this = (CDeclaration*) _ref;
 	return new_CDeclaration(*(_this->typeParameters), *(_this->type), apply_F1R(&(mapper), *(_this->name)));
 }
-CDeclaration mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper){
+CDefinable mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper){
 	CDeclaration* _this = (CDeclaration*) _ref;
 	return new_CDeclaration(apply_F1R(&(mapper), *(_this->typeParameters)), *(_this->type), *(_this->name));
 }

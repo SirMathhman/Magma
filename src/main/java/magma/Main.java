@@ -1043,11 +1043,13 @@ public class Main {
 			this(Lists.empty(), type, name);
 		}
 
-		public CDeclaration mapName(F1R<String, String> mapper) {
+		@Override
+		public CDefinable mapName(F1R<String, String> mapper) {
 			return new CDeclaration(this.typeParameters, this.type, mapper.apply(this.name));
 		}
 
-		public CDeclaration mapTypeParameters(F1R<List<String>, List<String>> mapper) {
+		@Override
+		public CDefinable mapTypeParameters(F1R<List<String>, List<String>> mapper) {
 			return new CDeclaration(mapper.apply(this.typeParameters), this.type, this.name);
 		}
 
