@@ -177,7 +177,9 @@ public class Main {
 	sealed private interface JExpression extends JCaller, JAssignable
 			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess, JNot, JNumber {}
 
-	private interface CExpression extends CAssignable {}
+	private sealed interface CExpression extends CAssignable
+			permits CDereference, CExpressionWrapper, CFieldAccess, CInvocation, CNot, CNumber, CPointerAccess, CQuantity,
+			CReference, Identifier, Placeholder {}
 
 	private sealed interface JCaller permits JConstruction, JExpression {}
 
@@ -1575,9 +1577,8 @@ public class Main {
 				final var instance = jMemberAccess.instance;
 				final var memberName = jMemberAccess.memberName;
 				final var transformed = this.transformExpression(instance);
-				if (transformed instanceof CQuantity(CExpression expression1))
-					if (expression1 instanceof CDereference(CExpression expression2))
-						yield new CPointerAccess(expression2, memberName);
+				if (transformed instanceof CQuantity(var expression1)) if (expression1 instanceof CDereference(var expression2))
+					yield new CDereference(new CQuantity(new CPointerAccess(expression2, memberName)));
 
 				yield new CFieldAccess(transformed, memberName);
 			}
@@ -1594,7 +1595,15 @@ public class Main {
 			final var baseName = jType.stringify();
 
 			final var tuple = this.transformCaller(instance);
-			final var newArguments = arguments.addFirst(new CReference(new CQuantity(tuple.left)));
+			final var left = tuple.left;
+
+			CExpression element;
+			if (left instanceof CDereference(CExpression expression)) element = expression;
+			else element = new CReference(new CQuantity(left));
+
+			if (element instanceof CQuantity(CExpression expression)) element = expression;
+
+			final var newArguments = arguments.addFirst(element);
 			return new CInvocation(new Identifier(memberName + "_" + baseName), newArguments);
 		}
 
