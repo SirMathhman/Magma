@@ -502,6 +502,10 @@ public class Main {
 	}
 
 	private record Identifier(String value) implements CType, JType, JExpression, CExpression {
+		private Identifier {
+			assert !value.isEmpty();
+		}
+
 		@Override
 		public String generate() {
 			return this.value;
