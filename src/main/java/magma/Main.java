@@ -159,10 +159,8 @@ public class Main {
 	sealed private interface JExpression extends JCaller, JAssignable
 			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess {
 		default CAssignable toAssignable() {
-			return this.toExpression();
+			return transformExpression(this);
 		}
-
-		CExpression toExpression();
 	}
 
 	private interface CExpression extends CAssignable {}
@@ -520,7 +518,6 @@ public class Main {
 			return this.value;
 		}
 
-		@Override
 		public CExpression toExpression() {
 			return new CQuantity(new CDereference(new Identifier("_this")));
 		}
@@ -906,7 +903,6 @@ public class Main {
 	}
 
 	private record JExpressionWrapper(String content) implements JExpression, JAssignable {
-		@Override
 		public CExpression toExpression() {
 			return new CExpressionWrapper(this.content);
 		}
@@ -952,9 +948,8 @@ public class Main {
 	}
 
 	private record JMemberAccess(JExpression instance, String memberName) implements JExpression {
-		@Override
 		public CExpression toExpression() {
-			final var cExpression = this.instance.toExpression();
+			final var cExpression = transformExpression(this.instance);
 			if (this.instance instanceof Identifier(var value) && value.equals("this"))
 				return new CPointerAccess(new Identifier("_this"), this.memberName);
 			else return new CFieldAccess(cExpression, this.memberName);
@@ -977,9 +972,8 @@ public class Main {
 	}
 
 	private record JInvokable(JCaller caller, List<JExpression> arguments) implements JExpression {
-		@Override
 		public CExpression toExpression() {
-			final var cArguments = this.arguments().iter().map(JExpression::toExpression).toList();
+			final var cArguments = this.arguments().iter().map(Main::transformExpression).toList();
 			final var expression = this.caller().toExpression();
 			return new CInvocation(expression, cArguments);
 		}
@@ -1265,6 +1259,15 @@ public class Main {
 		else joinedTypeParameters = "<" + typeParameters.iter().collect(new Joiner(", ")) + ">";
 
 		return joinedTypeParameters;
+	}
+
+	private static CExpression transformExpression(JExpression expression) {
+		return switch (expression) {
+			case Identifier identifier -> identifier;
+			case JExpressionWrapper jExpressionWrapper -> jExpressionWrapper.toExpression();
+			case JInvokable jInvokable -> jInvokable.toExpression();
+			case JMemberAccess jMemberAccess -> jMemberAccess.toExpression();
+		};
 	}
 
 	private Option<IOError> run() {
@@ -1936,7 +1939,7 @@ public class Main {
 		if (maybeAssignment instanceof Some<String>(var assignment)) return assignment;
 
 		final var maybeInvokable = this.parseInvokable(stripped);
-		if (maybeInvokable instanceof Some(var value)) return value.toExpression().generate();
+		if (maybeInvokable instanceof Some(var value)) return transformExpression(value).generate();
 
 		final var instance = this.post(stripped, "++");
 		if (instance instanceof Some<String>(var x)) return x;
@@ -2058,7 +2061,7 @@ public class Main {
 	}
 
 	private Option<CExpression> parseCExpression(String input) {
-		return this.parseExpression(input).map(JExpression::toExpression);
+		return this.parseExpression(input).map(Main::transformExpression);
 	}
 
 	private Option<JExpression> parseExpression(String input) {
@@ -2229,6 +2232,7 @@ public class Main {
 		final var argumentsString = withoutEnd.substring(callerStart + 1);
 
 		final var maybeCaller = this.parseCaller(callerString);
+
 		if (!(maybeCaller instanceof Some(var value))) return new None<JExpression>();
 		final var arguments = this
 				.divide(argumentsString, new EscapedFolder(new ValueFolder()))
