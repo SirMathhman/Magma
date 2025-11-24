@@ -928,9 +928,14 @@ public class Main {
 		@Override
 		public Option<IOError> writeString(String output) {
 			try {
-				final var parent = this.path.getParent();
-				if (parent != null)
-					Files.createDirectories(parent);
+				java.util.Optional.ofNullable(this.path.getParent())
+						.ifPresent(p -> {
+							try {
+								Files.createDirectories(p);
+							} catch (IOException e) {
+								throw new RuntimeException(e);
+							}
+						});
 				Files.writeString(this.path, output);
 				return new None<IOError>();
 			} catch (IOException e) {
