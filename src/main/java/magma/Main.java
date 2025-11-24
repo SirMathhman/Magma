@@ -152,7 +152,7 @@ public class Main {
 		String getName();
 	}
 
-	private sealed interface CType permits CNamedType, CPointerType, CPrimitiveType, Placeholder {
+	private interface CType {
 		String generate();
 
 		String toBaseName();
@@ -186,26 +186,21 @@ public class Main {
 		String display();
 	}
 
-	private sealed interface CAssignable permits CDeclaration, CExpression, Placeholder {
+	private interface CAssignable {
 		String generate();
 	}
 
-	private sealed interface JType
-			permits Identifier, JArrayType, JFunctionalType, JGenericType, JObjectType, JPrimitiveType, JRecursiveType,
-			Placeholder {
+	private interface JType {
 		String stringify();
 	}
 
-	private sealed interface JAssignable permits JDeclaration, JExpression, Placeholder {}
+	private interface JAssignable {}
 
-	sealed private interface JExpression extends JCaller, JAssignable
-			permits Char, Identifier, JInvokable, JMemberAccess, JNot, JNumber, JOperator, Placeholder, StringNode {}
+	private interface JExpression extends JCaller, JAssignable {}
 
-	private sealed interface CExpression extends CAssignable
-			permits CDereference, CExpressionWrapper, CFieldAccess, CInvocation, CNot, CNumber, COperator, CPointerAccess,
-			CQuantity, CReference, Char, Identifier, Placeholder, StringNode {}
+	private interface CExpression extends CAssignable {}
 
-	private sealed interface JCaller permits JConstruction, JExpression {}
+	private interface JCaller {}
 
 	private sealed interface CDefinable permits CDeclaration, CFunctionDeclaration, Placeholder {
 		String generate();
@@ -225,7 +220,11 @@ public class Main {
 		String findName();
 	}
 
-	private sealed interface JObjectMember permits EmptyStructMember, JField, JMethod, JObject, Placeholder {}
+	private interface JObjectMember {}
+
+	private interface F1<T> {
+		void apply(T element);
+	}
 
 	@Actual
 	private record JavaIOError(IOException e) implements IOError {
@@ -303,6 +302,14 @@ public class Main {
 
 		public Option<T> next() {
 			return this.head.next();
+		}
+
+		public void forEach(F1<T> consumer) {
+			while (true) {
+				final var next = this.head.next();
+				if (next instanceof Some<T>(var next0)) consumer.apply(next0);
+				else break;
+			}
 		}
 	}
 
@@ -1079,13 +1086,6 @@ public class Main {
 		}
 	}
 
-	private record CExpressionWrapper(String content) implements CExpression {
-		@Override
-		public String generate() {
-			return this.content;
-		}
-	}
-
 	private record JArrayType(JType type) implements JType {
 		public CType toCType() {
 			return new CPointerType(transformType(this.type));
@@ -1329,7 +1329,7 @@ public class Main {
 			implements CStructureOrUnion {
 		@Override
 		public String findName() {
-			return this.name;
+			return this.name + "Data";
 		}
 
 		@Override
@@ -1389,6 +1389,7 @@ public class Main {
 				case JField jField -> new Some<JDeclaration>(jField.declaration);
 				case JMethod jMethod -> jMethod.toDeclaration();
 				case EmptyStructMember _, JObject _, Placeholder _ -> new None<JDeclaration>();
+				default -> throw new IllegalStateException("Unexpected value: " + child);
 			};
 		}
 	}
@@ -1560,6 +1561,7 @@ public class Main {
 				if (jRecursiveType == StringType) yield new CPointerType(CPrimitiveType.Char);
 				else yield new Placeholder("Unknown built-in type");
 			}
+			default -> throw new IllegalStateException("Unexpected value: " + jType);
 		};
 	}
 
@@ -1588,6 +1590,7 @@ public class Main {
 		return switch (jObjectMember) {
 			case JObject jObject -> new Some<JObjectType>(jObject.toType());
 			case EmptyStructMember _, JField _, JMethod _, Placeholder _ -> new None<JObjectType>();
+			default -> throw new IllegalStateException("Unexpected value: " + jObjectMember);
 		};
 	}
 
@@ -1596,6 +1599,7 @@ public class Main {
 			case JConstruction jConstruction -> this.destroyConstruction(jConstruction);
 			case JExpression jExpression ->
 					new Tuple<CExpression, List<CType>>(this.transformExpression(jExpression), Lists.empty());
+			default -> throw new IllegalStateException("Unexpected value: " + jCaller);
 		};
 	}
 
@@ -1635,6 +1639,7 @@ public class Main {
 																								jOperator.operator,
 																								this.transformExpression(jOperator.rightCompiled));
 			case StringNode stringNode -> stringNode;
+			default -> throw new IllegalStateException("Unexpected value: " + expression);
 		};
 	}
 
@@ -1700,12 +1705,32 @@ public class Main {
 	}
 
 	private List<CStructureOrUnion> createTopologicallySortedList() {
-		final var dependencyMap = this.structuresOrUnions.iter().map(value -> {
+		var dependencyMap = this.structuresOrUnions.iter().map(value -> {
 			final var withoutDuplicates = this.removeDuplicates(value.findDependencies());
 			return new Tuple<String, List<String>>(value.findName(), withoutDuplicates);
 		}).collect(new MapCollector<String, List<String>>());
 
-		var order = Lists.<String>empty();
+		for (var entry : dependencyMap.entrySet()) {
+			var newValues = entry.getValue().iter().filter(dependencyMap::containsKey).toList();
+			final var oldKey = entry.getKey();
+
+			/*
+			This is to prevent circular dependencies with VTables.
+
+			Technically List -> ListTable -> List, but ListTable -> List is invalid
+			ListTable does not have any fields, only dynamic members,
+			and we can safely assume that any mention of List in ListTable is a pointer or in a function pointer.
+			Therefore, we remove it.
+			 */
+			if (oldKey.endsWith("Table")) {
+				final var keyWithoutTable = oldKey.substring(0, oldKey.length() - "Table".length());
+				if (newValues.contains(keyWithoutTable)) newValues = newValues.removeElement(keyWithoutTable);
+			}
+
+			dependencyMap.put(oldKey, newValues);
+		}
+
+		var dependencyOrder = Lists.<String>empty();
 		while (!dependencyMap.isEmpty()) {
 			var dependencyMapKeysToRemove =
 					dependencyMap.entrySet().stream().filter(entry -> entry.getValue().isEmpty()).map(Entry::getKey).toList();
@@ -1713,7 +1738,7 @@ public class Main {
 			final var oldLength = dependencyMap.size();
 			for (var dependencyMapKeyToRemove : dependencyMapKeysToRemove) {
 				dependencyMap.remove(dependencyMapKeyToRemove);
-				order = order.addLast(dependencyMapKeyToRemove);
+				dependencyOrder = dependencyOrder.addLast(dependencyMapKeyToRemove);
 
 				this.removeKeyFromValues(dependencyMap, dependencyMapKeyToRemove);
 			}
@@ -1722,7 +1747,18 @@ public class Main {
 			assert oldLength != newLength;
 		}
 
-		return this.structuresOrUnions;
+		final var mapping = this.structuresOrUnions
+				.iter()
+				.map(rootSegment -> new Tuple<String, CStructureOrUnion>(rootSegment.findName(), rootSegment))
+				.collect(new MapCollector<String, CStructureOrUnion>());
+
+		final List<CStructureOrUnion>[] toReturn = new List[]{Lists.<CStructureOrUnion>empty()};
+		dependencyOrder.iter().forEach(element -> {
+			final var cStructureOrUnion = mapping.get(element);
+			toReturn[0] = toReturn[0].addLast(cStructureOrUnion);
+		});
+
+		return toReturn[0];
 	}
 
 	private void removeKeyFromValues(Map<String, List<String>> dependencyMap, String dependencyMapKeyToRemove) {
@@ -2056,6 +2092,7 @@ public class Main {
 			case Placeholder placeholder -> new Some<CStructMember>(placeholder);
 			case EmptyStructMember _ -> new None<CStructMember>();
 			case JField jField -> new Some<CStructMember>(new CField(jField.declaration.toCDeclaration()));
+			default -> throw new IllegalStateException("Unexpected value: " + wrapper);
 		};
 	}
 
@@ -2184,8 +2221,7 @@ public class Main {
 			case CFunctionDeclaration _, EmptyStructMember _, Placeholder _ -> new None<CDefinable>();
 		}).flatMap(Option::iter).toList();
 
-		final var list1 = list.iter().filter(member -> !(member instanceof CFunctionDeclaration)).toList();
-		return list1;
+		return list.iter().filter(member -> !(member instanceof CFunctionDeclaration)).toList();
 	}
 
 	private Option<CDefinable> retainDefinables(CStructMember member) {
@@ -2488,6 +2524,7 @@ public class Main {
 			}
 
 			case JExpression jExpression -> this.transformExpression(jExpression);
+			default -> throw new IllegalStateException("Unexpected value: " + assignable);
 		};
 	}
 
@@ -2525,6 +2562,7 @@ public class Main {
 			case Char aChar -> JPrimitiveType.Char;
 			case JOperator jOperator -> jOperator.operator.getType();
 			case StringNode stringNode -> StringType;
+			default -> throw new IllegalStateException("Unexpected value: " + source);
 		};
 	}
 
@@ -2566,6 +2604,7 @@ public class Main {
 				if (jType instanceof JFunctionalType functionalType) yield functionalType.returnType;
 				yield new Placeholder("Not a functional type: " + jType);
 			}
+			default -> throw new IllegalStateException("Unexpected value: " + caller);
 		};
 	}
 
