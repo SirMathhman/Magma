@@ -1215,10 +1215,22 @@ public class Main {
 
 	private record JField(JDeclaration declaration) implements JObjectMember {}
 
-	private record JNumber(String value) implements JExpression {}
+	private record JNumber(String value) implements JExpression {
+		private JNumber(String value) {
+			this.value = value;
+
+			assert !value.isEmpty();
+		}
+	}
 
 	private record CNumber(String value) implements CExpression {
 		public static final CNumber NULL = new CNumber("0");
+
+		private CNumber(String value) {
+			this.value = value;
+
+			assert !value.isEmpty();
+		}
 
 		@Override
 		public String generate() {
@@ -1650,6 +1662,9 @@ public class Main {
 					.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "data"));
 		}
 		else fields = fields.addAllLast(this.retainFields(members));
+
+		// TODO: create a constructor for records
+		// TODO: create a default empty constructor for a class with no fields
 
 		final var elements = dependencies.addLast(new CStructure(object.typeParameters(), object.name(), fields));
 		this.rootSegments = this.rootSegments.addAllLast(elements);
@@ -2307,7 +2322,7 @@ public class Main {
 		if (!(maybeParams instanceof Some<List<String>>(var params))) return new None<String>();
 		var paramList = params
 				.iter()
-				.map(param -> new CDeclaration(new Placeholder("?"), param))
+				.map(param -> new CDeclaration(new Placeholder("TODO: resolve type of lambda param"), param))
 				.toList()
 				.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
@@ -2319,7 +2334,7 @@ public class Main {
 
 		final var generatedName = this.generateName();
 		final var cFunction =
-				new CFunction(new CFunctionHeader(new CDeclaration(new Placeholder("?"), generatedName), paramList), output);
+				new CFunction(new CFunctionHeader(new CDeclaration(new Placeholder("TODO:  resolve lambda return type"), generatedName), paramList), output);
 
 		this.functions = this.functions.addLast(cFunction);
 		return new Some<String>(generatedName);
@@ -2413,8 +2428,10 @@ public class Main {
 	}
 
 	private boolean isNumber(String input) {
-		if (input.startsWith("-")) return this.allDigits(input.substring(1));
-		return this.allDigits(input);
+		final var stripped = input.strip();
+		if(stripped.isEmpty()) return false;
+		if (stripped.startsWith("-")) return this.allDigits(stripped.substring(1));
+		return this.allDigits(stripped);
 	}
 
 	private boolean allDigits(String input) {
