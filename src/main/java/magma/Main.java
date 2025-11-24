@@ -2261,7 +2261,7 @@ public class Main {
 			final var body = maybeContent.orElseGet(() -> {
 				final var type = transformType(declaration.type);
 				final var list = cParameters.subList(1, cParameters.size()).iter().map(parameter -> parameter.name).toList();
-				return this.createBodyForAbstractMethod(structureVariants, type, declaration.name, list);
+				return this.createBodyForAbstractMethod(structureVariants, type, declaration.name, list, structName);
 			});
 
 			return thisInitialization + body;
@@ -2273,7 +2273,7 @@ public class Main {
 	private String createBodyForAbstractMethod(List<String> variants,
 																						 CType type,
 																						 String name,
-																						 List<String> parameterNames) {
+																						 List<String> parameterNames, String structName) {
 		if (variants.isEmpty()) {
 			final var joinedParameters = parameterNames.addFirst("_this->data").iter().collect(new Joiner(", "));
 
@@ -2282,7 +2282,7 @@ public class Main {
 			final var returnValueDefinition = Main.generateStatement(type.generate() + " _ret");
 
 			final var cases =
-					variants.iter().map(variant -> this.generateCase(variant, name, parameterNames)).collect(new Joiner());
+					variants.iter().map(variant -> this.generateCase(variant, name, parameterNames, structName)).collect(new Joiner());
 
 			return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
 						 generateIndent(1) + "}" + Main.generateStatement("return _ret");
@@ -2321,11 +2321,11 @@ public class Main {
 		return this.compileStatements(inputContent, input -> this.compileMethodSegment(input, indent));
 	}
 
-	private String generateCase(String variant, String name, List<String> parameterNames) {
+	private String generateCase(String variant, String name, List<String> parameterNames, String baseName) {
 		final var s = "&(_this->data." + variant + ")";
 		final var joined = parameterNames.copy().addFirst(s).iter().collect(new Joiner(", "));
 
-		return generateIndent(2) + "case " + variant + "Variant:" +
+		return generateIndent(2) + "case " + baseName + "Tag::" + variant + "Variant:" +
 					 generateStatement(3, "_ret = " + name + "_" + variant + "(" + joined + ")") + generateStatement(3, "break");
 	}
 
