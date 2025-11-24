@@ -157,7 +157,7 @@ public class Main {
 	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
 
 	sealed private interface JExpression extends JCaller, JAssignable
-			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess {}
+			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess, JNumber {}
 
 	private interface CExpression extends CAssignable {}
 
@@ -905,15 +905,8 @@ public class Main {
 		}
 	}
 
-	private record JExpressionWrapper(String content) implements JExpression, JAssignable {
-		public CExpression toExpression() {
-			return new CExpressionWrapper(this.content);
-		}
-
-		public CAssignable toAssignable() {
-			return new CExpressionWrapper(this.content);
-		}
-	}
+	@Deprecated
+	private record JExpressionWrapper(String content) implements JExpression, JAssignable {}
 
 	private record CExpressionWrapper(String content) implements CExpression {
 		@Override
@@ -1156,6 +1149,15 @@ public class Main {
 
 	private record JField(JDeclaration declaration) implements JObjectMemberPrototype {}
 
+	private record JNumber(String value) implements JExpression {}
+
+	private record CNumber(String value) implements CExpression {
+		@Override
+		public String generate() {
+			return this.value;
+		}
+	}
+
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
 		final var methods = Lists.of(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)),
@@ -1264,6 +1266,7 @@ public class Main {
 					yield new CPointerAccess(new Identifier("_this"), memberName);
 				else yield new CFieldAccess(cExpression, memberName);
 			}
+			case JNumber jNumber -> new CNumber(jNumber.value);
 		};
 	}
 
@@ -2027,6 +2030,7 @@ public class Main {
 			case JExpressionWrapper jExpressionWrapper ->
 					new Placeholder("Unwrapped expression: " + jExpressionWrapper.content);
 			case JInvokable jInvokable -> this.resolveCaller(jInvokable.caller);
+			case JNumber jNumber -> JPrimitiveType.Int;
 		};
 	}
 
@@ -2144,7 +2148,7 @@ public class Main {
 				return new Some<String>("!" + instance).map(JExpressionWrapper::new);
 		}
 
-		if (this.isNumber(stripped)) return new Some<String>(stripped).map(JExpressionWrapper::new);
+		if (this.isNumber(stripped)) return new Some<JExpression>(new JNumber(stripped));
 
 		if (stripped.startsWith("\"") && stripped.endsWith("\""))
 			return new Some<String>(stripped).map(JExpressionWrapper::new);
