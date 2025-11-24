@@ -987,7 +987,7 @@ public class Main {
 			return new Tuple<Environment, T>(this, result);
 		}
 
-		public Environment define(JDeclaration declaration) {
+		public Environment defineExpression(JDeclaration declaration) {
 			this.frames = this.frames.mapLast(last -> last.define(declaration));
 			return this;
 		}
@@ -1703,7 +1703,7 @@ public class Main {
 			final var substring = stripped.substring(0, stripped.length() - 1);
 			final var maybeDeclaration = this.parseDeclaration(substring);
 			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) {
-				this.environment = this.environment.define(declaration);
+				this.environment = this.environment.defineExpression(declaration);
 				return new Some<JObjectMember>(new JField(declaration));
 			}
 		}
@@ -2040,7 +2040,7 @@ public class Main {
 			case JDeclaration local -> {
 				final var newType = this.resolveType(source, local.type);
 				final var jDeclaration = local.withType(newType);
-				this.environment = this.environment.define(jDeclaration);
+				this.environment = this.environment.defineExpression(jDeclaration);
 				yield jDeclaration.toCAssignable();
 			}
 
@@ -2071,9 +2071,9 @@ public class Main {
 				final var instanceType = this.resolveExpression(access.instance);
 				if (instanceType instanceof JRecursiveType recursiveType)
 					if (recursiveType.internal instanceof Some<JType>(var internal) && internal instanceof JObjectType objectType)
-						yield this.getJType(access, objectType, instanceType);
+						yield this.resolveMember(objectType, instanceType, access.memberName);
 
-				if (instanceType instanceof JObjectType type) yield this.getJType(access, type, instanceType);
+				if (instanceType instanceof JObjectType type) yield this.resolveMember(type, instanceType, access.memberName);
 
 				yield new Placeholder(
 						"Cannot access member '" + access.memberName + "' in '" + instanceType + "', not an object.");
@@ -2087,10 +2087,10 @@ public class Main {
 		};
 	}
 
-	private JType getJType(JMemberAccess access, JObjectType type, JType instanceType) {
+	private JType resolveMember(JObjectType type, JType instanceType, String name) {
 		return type
-				.resolve(access.memberName)
-				.orElseGet(() -> new Placeholder("Member '" + access.memberName + "' not defined in '" + instanceType + "'"));
+				.resolve(name)
+				.orElseGet(() -> new Placeholder("Member '" + name + "' not defined in '" + instanceType + "'"));
 	}
 
 	private JType resolveCaller(JCaller caller) {
