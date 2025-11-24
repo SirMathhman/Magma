@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -939,11 +938,7 @@ public class Main {
 
 	private record JMemberAccess(JExpression instance, String memberName) implements JExpression {}
 
-	private record JConstruction(JType jType) implements JCaller {
-		public CExpression toExpression() {
-			return new Identifier("new_" + transformType(this.jType).generate());
-		}
-	}
+	private record JConstruction(JType jType) implements JCaller {}
 
 	private record CInvocation(CExpression expression, List<CExpression> cArguments) implements CExpression {
 		@Override
@@ -962,34 +957,37 @@ public class Main {
 	}
 
 	private static class Environment {
-		private List<Frame> frames = new JavaList<Frame>();
+		private final List<Frame> frames;
+
+		private Environment() {this(new JavaList<Frame>());}
+
+		private Environment(List<Frame> frames) {this.frames = frames;}
 
 		private Option<JDeclaration> resolveExpression(String identifier) {
 			return this.frames.iter().map(frame -> frame.resolveExpression(identifier)).flatMap(Option::iter).next();
 		}
 
-		public <T> Tuple<Environment, T> withinScoped(F1R<Environment, Tuple<Environment, T>> supplier) {
-			this.frames = this.frames.addLast(new Frame());
-			final var result = supplier.apply(this);
-			this.frames = this.frames.removeLast();
-			return result;
+		public <T> Tuple<Environment, T> within(F1R<Environment, Tuple<Environment, T>> supplier) {
+			final var withLastEnv = this.enter();
+			final var result = supplier.apply(withLastEnv);
+			var exited = result.left.exit();
+			return new Tuple<Environment, T>(exited, result.right);
+		}
+
+		private Environment exit() {
+			return new Environment(this.frames.removeLast());
+		}
+
+		private Environment enter() {
+			return new Environment(this.frames.addLast(new Frame()));
 		}
 
 		public Environment defineAllExpressions(List<JDeclaration> declarations) {
-			this.frames = this.frames.mapLast(last -> last.defineAll(declarations));
-			return this;
-		}
-
-		public <T> Tuple<Environment, T> within(Supplier<T> supplier) {
-			this.frames = this.frames.addLast(new Frame());
-			final var result = supplier.get();
-			this.frames = this.frames.removeLast();
-			return new Tuple<Environment, T>(this, result);
+			return new Environment(this.frames.mapLast(last -> last.defineAll(declarations)));
 		}
 
 		public Environment defineExpression(JDeclaration declaration) {
-			this.frames = this.frames.mapLast(last -> last.define(declaration));
-			return this;
+			return new Environment(this.frames.mapLast(last -> last.define(declaration)));
 		}
 
 		public Option<JObjectType> resolveCurrent() {
@@ -997,8 +995,7 @@ public class Main {
 		}
 
 		public Environment withObject(JObject object) {
-			this.frames = this.frames.mapLast(last -> last.withObject(object));
-			return this;
+			return new Environment(this.frames.mapLast(last -> last.withObject(object)));
 		}
 
 		public Option<JObjectType> resolveType(String name) {
@@ -1006,8 +1003,7 @@ public class Main {
 		}
 
 		public Environment defineAllTypes(List<JObjectType> types) {
-			this.frames = this.frames.mapLast(last -> last.defineAllTypes(types));
-			return this;
+			return new Environment(this.frames.mapLast(last -> last.defineAllTypes(types)));
 		}
 	}
 
@@ -1216,6 +1212,7 @@ public class Main {
 
 		return new JObjectType("String", methods);
 	});
+
 	private Environment environment = new Environment();
 	private List<String> functionDeclarations;
 	private List<String> globals;
@@ -1559,7 +1556,7 @@ public class Main {
 
 		var fields = object.collectCFields();
 
-		final var within = this.environment.withinScoped(env -> {
+		final var within = this.environment.within(env -> {
 			this.environment = env.withObject(object);
 
 			final var types = object.children.iter().map(Main::extractType).flatMap(Option::iter).toList();
@@ -1640,12 +1637,14 @@ public class Main {
 		if (jFunctionProto.content.startsWith("{") && jFunctionProto.content.endsWith("}")) {
 			final var inputContent = jFunctionProto.content.substring(1, jFunctionProto.content().length() - 1);
 
-			final var within = this.environment.withinScoped((env) -> env
-					.defineAllExpressions(jFunctionProto.parameters())
-					.within(() -> new Some<String>(this.compileMethodsSegments(inputContent, 1))));
+			final var within = this.environment.within((env) -> {
+				var self = env.defineAllExpressions(jFunctionProto.parameters());
+				return self.within(value -> new Tuple<Environment, String>(value,
+																																	 this.compileMethodsSegments(inputContent, 1)));
+			});
 
 			this.environment = within.left;
-			maybeCompiled = within.right;
+			maybeCompiled = new Some<String>(within.right);
 		}
 
 		var cParameters = jFunctionProto.parameters().iter().map(JDeclaration::toCDeclaration).toList();
