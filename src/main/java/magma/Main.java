@@ -1906,6 +1906,7 @@ public class Main {
 		if (base.isEmpty()) return new Identifier(base);
 
 		final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList();
+		if (typeArguments.isEmpty()) return new Identifier(base);
 		return new CTemplateType(base, typeArguments);
 	}
 

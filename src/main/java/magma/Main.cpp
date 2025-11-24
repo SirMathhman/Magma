@@ -736,7 +736,7 @@ JPrimitiveType JPrimitiveTypeVoid = new_JPrimitiveType();
 JPrimitiveType JPrimitiveTypeBoolean = new_JPrimitiveType();
 JPrimitiveType JPrimitiveTypeChar = new_JPrimitiveType();
 JPrimitiveType JPrimitiveTypeVar = new_JPrimitiveType();
-CPrimitiveType<> new_CPrimitiveType(char* content);
+CPrimitiveType new_CPrimitiveType(char* content);
 char* generate_CPrimitiveType(void* _ref);
 char* toBaseName_CPrimitiveType(void* _ref);
 template <typename T>
@@ -829,7 +829,7 @@ template <typename R, typename T>
 Iter<R> flatMap_Iter(void* _ref, F1R<T, Iter<R>> mapper);
 template <typename T>
 Option<T> next_Iter(void* _ref);
-RangeHead<> new_RangeHead(int length);
+RangeHead new_RangeHead(int length);
 Option<int> next_RangeHead(void* _ref);
 template <typename T>
 List<T> empty_Lists();
@@ -839,7 +839,7 @@ template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper);
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper);
-State<> new_State(char* input);
+State new_State(char* input);
 int isShallow_State(void* _ref);
 int isLevel_State(void* _ref);
 State append_State(void* _ref, char next);
@@ -853,12 +853,12 @@ Option<State> popAndAppendToOption_State(void* _ref);
 Option<char> peek_State(void* _ref);
 char* generate_CPointerType(void* _ref);
 char* toBaseName_CPointerType(void* _ref);
+CTemplateType new_CTemplateType(char* base, List<CType> list);
 char* generate_CTemplateType(void* _ref);
 char* toBaseName_CTemplateType(void* _ref);
 char* generate_CQuantity(void* _ref);
 char* generate_CDereference(void* _ref);
-/*private Identifier {
-			assert !value.isEmpty*/();
+Identifier new_Identifier(char* value);
 char* generate_Identifier(void* _ref);
 char* toBaseName_Identifier(void* _ref);
 char* wrap_Placeholder(void* _ref, char* input);
@@ -866,7 +866,7 @@ char* generate_Placeholder(void* _ref);
 char* toBaseName_Placeholder(void* _ref);
 CAssignable toCAssignable_Placeholder(void* _ref);
 CType toCType_Placeholder(void* _ref);
-JDeclaration<> new_JDeclaration(char* name, JType type);
+JDeclaration new_JDeclaration(char* name, JType type);
 char* toString_JDeclaration(void* _ref);
 JDeclaration mapName_JDeclaration(void* _ref, F1R<char*, char*> mapper);
 CDeclaration toCDeclaration_JDeclaration(void* _ref);
@@ -924,7 +924,7 @@ template <typename T>
 int createInitial_AnyMatch(void* _ref);
 template <typename T>
 int fold_AnyMatch(void* _ref, int aBoolean, T t);
-Joiner<> new_Joiner();
+Joiner new_Joiner();
 char* createInitial_Joiner(void* _ref);
 char* fold_Joiner(void* _ref, char* current, char* element);
 template <typename T>
@@ -932,7 +932,7 @@ List<T> createInitial_ListCollector(void* _ref);
 template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t);
 Path get_Paths(char* first, /*String...*/ more);
-CDeclaration<> new_CDeclaration(CType type, char* name);
+CDeclaration new_CDeclaration(CType type, char* name);
 CFunctionDeclaration mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper);
 CFunctionDeclaration mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
 char* generate_CDeclaration(void* _ref);
@@ -942,9 +942,9 @@ CType toCType_JGenericType(void* _ref);
 char* generate_CPointerAccess(void* _ref);
 char* generate_CFieldAccess(void* _ref);
 char* generate_CInvocation(void* _ref);
-JFunctionalType<> new_JFunctionalType(JType returnType);
-Environment<> new_Environment();
-Environment<> new_Environment(List<Frame> frames);
+JFunctionalType new_JFunctionalType(JType returnType);
+Environment new_Environment();
+Environment new_Environment(List<Frame> frames);
 Option<JDeclaration> resolveExpression_Environment(void* _ref, char* identifier);
 template <typename T>
 Tuple<Environment, T> within_Environment(void* _ref, F1R<Environment, Tuple<Environment, T>> supplier);
@@ -956,8 +956,8 @@ Option<JObjectType> resolveCurrent_Environment(void* _ref);
 Environment withObject_Environment(void* _ref, JObject object);
 Option<JObjectType> resolveType_Environment(void* _ref, char* name);
 Environment defineAllTypes_Environment(void* _ref, List<JObjectType> types);
-Frame<> new_Frame(Option<JObject> maybeName, List<JObjectType> definedTypes, List<JDeclaration> definedExpressions);
-Frame<> new_Frame();
+Frame new_Frame(Option<JObject> maybeName, List<JObjectType> definedTypes, List<JDeclaration> definedExpressions);
+Frame new_Frame();
 Frame defineAllExpressions_Frame(void* _ref, List<JDeclaration> definitions);
 Option<JDeclaration> resolveExpression_Frame(void* _ref, char* identifier);
 Frame defineExpression_Frame(void* _ref, JDeclaration declaration);
@@ -966,7 +966,7 @@ Frame withObject_Frame(void* _ref, JObject name);
 Option<JObjectType> resolveType_Frame(void* _ref, char* name);
 Frame defineAllTypes_Frame(void* _ref, List<JObjectType> types);
 Option<JType> resolve_JObjectType(void* _ref, char* name);
-/*private Option<JType> internal = new None<JType>*/();
+JRecursiveType new_JRecursiveType();
 JType create_JRecursiveType(void* _ref, F1R<JType, JType> mapper);
 void set_JRecursiveType(void* _ref, JType created);
 char* generate_CStructure(void* _ref);
@@ -995,13 +995,13 @@ return switch_JObject(void* _ref);
 char* generate_CFunctionHeader(void* _ref);
 char* generate_CFunction(void* _ref);
 Option<JDeclaration> toDeclaration_JMethod(void* _ref);
-CNumber<> new_CNumber();
+CNumber new_CNumber();
 char* generate_CNumber(void* _ref);
 char* generate_CNot(void* _ref);
 /*private static final JType StringType = JRecursiveType.create*/(/*-> {
 		// We don't need parameter types for*/ now);
 new Environment_Main(void* _ref);
-Main<> new_Main();
+Main new_Main();
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);
 void main_Main(void* _ref, char** args);
 char* generateStatement_Main(void* _ref, int depth, char* content);
@@ -1083,7 +1083,7 @@ CType toCType_CPrimitiveType(void* _ref){
 	data.CPrimitiveType = _this;
 	return { CPrimitiveTypeVariant, data };
 }
-CPrimitiveType<> new_CPrimitiveType(char* content){
+CPrimitiveType new_CPrimitiveType(char* content){
 	CPrimitiveType _this;
 	_this->content = content;
 	return _this;
@@ -1514,7 +1514,7 @@ Head<int> toHead_RangeHead(void* _ref){
 	data.RangeHead = _this;
 	return { RangeHeadVariant, data };
 }
-RangeHead<> new_RangeHead(int length){
+RangeHead new_RangeHead(int length){
 	RangeHead _this;
 	_this->length = length;
 	_this->counter = 0;
@@ -1557,7 +1557,7 @@ Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper){
 	Ok<T, X>* _this = (Ok<T, X>*) _ref;
 	return new_Ok<R, X>(apply_F1R(mapper, _this->value));
 }
-State<> new_State(char* input){
+State new_State(char* input){
 	State _this;
 	_this->input = input;
 	_this->index = 0;
@@ -1650,6 +1650,13 @@ CType toCType_CTemplateType(void* _ref){
 	data.CTemplateType = _this;
 	return { CTemplateTypeVariant, data };
 }
+CTemplateType new_CTemplateType(char* base, List<CType> list){
+	CTemplateType _this;
+	_this->base = base;
+	_this->list = list;
+	/*assert !list.isEmpty()*/;
+	return _this;
+}
 char* generate_CTemplateType(void* _ref){
 	CTemplateType* _this = (CTemplateType*) _ref;
 	C typeArguments = collect_Iter(map_Iter(iter_List(_this->list, ), F? { alloc(CType), F?Table { generate }}), new_Joiner(", "));
@@ -1703,8 +1710,11 @@ CExpression toCExpression_Identifier(void* _ref){
 	data.Identifier = _this;
 	return { IdentifierVariant, data };
 }
-/*private Identifier {
-			assert !value.isEmpty*/(){?
+Identifier new_Identifier(char* value){
+	Identifier _this;
+	_this->value = value;
+	/*assert !value.isEmpty()*/;
+	return _this;
 }
 char* generate_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
@@ -1801,7 +1811,7 @@ JAssignable toJAssignable_JDeclaration(void* _ref){
 	data.JDeclaration = _this;
 	return { JDeclarationVariant, data };
 }
-JDeclaration<> new_JDeclaration(char* name, JType type){
+JDeclaration new_JDeclaration(char* name, JType type){
 	JDeclaration _this;
 	(*_this)(empty_Lists(0, ), empty_Lists(0, ), new_None<char*>(), type, name);
 	return _this;
@@ -2144,7 +2154,7 @@ Collector<char*, char*> toCollector_Joiner(void* _ref){
 	data.Joiner = _this;
 	return { JoinerVariant, data };
 }
-Joiner<> new_Joiner(){
+Joiner new_Joiner(){
 	Joiner _this;
 	(*_this)("");
 	return _this;
@@ -2193,7 +2203,7 @@ CDefinable toCDefinable_CDeclaration(void* _ref){
 	data.CDeclaration = _this;
 	return { CDeclarationVariant, data };
 }
-CDeclaration<> new_CDeclaration(CType type, char* name){
+CDeclaration new_CDeclaration(CType type, char* name){
 	CDeclaration _this;
 	(*_this)(empty_Lists(0, ), type, name);
 	return _this;
@@ -2309,17 +2319,17 @@ JType toJType_JFunctionalType(void* _ref){
 	data.JFunctionalType = _this;
 	return { JFunctionalTypeVariant, data };
 }
-JFunctionalType<> new_JFunctionalType(JType returnType){
+JFunctionalType new_JFunctionalType(JType returnType){
 	JFunctionalType _this;
 	(*_this)(new_JavaList<JType>(), returnType);
 	return _this;
 }
-Environment<> new_Environment(){
+Environment new_Environment(){
 	Environment _this;
 	(*_this)(new_JavaList<Frame>());
 	return _this;
 }
-Environment<> new_Environment(List<Frame> frames){
+Environment new_Environment(List<Frame> frames){
 	Environment _this;
 	_this->frames = frames;
 	return _this;
@@ -2386,14 +2396,14 @@ Environment defineAllTypes_Environment(void* _ref, List<JObjectType> types){
 	Environment* _this = (Environment*) _ref;
 	return new_Environment(mapLast_List(_this->frames, lambda12));
 }
-Frame<> new_Frame(Option<JObject> maybeName, List<JObjectType> definedTypes, List<JDeclaration> definedExpressions){
+Frame new_Frame(Option<JObject> maybeName, List<JObjectType> definedTypes, List<JDeclaration> definedExpressions){
 	Frame _this;
 	_this->maybeObject = maybeName;
 	_this->definedTypes = definedTypes;
 	_this->definedExpressions = definedExpressions;
 	return _this;
 }
-Frame<> new_Frame(){
+Frame new_Frame(){
 	Frame _this;
 	(*_this)(new_None<JObject>(), new_JavaList<JObjectType>(), new_JavaList<JDeclaration>());
 	return _this;
@@ -2454,7 +2464,10 @@ JType toJType_JRecursiveType(void* _ref){
 	data.JRecursiveType = _this;
 	return { JRecursiveTypeVariant, data };
 }
-/*private Option<JType> internal = new None<JType>*/(){?
+JRecursiveType new_JRecursiveType(){
+	JRecursiveType _this;
+	_this->internal = new_None<JType>();
+	return _this;
 }
 JType create_JRecursiveType(void* _ref, F1R<JType, JType> mapper){
 	JRecursiveType* _this = (JRecursiveType*) _ref;
@@ -2613,7 +2626,7 @@ CExpression toCExpression_CNumber(void* _ref){
 	data.CNumber = _this;
 	return { CNumberVariant, data };
 }
-CNumber<> new_CNumber(){
+CNumber new_CNumber(){
 	CNumber _this;?
 	return _this;
 }
@@ -2644,7 +2657,7 @@ new Environment_Main(void* _ref){
 	Main* _this = (Main*) _ref;
 	return _this->table.Environment(_this->data);
 }
-Main<> new_Main(){
+Main new_Main(){
 	Main _this;
 	_this->rootSegments = empty_Lists(0, );
 	_this->functionDeclarations = empty_Lists(0, );
@@ -3175,6 +3188,8 @@ CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParam
 	if (isEmpty_char_ptr(base, )) 
 		return new_Identifier(base);
 	/*final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList()*/;
+	if (isEmpty_/*Undefined identifier: typeArguments*/(typeArguments, )) 
+		return new_Identifier(base);
 	return new_CTemplateType(base, typeArguments);
 }
 /*?*/ lambda37(void* _ref, /*?*/ input){
@@ -3767,5 +3782,6 @@ JType parseType_Main(void* _ref, char* input){
 	}
 	if (isIdentifier_Main((*_this), stripped)) 
 		return new_Identifier(stripped);
+	// TODO: handle varargs through monomorphization
 	return new_Placeholder(stripped);
 }
