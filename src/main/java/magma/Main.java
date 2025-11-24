@@ -178,7 +178,7 @@ public class Main {
 		String generate();
 	}
 
-	private sealed interface CRootSegment permits CStructure, CEnum, CUnion {
+	private sealed interface CStructureOrUnion permits CStructure, CUnion {
 		String generate();
 	}
 
@@ -1181,7 +1181,8 @@ public class Main {
 		}
 	}
 
-	public record CStructure(List<String> typeParameters, String name, List<CDefinable> fields) implements CRootSegment {
+	public record CStructure(List<String> typeParameters, String name, List<CDefinable> fields)
+			implements CStructureOrUnion {
 		@Override
 		public String generate() {
 			final var joinedFields = this.fields().iter().map(CField::new).map(CField::generate).collect(new Joiner());
@@ -1191,8 +1192,7 @@ public class Main {
 		}
 	}
 
-	private record CEnum(String name, List<String> variants) implements CRootSegment {
-		@Override
+	private record CEnum(String name, List<String> variants) {
 		public String generate() {
 			final var enumFields = this
 					.variants()
@@ -1205,7 +1205,7 @@ public class Main {
 		}
 	}
 
-	private record CUnion(List<String> typeParameters, String name, List<String> members) implements CRootSegment {
+	private record CUnion(List<String> typeParameters, String name, List<String> members) implements CStructureOrUnion {
 		@Override
 		public String generate() {
 			final var unionFields = this.members().iter().map(Main::generateStatement).collect(new Joiner());
@@ -1337,13 +1337,13 @@ public class Main {
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structureForwardDeclarations;
-	private List<CRootSegment> structures;
+	private List<CStructureOrUnion> structuresOrUnions;
 	private List<CFunction> functions;
 	private int counter;
 	private List<CEnum> enums;
 
 	public Main() {
-		this.structures = Lists.empty();
+		this.structuresOrUnions = Lists.empty();
 
 		this.enums = Lists.empty();
 		this.structureForwardDeclarations = Lists.empty();
@@ -1356,14 +1356,9 @@ public class Main {
 	}
 
 	private static String generateTemplateString(List<String> typeParameters) {
-		final String templateString;
-		if (typeParameters.isEmpty()) templateString = "";
-		else {
-			final var typeNames = typeParameters.iter().map(typeParam -> "typename " + typeParam).collect(new Joiner(", "));
-
-			templateString = "template <" + typeNames + ">" + System.lineSeparator();
-		}
-		return templateString;
+		if (typeParameters.isEmpty()) return "";
+		final var typeNames = typeParameters.iter().map(typeParam -> "typename " + typeParam).collect(new Joiner(", "));
+		return "template <" + typeNames + ">" + System.lineSeparator();
 	}
 
 	public static void main(String[] args) {
@@ -1487,7 +1482,8 @@ public class Main {
 		final var all = this.compileStatements(input, this::compileRootSegment);
 
 		final var joinedStructureForwardDeclarations = this.joinStrings(this.structureForwardDeclarations);
-		final var joinedStructures = this.structures.iter().map(CRootSegment::generate).collect(new Joiner());
+		final var joinedStructures =
+				this.createTopologicallySortedList().iter().map(CStructureOrUnion::generate).collect(new Joiner());
 		final var joinedGlobals = this.joinStrings(this.globals);
 
 		final var joinedFunctionDeclarations = this.joinStrings(this.functionDeclarations);
@@ -1496,6 +1492,14 @@ public class Main {
 		final var joinedEnums = this.enums.iter().map(CEnum::generate).collect(new Joiner());
 		return joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedGlobals +
 					 joinedFunctionDeclarations + joinedFunctions + all;
+	}
+
+	private List<CStructureOrUnion> createTopologicallySortedList() {
+		/*
+		TODO: implement this thing
+		 */
+
+		return this.structuresOrUnions;
 	}
 
 	private String joinStrings(List<String> structures) {
@@ -1723,7 +1727,8 @@ public class Main {
 		// TODO: create a constructor for records
 		// TODO: create a default empty constructor for a class with no fields
 
-		this.structures = this.structures.addLast(new CStructure(object.typeParameters(), object.name(), fields));
+		this.structuresOrUnions =
+				this.structuresOrUnions.addLast(new CStructure(object.typeParameters(), object.name(), fields));
 
 		this.structureForwardDeclarations = this.structureForwardDeclarations.addLast(
 				generateTemplateString(object.typeParameters) + "struct " + object.name + ";" + System.lineSeparator());
@@ -1736,7 +1741,7 @@ public class Main {
 																									 List<CDefinable> fields) {
 		final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
 		final var cStructure = new CStructure(object.typeParameters(), object.name() + "Table", list);
-		this.structures = this.structures.addLast(cStructure);
+		this.structuresOrUnions = this.structuresOrUnions.addLast(cStructure);
 		fields = fields
 				.addLast(new CDeclaration(new Identifier(
 						object.name() + "Table" + Main.joinTypeParameters(object.typeParameters())), "table"))
@@ -1760,7 +1765,7 @@ public class Main {
 						object.name() + "Data" + Main.joinTypeParameters(object.typeParameters())), "data"));
 
 		this.enums = this.enums.addLast(jEnum);
-		this.structures = this.structures.addLast(union);
+		this.structuresOrUnions = this.structuresOrUnions.addLast(union);
 		return fields;
 	}
 
