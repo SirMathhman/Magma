@@ -1356,7 +1356,7 @@ public class Main {
 			final var s = Main.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
 			final var s1 = Main.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
 			final var s2 = Main.generateStatement("data." + this.name + " = _this");
-			final var s3 = Main.generateStatement("return { " + this.name + "Variant, data }");
+			final var s3 = Main.generateStatement("return { " + identifier + "Tag::" + this.name + "Variant, data }");
 			final var content = s + s1 + s2 + s3;
 
 			final var conversionFunctionName = "to" + identifier + "_" + this.name;

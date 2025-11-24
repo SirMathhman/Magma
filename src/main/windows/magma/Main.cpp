@@ -1113,7 +1113,7 @@ CType toCType_CPrimitiveType(void* _ref){
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
 	CTypeData data;
 	data.CPrimitiveType = _this;
-	return { CPrimitiveTypeVariant, data };
+	return { CTypeTag::CPrimitiveTypeVariant, data };
 }
 CPrimitiveType new_CPrimitiveType(char* content){
 	CPrimitiveType _this;
@@ -1136,7 +1136,7 @@ JType toJType_JPrimitiveType(void* _ref){
 	JPrimitiveType _this = *((JPrimitiveType*) _ref);
 	JTypeData data;
 	data.JPrimitiveType = _this;
-	return { JPrimitiveTypeVariant, data };
+	return { JTypeTag::JPrimitiveTypeVariant, data };
 }
 JPrimitiveType new_JPrimitiveType(char* name){
 	JPrimitiveType _this;
@@ -1721,7 +1721,7 @@ Head<int> toHead_RangeHead(void* _ref){
 	RangeHead _this = *((RangeHead*) _ref);
 	HeadData data;
 	data.RangeHead = _this;
-	return { RangeHeadVariant, data };
+	return { HeadTag::RangeHeadVariant, data };
 }
 RangeHead new_RangeHead(int length){
 	RangeHead _this;
@@ -1749,7 +1749,7 @@ Result<T, X> toResult_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	ResultData<T, X> data;
 	data.Err = _this;
-	return { ErrVariant, data };
+	return { ResultTag::ErrVariant, data };
 }
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper){
@@ -1767,7 +1767,7 @@ Result<T, X> toResult_Ok(void* _ref){
 	Ok<T, X> _this = *((Ok<T, X>*) _ref);
 	ResultData<T, X> data;
 	data.Ok = _this;
-	return { OkVariant, data };
+	return { ResultTag::OkVariant, data };
 }
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper){
@@ -1864,7 +1864,7 @@ CType toCType_CPointerType(void* _ref){
 	CPointerType _this = *((CPointerType*) _ref);
 	CTypeData data;
 	data.CPointerType = _this;
-	return { CPointerTypeVariant, data };
+	return { CTypeTag::CPointerTypeVariant, data };
 }
 char* generate_CPointerType(void* _ref){
 	CPointerType* _this = (CPointerType*) _ref;
@@ -1887,7 +1887,7 @@ CNamedType toCNamedType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CNamedTypeData data;
 	data.CTemplateType = _this;
-	return { CTemplateTypeVariant, data };
+	return { CNamedTypeTag::CTemplateTypeVariant, data };
 }
 CTemplateType new_CTemplateType(char* base, List<CType> typeArguments){
 	CTemplateType _this;
@@ -1923,7 +1923,7 @@ CExpression toCExpression_CQuantity(void* _ref){
 	CQuantity _this = *((CQuantity*) _ref);
 	CExpressionData data;
 	data.CQuantity = _this;
-	return { CQuantityVariant, data };
+	return { CExpressionTag::CQuantityVariant, data };
 }
 char* generate_CQuantity(void* _ref){
 	CQuantity* _this = (CQuantity*) _ref;
@@ -1938,7 +1938,7 @@ CExpression toCExpression_CDereference(void* _ref){
 	CDereference _this = *((CDereference*) _ref);
 	CExpressionData data;
 	data.CDereference = _this;
-	return { CDereferenceVariant, data };
+	return { CExpressionTag::CDereferenceVariant, data };
 }
 char* generate_CDereference(void* _ref){
 	CDereference* _this = (CDereference*) _ref;
@@ -1953,25 +1953,25 @@ CNamedType toCNamedType_Identifier(void* _ref){
 	Identifier _this = *((Identifier*) _ref);
 	CNamedTypeData data;
 	data.Identifier = _this;
-	return { IdentifierVariant, data };
+	return { CNamedTypeTag::IdentifierVariant, data };
 }
 JType toJType_Identifier(void* _ref){
 	Identifier _this = *((Identifier*) _ref);
 	JTypeData data;
 	data.Identifier = _this;
-	return { IdentifierVariant, data };
+	return { JTypeTag::IdentifierVariant, data };
 }
 JExpression toJExpression_Identifier(void* _ref){
 	Identifier _this = *((Identifier*) _ref);
 	JExpressionData data;
 	data.Identifier = _this;
-	return { IdentifierVariant, data };
+	return { JExpressionTag::IdentifierVariant, data };
 }
 CExpression toCExpression_Identifier(void* _ref){
 	Identifier _this = *((Identifier*) _ref);
 	CExpressionData data;
 	data.Identifier = _this;
-	return { IdentifierVariant, data };
+	return { CExpressionTag::IdentifierVariant, data };
 }
 Identifier new_Identifier(char* value){
 	Identifier _this;
@@ -2018,55 +2018,55 @@ CType toCType_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	CTypeData data;
 	data.Placeholder = _this;
-	return { PlaceholderVariant, data };
+	return { CTypeTag::PlaceholderVariant, data };
 }
 JMethodDeclaration toJMethodDeclaration_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	JMethodDeclarationData data;
 	data.Placeholder = _this;
-	return { PlaceholderVariant, data };
+	return { JMethodDeclarationTag::PlaceholderVariant, data };
 }
 CStructMember toCStructMember_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	CStructMemberData data;
 	data.Placeholder = _this;
-	return { PlaceholderVariant, data };
+	return { CStructMemberTag::PlaceholderVariant, data };
 }
 CAssignable toCAssignable_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	CAssignableData data;
 	data.Placeholder = _this;
-	return { PlaceholderVariant, data };
+	return { CAssignableTag::PlaceholderVariant, data };
 }
 JAssignable toJAssignable_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	JAssignableData data;
 	data.Placeholder = _this;
-	return { PlaceholderVariant, data };
+	return { JAssignableTag::PlaceholderVariant, data };
 }
 JType toJType_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	JTypeData data;
 	data.Placeholder = _this;
-	return { PlaceholderVariant, data };
+	return { JTypeTag::PlaceholderVariant, data };
 }
 JObjectMember toJObjectMember_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	JObjectMemberData data;
 	data.Placeholder = _this;
-	return { PlaceholderVariant, data };
+	return { JObjectMemberTag::PlaceholderVariant, data };
 }
 CExpression toCExpression_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	CExpressionData data;
 	data.Placeholder = _this;
-	return { PlaceholderVariant, data };
+	return { CExpressionTag::PlaceholderVariant, data };
 }
 CDefinable toCDefinable_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	CDefinableData data;
 	data.Placeholder = _this;
-	return { PlaceholderVariant, data };
+	return { CDefinableTag::PlaceholderVariant, data };
 }
 char* wrap_Placeholder(void* _ref, char* input){
 	Placeholder* _this = (Placeholder*) _ref;
@@ -2114,7 +2114,7 @@ JMethodDeclaration toJMethodDeclaration_JConstructor(void* _ref){
 	JConstructor _this = *((JConstructor*) _ref);
 	JMethodDeclarationData data;
 	data.JConstructor = _this;
-	return { JConstructorVariant, data };
+	return { JMethodDeclarationTag::JConstructorVariant, data };
 }
 JConstructor new_JConstructor(char* type){
 	JConstructor _this;
@@ -2125,13 +2125,13 @@ JMethodDeclaration toJMethodDeclaration_JDeclaration(void* _ref){
 	JDeclaration _this = *((JDeclaration*) _ref);
 	JMethodDeclarationData data;
 	data.JDeclaration = _this;
-	return { JDeclarationVariant, data };
+	return { JMethodDeclarationTag::JDeclarationVariant, data };
 }
 JAssignable toJAssignable_JDeclaration(void* _ref){
 	JDeclaration _this = *((JDeclaration*) _ref);
 	JAssignableData data;
 	data.JDeclaration = _this;
-	return { JDeclarationVariant, data };
+	return { JAssignableTag::JDeclarationVariant, data };
 }
 JDeclaration new_JDeclaration(char* name, JType type){
 	JDeclaration _this;
@@ -2186,13 +2186,13 @@ CDefinable toCDefinable_CFunctionDeclaration(void* _ref){
 	CFunctionDeclaration _this = *((CFunctionDeclaration*) _ref);
 	CDefinableData data;
 	data.CFunctionDeclaration = _this;
-	return { CFunctionDeclarationVariant, data };
+	return { CDefinableTag::CFunctionDeclarationVariant, data };
 }
 CStructMember toCStructMember_CFunctionDeclaration(void* _ref){
 	CFunctionDeclaration _this = *((CFunctionDeclaration*) _ref);
 	CStructMemberData data;
 	data.CFunctionDeclaration = _this;
-	return { CFunctionDeclarationVariant, data };
+	return { CStructMemberTag::CFunctionDeclarationVariant, data };
 }
 char* generate_CFunctionDeclaration(void* _ref){
 	CFunctionDeclaration* _this = (CFunctionDeclaration*) _ref;
@@ -2222,13 +2222,13 @@ CStructMember toCStructMember_EmptyStructMember(void* _ref){
 	EmptyStructMember _this = *((EmptyStructMember*) _ref);
 	CStructMemberData data;
 	data.EmptyStructMember = _this;
-	return { EmptyStructMemberVariant, data };
+	return { CStructMemberTag::EmptyStructMemberVariant, data };
 }
 JObjectMember toJObjectMember_EmptyStructMember(void* _ref){
 	EmptyStructMember _this = *((EmptyStructMember*) _ref);
 	JObjectMemberData data;
 	data.EmptyStructMember = _this;
-	return { EmptyStructMemberVariant, data };
+	return { JObjectMemberTag::EmptyStructMemberVariant, data };
 }
 char* generate_EmptyStructMember(void* _ref){
 	EmptyStructMember* _this = (EmptyStructMember*) _ref;
@@ -2238,7 +2238,7 @@ Folder toFolder_EscapedFolder(void* _ref){
 	EscapedFolder _this = *((EscapedFolder*) _ref);
 	FolderData data;
 	data.EscapedFolder = _this;
-	return { EscapedFolderVariant, data };
+	return { FolderTag::EscapedFolderVariant, data };
 }
 /*TODO:  resolve lambda return type*/ lambda6(void* _ref, /*TODO: resolve type of lambda param*/ tuple){
 	if (tuple.right == '\\') 
@@ -2277,7 +2277,7 @@ Folder toFolder_ValueFolder(void* _ref){
 	ValueFolder _this = *((ValueFolder*) _ref);
 	FolderData data;
 	data.ValueFolder = _this;
-	return { ValueFolderVariant, data };
+	return { FolderTag::ValueFolderVariant, data };
 }
 State apply_ValueFolder(void* _ref, State state, char next){
 	ValueFolder* _this = (ValueFolder*) _ref;
@@ -2302,7 +2302,7 @@ Option<T> toOption_Some(void* _ref){
 	Some<T> _this = *((Some<T>*) _ref);
 	OptionData<T> data;
 	data.Some = _this;
-	return { SomeVariant, data };
+	return { OptionTag::SomeVariant, data };
 }
 template <typename R, typename T>
 Option<R> map_Some(void* _ref, F1R<T, R> mapper){
@@ -2350,7 +2350,7 @@ Option<T> toOption_None(void* _ref){
 	None<T> _this = *((None<T>*) _ref);
 	OptionData<T> data;
 	data.None = _this;
-	return { NoneVariant, data };
+	return { OptionTag::NoneVariant, data };
 }
 template <typename R, typename T>
 Option<R> map_None(void* _ref, F1R<T, R> mapper){
@@ -2391,7 +2391,7 @@ Folder toFolder_ConditionEndLocator(void* _ref){
 	ConditionEndLocator _this = *((ConditionEndLocator*) _ref);
 	FolderData data;
 	data.ConditionEndLocator = _this;
-	return { ConditionEndLocatorVariant, data };
+	return { FolderTag::ConditionEndLocatorVariant, data };
 }
 State apply_ConditionEndLocator(void* _ref, State state, char c){
 	ConditionEndLocator* _this = (ConditionEndLocator*) _ref;
@@ -2409,7 +2409,7 @@ CStructMember toCStructMember_CField(void* _ref){
 	CField _this = *((CField*) _ref);
 	CStructMemberData data;
 	data.CField = _this;
-	return { CFieldVariant, data };
+	return { CStructMemberTag::CFieldVariant, data };
 }
 char* generate_CField(void* _ref){
 	CField* _this = (CField*) _ref;
@@ -2433,7 +2433,7 @@ Head<R> toHead_MapHead(void* _ref){
 	MapHead<T, R> _this = *((MapHead<T, R>*) _ref);
 	HeadData<T, R> data;
 	data.MapHead = _this;
-	return { MapHeadVariant, data };
+	return { HeadTag::MapHeadVariant, data };
 }
 template <typename T, typename R>
 Option<R> next_MapHead(void* _ref){
@@ -2452,7 +2452,7 @@ Head<T> toHead_SingleHead(void* _ref){
 	SingleHead<T> _this = *((SingleHead<T>*) _ref);
 	HeadData<T> data;
 	data.SingleHead = _this;
-	return { SingleHeadVariant, data };
+	return { HeadTag::SingleHeadVariant, data };
 }
 template <typename T>
 SingleHead<T> new_SingleHead(T value){
@@ -2474,7 +2474,7 @@ Head<R> toHead_FlatMapHead(void* _ref){
 	FlatMapHead<T, R> _this = *((FlatMapHead<T, R>*) _ref);
 	HeadData<T, R> data;
 	data.FlatMapHead = _this;
-	return { FlatMapHeadVariant, data };
+	return { HeadTag::FlatMapHeadVariant, data };
 }
 template <typename T, typename R>
 FlatMapHead<T, R> new_FlatMapHead(Head<T> head, F1R<T, Iter<R>> mapper){
@@ -2504,7 +2504,7 @@ Head<T> toHead_EmptyHead(void* _ref){
 	EmptyHead<T> _this = *((EmptyHead<T>*) _ref);
 	HeadData<T> data;
 	data.EmptyHead = _this;
-	return { EmptyHeadVariant, data };
+	return { HeadTag::EmptyHeadVariant, data };
 }
 template <typename T>
 Option<T> next_EmptyHead(void* _ref){
@@ -2516,7 +2516,7 @@ Collector<T, int> toCollector_AnyMatch(void* _ref){
 	AnyMatch<T> _this = *((AnyMatch<T>*) _ref);
 	CollectorData<T> data;
 	data.AnyMatch = _this;
-	return { AnyMatchVariant, data };
+	return { CollectorTag::AnyMatchVariant, data };
 }
 template <typename T>
 int createInitial_AnyMatch(void* _ref){
@@ -2538,7 +2538,7 @@ Collector<char*, char*> toCollector_Joiner(void* _ref){
 	Joiner _this = *((Joiner*) _ref);
 	CollectorData data;
 	data.Joiner = _this;
-	return { JoinerVariant, data };
+	return { CollectorTag::JoinerVariant, data };
 }
 Joiner new_Joiner(){
 	Joiner _this;
@@ -2565,7 +2565,7 @@ Collector<T, List<T>> toCollector_ListCollector(void* _ref){
 	ListCollector<T> _this = *((ListCollector<T>*) _ref);
 	CollectorData<T> data;
 	data.ListCollector = _this;
-	return { ListCollectorVariant, data };
+	return { CollectorTag::ListCollectorVariant, data };
 }
 template <typename T>
 List<T> createInitial_ListCollector(void* _ref){
@@ -2581,13 +2581,13 @@ CAssignable toCAssignable_CDeclaration(void* _ref){
 	CDeclaration _this = *((CDeclaration*) _ref);
 	CAssignableData data;
 	data.CDeclaration = _this;
-	return { CDeclarationVariant, data };
+	return { CAssignableTag::CDeclarationVariant, data };
 }
 CDefinable toCDefinable_CDeclaration(void* _ref){
 	CDeclaration _this = *((CDeclaration*) _ref);
 	CDefinableData data;
 	data.CDeclaration = _this;
-	return { CDeclarationVariant, data };
+	return { CDefinableTag::CDeclarationVariant, data };
 }
 CDeclaration new_CDeclaration(CType type, char* name){
 	CDeclaration _this;
@@ -2622,13 +2622,13 @@ JExpression toJExpression_JExpressionWrapper(void* _ref){
 	JExpressionWrapper _this = *((JExpressionWrapper*) _ref);
 	JExpressionData data;
 	data.JExpressionWrapper = _this;
-	return { JExpressionWrapperVariant, data };
+	return { JExpressionTag::JExpressionWrapperVariant, data };
 }
 JAssignable toJAssignable_JExpressionWrapper(void* _ref){
 	JExpressionWrapper _this = *((JExpressionWrapper*) _ref);
 	JAssignableData data;
 	data.JExpressionWrapper = _this;
-	return { JExpressionWrapperVariant, data };
+	return { JAssignableTag::JExpressionWrapperVariant, data };
 }
 JExpressionWrapper new_JExpressionWrapper(char* content){
 	JExpressionWrapper _this;
@@ -2639,7 +2639,7 @@ CExpression toCExpression_CExpressionWrapper(void* _ref){
 	CExpressionWrapper _this = *((CExpressionWrapper*) _ref);
 	CExpressionData data;
 	data.CExpressionWrapper = _this;
-	return { CExpressionWrapperVariant, data };
+	return { CExpressionTag::CExpressionWrapperVariant, data };
 }
 char* generate_CExpressionWrapper(void* _ref){
 	CExpressionWrapper* _this = (CExpressionWrapper*) _ref;
@@ -2654,7 +2654,7 @@ JType toJType_JArrayType(void* _ref){
 	JArrayType _this = *((JArrayType*) _ref);
 	JTypeData data;
 	data.JArrayType = _this;
-	return { JArrayTypeVariant, data };
+	return { JTypeTag::JArrayTypeVariant, data };
 }
 CType toCType_JArrayType(void* _ref){
 	JArrayType* _this = (JArrayType*) _ref;
@@ -2673,7 +2673,7 @@ JType toJType_JGenericType(void* _ref){
 	JGenericType _this = *((JGenericType*) _ref);
 	JTypeData data;
 	data.JGenericType = _this;
-	return { JGenericTypeVariant, data };
+	return { JTypeTag::JGenericTypeVariant, data };
 }
 CType toCType_JGenericType(void* _ref){
 	JGenericType* _this = (JGenericType*) _ref;
@@ -2698,7 +2698,7 @@ CExpression toCExpression_CPointerAccess(void* _ref){
 	CPointerAccess _this = *((CPointerAccess*) _ref);
 	CExpressionData data;
 	data.CPointerAccess = _this;
-	return { CPointerAccessVariant, data };
+	return { CExpressionTag::CPointerAccessVariant, data };
 }
 char* generate_CPointerAccess(void* _ref){
 	CPointerAccess* _this = (CPointerAccess*) _ref;
@@ -2714,7 +2714,7 @@ CExpression toCExpression_CFieldAccess(void* _ref){
 	CFieldAccess _this = *((CFieldAccess*) _ref);
 	CExpressionData data;
 	data.CFieldAccess = _this;
-	return { CFieldAccessVariant, data };
+	return { CExpressionTag::CFieldAccessVariant, data };
 }
 char* generate_CFieldAccess(void* _ref){
 	CFieldAccess* _this = (CFieldAccess*) _ref;
@@ -2730,7 +2730,7 @@ JExpression toJExpression_JMemberAccess(void* _ref){
 	JMemberAccess _this = *((JMemberAccess*) _ref);
 	JExpressionData data;
 	data.JMemberAccess = _this;
-	return { JMemberAccessVariant, data };
+	return { JExpressionTag::JMemberAccessVariant, data };
 }
 JMemberAccess new_JMemberAccess(JExpression instance, char* memberName){
 	JMemberAccess _this;
@@ -2742,7 +2742,7 @@ JCaller toJCaller_JConstruction(void* _ref){
 	JConstruction _this = *((JConstruction*) _ref);
 	JCallerData data;
 	data.JConstruction = _this;
-	return { JConstructionVariant, data };
+	return { JCallerTag::JConstructionVariant, data };
 }
 JConstruction new_JConstruction(JType jType){
 	JConstruction _this;
@@ -2753,7 +2753,7 @@ CExpression toCExpression_CInvocation(void* _ref){
 	CInvocation _this = *((CInvocation*) _ref);
 	CExpressionData data;
 	data.CInvocation = _this;
-	return { CInvocationVariant, data };
+	return { CExpressionTag::CInvocationVariant, data };
 }
 char* generate_CInvocation(void* _ref){
 	CInvocation* _this = (CInvocation*) _ref;
@@ -2770,7 +2770,7 @@ JExpression toJExpression_JInvokable(void* _ref){
 	JInvokable _this = *((JInvokable*) _ref);
 	JExpressionData data;
 	data.JInvokable = _this;
-	return { JInvokableVariant, data };
+	return { JExpressionTag::JInvokableVariant, data };
 }
 JInvokable new_JInvokable(JCaller caller, List<JExpression> arguments){
 	JInvokable _this;
@@ -2782,7 +2782,7 @@ JType toJType_JFunctionalType(void* _ref){
 	JFunctionalType _this = *((JFunctionalType*) _ref);
 	JTypeData data;
 	data.JFunctionalType = _this;
-	return { JFunctionalTypeVariant, data };
+	return { JTypeTag::JFunctionalTypeVariant, data };
 }
 JFunctionalType new_JFunctionalType(JType returnType){
 	JFunctionalType _this;
@@ -2928,7 +2928,7 @@ JType toJType_JObjectType(void* _ref){
 	JObjectType _this = *((JObjectType*) _ref);
 	JTypeData data;
 	data.JObjectType = _this;
-	return { JObjectTypeVariant, data };
+	return { JTypeTag::JObjectTypeVariant, data };
 }
 /*TODO:  resolve lambda return type*/ lambda19(void* _ref, /*TODO: resolve type of lambda param*/ member){
 	return equals_/*Cannot access member 'name' in 'Placeholder[input=Undefined identifier: member]', not an object.*/(&(member.name), name);
@@ -2951,7 +2951,7 @@ JType toJType_JRecursiveType(void* _ref){
 	JRecursiveType _this = *((JRecursiveType*) _ref);
 	JTypeData data;
 	data.JRecursiveType = _this;
-	return { JRecursiveTypeVariant, data };
+	return { JTypeTag::JRecursiveTypeVariant, data };
 }
 JRecursiveType new_JRecursiveType(){
 	JRecursiveType _this;
@@ -2977,7 +2977,7 @@ CStructureOrUnion toCStructureOrUnion_CStructure(void* _ref){
 	CStructure _this = *((CStructure*) _ref);
 	CStructureOrUnionData data;
 	data.CStructure = _this;
-	return { CStructureVariant, data };
+	return { CStructureOrUnionTag::CStructureVariant, data };
 }
 char* findName_CStructure(void* _ref){
 	CStructure* _this = (CStructure*) _ref;
@@ -3020,7 +3020,7 @@ CStructureOrUnion toCStructureOrUnion_CUnion(void* _ref){
 	CUnion _this = *((CUnion*) _ref);
 	CStructureOrUnionData data;
 	data.CUnion = _this;
-	return { CUnionVariant, data };
+	return { CStructureOrUnionTag::CUnionVariant, data };
 }
 char* findName_CUnion(void* _ref){
 	CUnion* _this = (CUnion*) _ref;
@@ -3046,7 +3046,7 @@ JObjectMember toJObjectMember_JObject(void* _ref){
 	JObject _this = *((JObject*) _ref);
 	JObjectMemberData data;
 	data.JObject = _this;
-	return { JObjectVariant, data };
+	return { JObjectMemberTag::JObjectVariant, data };
 }
 List<CDefinable> collectCFields_JObject(void* _ref){
 	JObject* _this = (JObject*) _ref;
@@ -3144,7 +3144,7 @@ JObjectMember toJObjectMember_JMethod(void* _ref){
 	JMethod _this = *((JMethod*) _ref);
 	JObjectMemberData data;
 	data.JMethod = _this;
-	return { JMethodVariant, data };
+	return { JObjectMemberTag::JMethodVariant, data };
 }
 Option<JDeclaration> toDeclaration_JMethod(void* _ref){
 	JMethod* _this = (JMethod*) _ref;
@@ -3168,7 +3168,7 @@ JObjectMember toJObjectMember_JField(void* _ref){
 	JField _this = *((JField*) _ref);
 	JObjectMemberData data;
 	data.JField = _this;
-	return { JFieldVariant, data };
+	return { JObjectMemberTag::JFieldVariant, data };
 }
 JField new_JField(JDeclaration declaration){
 	JField _this;
@@ -3179,7 +3179,7 @@ JExpression toJExpression_JNumber(void* _ref){
 	JNumber _this = *((JNumber*) _ref);
 	JExpressionData data;
 	data.JNumber = _this;
-	return { JNumberVariant, data };
+	return { JExpressionTag::JNumberVariant, data };
 }
 JNumber new_JNumber(char* value){
 	JNumber _this;
@@ -3196,7 +3196,7 @@ CExpression toCExpression_CNumber(void* _ref){
 	CNumber _this = *((CNumber*) _ref);
 	CExpressionData data;
 	data.CNumber = _this;
-	return { CNumberVariant, data };
+	return { CExpressionTag::CNumberVariant, data };
 }
 CNumber new_CNumber(char* value){
 	CNumber _this;
@@ -3217,7 +3217,7 @@ JExpression toJExpression_JNot(void* _ref){
 	JNot _this = *((JNot*) _ref);
 	JExpressionData data;
 	data.JNot = _this;
-	return { JNotVariant, data };
+	return { JExpressionTag::JNotVariant, data };
 }
 JNot new_JNot(CExpression instance){
 	JNot _this;
@@ -3228,7 +3228,7 @@ CExpression toCExpression_CNot(void* _ref){
 	CNot _this = *((CNot*) _ref);
 	CExpressionData data;
 	data.CNot = _this;
-	return { CNotVariant, data };
+	return { CExpressionTag::CNotVariant, data };
 }
 char* generate_CNot(void* _ref){
 	CNot* _this = (CNot*) _ref;
@@ -3244,7 +3244,7 @@ Collector<Tuple<K, V>, Map<K, V>> toCollector_MapCollector(void* _ref){
 	MapCollector<K, V> _this = *((MapCollector<K, V>*) _ref);
 	CollectorData<K, V> data;
 	data.MapCollector = _this;
-	return { MapCollectorVariant, data };
+	return { CollectorTag::MapCollectorVariant, data };
 }
 template <typename K, typename V>
 Map<K, V> createInitial_MapCollector(void* _ref){
@@ -3266,7 +3266,7 @@ CExpression toCExpression_CReference(void* _ref){
 	CReference _this = *((CReference*) _ref);
 	CExpressionData data;
 	data.CReference = _this;
-	return { CReferenceVariant, data };
+	return { CExpressionTag::CReferenceVariant, data };
 }
 char* generate_CReference(void* _ref){
 	CReference* _this = (CReference*) _ref;
