@@ -50,6 +50,29 @@ public class Main {
 		}
 	}
 
+	private enum Operator {
+		Equals("!=", JPrimitiveType.Boolean), NotEquals("!=", JPrimitiveType.Boolean),
+		LessThan("<", JPrimitiveType.Boolean), Add("+", JPrimitiveType.Int), Subtract("-", JPrimitiveType.Int),
+		And("&&", JPrimitiveType.Boolean), Or("||", JPrimitiveType.Boolean),
+		GreaterThanOrEquals(">=", JPrimitiveType.Boolean);
+
+		private final String value;
+		private final JType type;
+
+		Operator(String value, JType type) {
+			this.value = value;
+			this.type = type;
+		}
+
+		public String generate() {
+			return this.value;
+		}
+
+		public JType getType() {
+			return this.type;
+		}
+	}
+
 	private interface Head<T> {
 		Option<T> next();
 	}
@@ -85,8 +108,6 @@ public class Main {
 	}
 
 	private interface Path {
-		Path resolveSibling(String sibling);
-
 		Option<IOError> writeString(String output);
 
 		Result<String, IOError> readString();
@@ -172,14 +193,14 @@ public class Main {
 		String stringify();
 	}
 
-	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
+	private sealed interface JAssignable permits JDeclaration, JExpression, Placeholder {}
 
 	sealed private interface JExpression extends JCaller, JAssignable
-			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess, JNot, JNumber {}
+			permits Char, Identifier, JInvokable, JMemberAccess, JNot, JNumber, JOperator, Placeholder, StringNode {}
 
 	private sealed interface CExpression extends CAssignable
-			permits CDereference, CExpressionWrapper, CFieldAccess, CInvocation, CNot, CNumber, CPointerAccess, CQuantity,
-			CReference, Identifier, Placeholder {}
+			permits CDereference, CExpressionWrapper, CFieldAccess, CInvocation, CNot, CNumber, COperator, CPointerAccess,
+			CQuantity, CReference, Char, Identifier, Placeholder, StringNode {}
 
 	private sealed interface JCaller permits JConstruction, JExpression {}
 
@@ -563,10 +584,6 @@ public class Main {
 	}
 
 	private record Identifier(String value) implements CNamedType, JType, JExpression, CExpression {
-		private Identifier(String value) {
-			this.value = value;
-		}
-
 		private static boolean isIdentifier(String input) {
 			final var stripped = input.strip();
 			if (stripped.isEmpty() || stripped.equals("return")) return false;
@@ -605,7 +622,7 @@ public class Main {
 
 	private record Placeholder(String input)
 			implements CType, JMethodDeclaration, CStructMember, CAssignable, JAssignable, JType, JObjectMember, CExpression,
-			CDefinable {
+			CDefinable, JExpression {
 		private static String wrap(String input) {
 			final var replaced = input.replace("/*", "start").replace("*/", "end");
 			return "/*" + replaced + "*/";
@@ -995,10 +1012,6 @@ public class Main {
 
 	@Actual
 	private record JavaPath(java.nio.file.Path path) implements Path {
-		@Override
-		public Path resolveSibling(String sibling) {
-			return new JavaPath(this.path.resolveSibling(sibling));
-		}
 
 		@Override
 		public Option<Path> getParent() {
@@ -1064,9 +1077,6 @@ public class Main {
 			return this.type.extractIdentifiers();
 		}
 	}
-
-	@Deprecated
-	private record JExpressionWrapper(String content) implements JExpression, JAssignable {}
 
 	private record CExpressionWrapper(String content) implements CExpression {
 		@Override
@@ -1460,6 +1470,29 @@ public class Main {
 		}
 	}
 
+	private record Char(String value) implements JExpression, CExpression {
+		@Override
+		public String generate() {
+			return "'" + this.value + "'";
+		}
+	}
+
+	private record JOperator(JExpression left, Operator operator, JExpression rightCompiled) implements JExpression {}
+
+	private record COperator(CExpression left, Operator operator, CExpression right) implements CExpression {
+		@Override
+		public String generate() {
+			return this.left.generate() + " " + this.operator.generate() + " " + this.right.generate();
+		}
+	}
+
+	private record StringNode(String slice) implements JExpression, CExpression {
+		@Override
+		public String generate() {
+			return "\"" + this.slice + "\"";
+		}
+	}
+
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
 		final var methods = Lists.of(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)),
@@ -1472,7 +1505,6 @@ public class Main {
 
 		return new JObjectType("String", methods);
 	});
-
 	private Environment environment = new Environment();
 	private List<String> functionDeclarations;
 	private List<String> globals;
@@ -1583,7 +1615,6 @@ public class Main {
 
 				yield identifier;
 			}
-			case JExpressionWrapper jExpressionWrapper -> new CExpressionWrapper(jExpressionWrapper.content);
 			case JInvokable jInvokable -> this.transformInvocation(jInvokable);
 			case JMemberAccess jMemberAccess -> {
 				final var instance = jMemberAccess.instance;
@@ -1596,6 +1627,12 @@ public class Main {
 			}
 			case JNumber jNumber -> new CNumber(jNumber.value);
 			case JNot jNot -> new CNot(jNot.instance);
+			case Placeholder placeholder -> placeholder;
+			case Char aChar -> aChar;
+			case JOperator jOperator -> new COperator(this.transformExpression(jOperator.left),
+																								jOperator.operator,
+																								this.transformExpression(jOperator.rightCompiled));
+			case StringNode stringNode -> stringNode;
 		};
 	}
 
@@ -2138,7 +2175,9 @@ public class Main {
 																	 List<String> structureVariants) {
 		if (methodDeclaration instanceof JConstructor) {
 			final var compiled = maybeContent.orElse("?");
-			return Main.generateStatement(structName + " _thisInstance") + generateStatement(structName + "* _this = &_thisInstance") + compiled + Main.generateStatement("return " + "_thisInstance");
+			return Main.generateStatement(structName + " _thisInstance") +
+						 generateStatement(structName + "* _this = &_thisInstance") + compiled +
+						 Main.generateStatement("return " + "_thisInstance");
 		}
 
 		if (methodDeclaration instanceof JDeclaration declaration) {
@@ -2413,7 +2452,6 @@ public class Main {
 			}
 
 			case JExpression jExpression -> this.transformExpression(jExpression);
-			case Placeholder placeholder -> placeholder.toCAssignable();
 		};
 	}
 
@@ -2444,12 +2482,13 @@ public class Main {
 				yield new Placeholder(
 						"Cannot access member '" + access.memberName + "' in '" + instanceType + "', not an object.");
 			}
-
-			case JExpressionWrapper jExpressionWrapper ->
-					new Placeholder("Unwrapped expression: " + jExpressionWrapper.content);
 			case JInvokable jInvokable -> this.resolveCaller(jInvokable.caller);
 			case JNumber _ -> JPrimitiveType.Int;
 			case JNot _ -> JPrimitiveType.Boolean;
+			case Placeholder placeholder -> placeholder;
+			case Char aChar -> JPrimitiveType.Char;
+			case JOperator jOperator -> jOperator.operator.getType();
+			case StringNode stringNode -> StringType;
 		};
 	}
 
@@ -2521,7 +2560,7 @@ public class Main {
 
 	private Option<JExpression> parseExpression(String input) {
 		final var stripped = input.strip();
-		if (stripped.startsWith("switch ")) return new Some<String>("_switch").map(JExpressionWrapper::new);
+		if (stripped.startsWith("switch ")) return new Some<JExpression>(new Placeholder("TODO: switch"));
 
 		final var i2 = stripped.lastIndexOf("::");
 		if (i2 >= 0) {
@@ -2529,18 +2568,15 @@ public class Main {
 			final var name = stripped.substring(i2 + 2).strip();
 			if (Identifier.isIdentifier(name)) {
 				final var compiled = this.compileExpressionOrPlaceholder(substring);
-				final var functionalInterfaceName = "F?";
-				return new Some<String>(
-						functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name +
-						" }}").map(JExpressionWrapper::new);
+
+				return new Some<JExpression>(new Placeholder("Convert method references to a closure"));
 			}
 		}
 
-		if (stripped.startsWith("'") && stripped.endsWith("'"))
-			return new Some<String>(stripped).map(JExpressionWrapper::new);
+		if (stripped.startsWith("'") && stripped.endsWith("'")) return new Some<JExpression>(new Char(stripped));
 
 		final var maybeLambda = this.compileLambda(stripped);
-		if (maybeLambda instanceof Some<String>) return maybeLambda.map(JExpressionWrapper::new);
+		if (maybeLambda instanceof Some<JExpression>) return maybeLambda;
 
 		final var i3 = stripped.indexOf("instanceof");
 		if (i3 >= 0) {
@@ -2549,11 +2585,7 @@ public class Main {
 			final var maybeInstance = this.parseCExpression(substring).map(CExpression::generate);
 			if (maybeInstance instanceof Some<String>(var instance)) {
 				final var i4 = substring1.indexOf("<");
-				final String substring2;
-				if (i4 >= 0) substring2 = substring1.substring(0, i4);
-				else substring2 = substring1;
-
-				return new Some<String>(instance + ".variant = ?." + substring2 + "Variant").map(JExpressionWrapper::new);
+				return new Some<JExpression>(new Placeholder("instance"));
 			}
 		}
 
@@ -2572,16 +2604,16 @@ public class Main {
 		if (maybeInvokable instanceof Some<JExpression>) return maybeInvokable;
 
 		final var maybeOperator = this
-				.compileOperator(stripped, "==")
-				.or(() -> this.compileOperator(stripped, "!="))
-				.or(() -> this.compileOperator(stripped, "<"))
-				.or(() -> this.compileOperator(stripped, "+"))
-				.or(() -> this.compileOperator(stripped, "-"))
-				.or(() -> this.compileOperator(stripped, "&&"))
-				.or(() -> this.compileOperator(stripped, "||"))
-				.or(() -> this.compileOperator(stripped, ">="));
+				.compileOperator(stripped, Operator.Equals)
+				.or(() -> this.compileOperator(stripped, Operator.NotEquals))
+				.or(() -> this.compileOperator(stripped, Operator.LessThan))
+				.or(() -> this.compileOperator(stripped, Operator.Add))
+				.or(() -> this.compileOperator(stripped, Operator.Subtract))
+				.or(() -> this.compileOperator(stripped, Operator.And))
+				.or(() -> this.compileOperator(stripped, Operator.Or))
+				.or(() -> this.compileOperator(stripped, Operator.GreaterThanOrEquals));
 
-		if (maybeOperator instanceof Some<String>) return maybeOperator.map(JExpressionWrapper::new);
+		if (maybeOperator instanceof Some<JExpression>) return maybeOperator;
 		if (Identifier.isIdentifier(stripped)) return new Some<JExpression>(new Identifier(stripped));
 
 		if (stripped.startsWith("!")) {
@@ -2593,20 +2625,20 @@ public class Main {
 		if (this.isNumber(stripped)) return new Some<JExpression>(new JNumber(stripped));
 
 		if (stripped.startsWith("\"") && stripped.endsWith("\""))
-			return new Some<String>(stripped).map(JExpressionWrapper::new);
+			return new Some<JExpression>(new StringNode(stripped.substring(1, stripped.length() - 1)));
 
 		return new None<JExpression>();
 	}
 
-	private Option<String> compileLambda(String input) {
+	private Option<JExpression> compileLambda(String input) {
 		final var index = input.indexOf("->");
-		if (index < 0) return new None<String>();
+		if (index < 0) return new None<JExpression>();
 
 		final var beforeContent = input.substring(0, index).strip();
 		final var maybeWithBraces = input.substring(index + 2).strip();
 
 		final var maybeParams = this.parseLambdaParams(beforeContent);
-		if (!(maybeParams instanceof Some<List<String>>(var params))) return new None<String>();
+		if (!(maybeParams instanceof Some<List<String>>(var params))) return new None<JExpression>();
 		var paramList = params
 				.iter()
 				.map(param -> new CDeclaration(new Placeholder("TODO: resolve type of lambda param"), param))
@@ -2625,7 +2657,7 @@ public class Main {
 																													 generatedName), paramList), output);
 
 		this.functions = this.functions.addLast(cFunction);
-		return new Some<String>(generatedName);
+		return new Some<JExpression>(new Identifier(generatedName));
 	}
 
 	private Option<List<String>> parseLambdaParams(String input) {
@@ -2644,16 +2676,18 @@ public class Main {
 		return generatedName;
 	}
 
-	private Option<String> compileOperator(String input, String operator) {
-		if (input.length() < 3) return new None<String>();
-		if (!input.contains(operator)) return new None<String>();
+	private Option<JExpression> compileOperator(String input, Operator operator) {
+		if (input.length() < 3) return new None<JExpression>();
+
+		final var operatorValue = operator.value;
+		if (!input.contains(operatorValue)) return new None<JExpression>();
 
 		var i1 = -1;
 		var depth = 0;
 		var i = 0;
 		while (i < input.length() - 1) {
 			final var c = input.charAt(i);
-			if (c == operator.charAt(0)) if (depth == 0) {
+			if (c == operatorValue.charAt(0)) if (depth == 0) {
 				i1 = i;
 				break;
 			}
@@ -2665,13 +2699,13 @@ public class Main {
 
 		if (i1 >= 0) {
 			final var leftString = input.substring(0, i1);
-			final var right = input.substring(i1 + operator.length());
-			if (this.parseCExpression(leftString).map(CExpression::generate) instanceof Some<String>(var leftCompiled))
-				if (this.parseCExpression(right).map(CExpression::generate) instanceof Some<String>(var rightCompiled))
-					return new Some<String>(leftCompiled + " " + operator + " " + rightCompiled);
+			final var rightString = input.substring(i1 + operatorValue.length());
+			if (this.parseExpression(leftString) instanceof Some(var leftCompiled))
+				if (this.parseExpression(rightString) instanceof Some(var rightCompiled))
+					return new Some<JExpression>(new JOperator(leftCompiled, operator, rightCompiled));
 		}
 
-		return new None<String>();
+		return new None<JExpression>();
 	}
 
 	private Option<JExpression> parseInvokable(String stripped) {
