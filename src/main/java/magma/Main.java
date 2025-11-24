@@ -1,5 +1,7 @@
 package magma;
 
+import com.sun.source.tree.Tree;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -8,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -32,7 +36,7 @@ public class Main {
 		}
 
 		@Override
-		public List<CNamedType> extractIdentifiers() {
+		public List<String> extractIdentifiers() {
 			return Lists.empty();
 		}
 	}
@@ -105,6 +109,8 @@ public class Main {
 		Iter<T> iterReversed();
 
 		List<T> copy();
+
+		List<T> removeElement(T element);
 	}
 
 	private interface Path {
@@ -154,7 +160,7 @@ public class Main {
 
 		String toBaseName();
 
-		List<CNamedType> extractIdentifiers();
+		List<String> extractIdentifiers();
 	}
 
 	private sealed interface JMethodDeclaration permits JConstructor, JDeclaration, Placeholder {}
@@ -207,7 +213,7 @@ public class Main {
 	private sealed interface CDefinable permits CDeclaration, CFunctionDeclaration, Placeholder {
 		String generate();
 
-		List<CNamedType> extractIdentifiers();
+		List<String> extractIdentifiers();
 
 		CDefinable mapTypeParameters(F1R<List<String>, List<String>> mapper);
 
@@ -217,7 +223,7 @@ public class Main {
 	private sealed interface CStructureOrUnion permits CStructure, CUnion {
 		String generate();
 
-		List<CNamedType> findDependencies();
+		List<String> findDependencies();
 
 		String findName();
 	}
@@ -430,6 +436,12 @@ public class Main {
 		public List<T> copy() {
 			return new JavaList<T>(new ArrayList<T>(this.nativeList));
 		}
+
+		@Override
+		public List<T> removeElement(T element) {
+			this.nativeList.remove(element);
+			return this;
+		}
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {
@@ -534,7 +546,7 @@ public class Main {
 		}
 
 		@Override
-		public List<CNamedType> extractIdentifiers() {
+		public List<String> extractIdentifiers() {
 			return this.type.extractIdentifiers();
 		}
 	}
@@ -559,8 +571,8 @@ public class Main {
 		}
 
 		@Override
-		public List<CNamedType> extractIdentifiers() {
-			return Lists.of(this);
+		public List<String> extractIdentifiers() {
+			return this.typeArguments.iter().map(CType::extractIdentifiers).flatMap(List::iter).toList().addLast(this.base);
 		}
 
 		@Override
@@ -605,8 +617,8 @@ public class Main {
 		}
 
 		@Override
-		public List<CNamedType> extractIdentifiers() {
-			return Lists.of(this);
+		public List<String> extractIdentifiers() {
+			return Lists.of(this.value);
 		}
 
 		@Override
@@ -639,7 +651,7 @@ public class Main {
 		}
 
 		@Override
-		public List<CNamedType> extractIdentifiers() {
+		public List<String> extractIdentifiers() {
 			return Lists.empty();
 		}
 
@@ -656,14 +668,6 @@ public class Main {
 		@Override
 		public String stringify() {
 			return wrap(this.input);
-		}
-
-		private CAssignable toCAssignable() {
-			return this;
-		}
-
-		public CType toCType() {
-			return this;
 		}
 	}
 
@@ -726,7 +730,7 @@ public class Main {
 		}
 
 		@Override
-		public List<CNamedType> extractIdentifiers() {
+		public List<String> extractIdentifiers() {
 			return this.type
 					.extractIdentifiers()
 					.addAllLast(this.parameterTypes.iter().map(CType::extractIdentifiers).flatMap(List::iter).toList());
@@ -1073,7 +1077,7 @@ public class Main {
 		}
 
 		@Override
-		public List<CNamedType> extractIdentifiers() {
+		public List<String> extractIdentifiers() {
 			return this.type.extractIdentifiers();
 		}
 	}
@@ -1301,12 +1305,13 @@ public class Main {
 		}
 
 		@Override
-		public List<CNamedType> findDependencies() {
+		public List<String> findDependencies() {
 			return this.fields
 					.iter()
 					.map(CDefinable::extractIdentifiers)
 					.flatMap(List::iter)
-					.collect(new ListCollector<CNamedType>());
+					.filter(value -> !this.typeParameters.contains(value))
+					.collect(new ListCollector<String>());
 		}
 	}
 
@@ -1340,7 +1345,7 @@ public class Main {
 		}
 
 		@Override
-		public List<CNamedType> findDependencies() {
+		public List<String> findDependencies() {
 			return this.members.iter().map(CDefinable::extractIdentifiers).flatMap(List::iter).toList();
 		}
 	}
@@ -1551,7 +1556,7 @@ public class Main {
 			case JArrayType jArrayType -> jArrayType.toCType();
 			case JGenericType jGenericType -> jGenericType.toCType();
 			case JPrimitiveType jPrimitiveType -> transformPrimitiveType(jPrimitiveType);
-			case Placeholder placeholder -> placeholder.toCType();
+			case Placeholder placeholder -> placeholder;
 			case JFunctionalType jFunctionalType -> new Placeholder(jFunctionalType.toString());
 			case JObjectType jStructureType -> new Identifier(jStructureType.name);
 			case JRecursiveType jRecursiveType -> {
@@ -1698,12 +1703,42 @@ public class Main {
 	}
 
 	private List<CStructureOrUnion> createTopologicallySortedList() {
-		final var dependencyMap = this.structuresOrUnions
-				.iter()
-				.map(value -> new Tuple<String, List<CNamedType>>(value.findName(), value.findDependencies()))
-				.collect(new MapCollector<String, List<CNamedType>>());
+		final var dependencyMap = this.structuresOrUnions.iter().map(value -> {
+			final var withoutDuplicates = this.removeDuplicates(value.findDependencies());
+			return new Tuple<String, List<String>>(value.findName(), withoutDuplicates);
+		}).collect(new MapCollector<String, List<String>>());
+
+		var order = Lists.<String>empty();
+		while (!dependencyMap.isEmpty()) {
+			var dependencyMapKeysToRemove =
+					dependencyMap.entrySet().stream().filter(entry -> entry.getValue().isEmpty()).map(Entry::getKey).toList();
+
+			for (var dependencyMapKeyToRemove : dependencyMapKeysToRemove) {
+				dependencyMap.remove(dependencyMapKeyToRemove);
+				order = order.addLast(dependencyMapKeyToRemove);
+
+				this.removeKeyFromValues(dependencyMap, dependencyMapKeyToRemove);
+			}
+		}
 
 		return this.structuresOrUnions;
+	}
+
+	private void removeKeyFromValues(Map<String, List<String>> dependencyMap, String dependencyMapKeyToRemove) {
+		for (var anyDependencyMapKey : dependencyMap.keySet()) {
+			final var values = dependencyMap.get(anyDependencyMapKey);
+			if (values.contains(dependencyMapKeyToRemove)) {
+				var newValues = values.removeElement(dependencyMapKeyToRemove);
+				dependencyMap.put(anyDependencyMapKey, newValues);
+			}
+		}
+	}
+
+	private List<String> removeDuplicates(List<String> list) {
+		return list.iter().fold(Lists.empty(), (copy, element) -> {
+			if (copy.contains(element)) return copy;
+			return copy.addLast(element);
+		});
 	}
 
 	private String joinStrings(List<String> structures) {
@@ -2850,7 +2885,7 @@ public class Main {
 			case "boolean", "Boolean" -> {
 				return JPrimitiveType.Boolean;
 			}
-			case "Integer" -> {
+			case "int", "Integer" -> {
 				return JPrimitiveType.Int;
 			}
 			case "void" -> {
