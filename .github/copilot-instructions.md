@@ -40,28 +40,55 @@ The codebase relies heavily on functional programming patterns, implementing its
   - Java `sealed interface` -> C++ `struct` containing a `union` (data) and `enum` (tag).
 - **Memory Management**: The generated C++ code uses a specific style of memory management (often passing `_ref` pointers).
 
-## Developer Workflow
+## Developer workflow (quick)
+
+- **Java tool build (recommended)**: use the project's wrapper and a Java 24 JDK.
+
+  - Local build: `./mvnw -DskipTests package` (Windows: `mvnw.cmd -DskipTests package`).
+  - Run the compiler directly: `./mvnw -DskipTests exec:java` (or `java -cp target/classes magma.Main`).
 
 - **Regenerate C++**: Run the `main` method in `src/main/java/magma/Main.java`.
-  - This will overwrite `src/main/java/magma/Main.cpp`.
-- **Testing**: Currently, the primary test is whether `Main.java` can successfully compile itself and if the resulting C++ code is valid.
 
-## Important Files
+  - This writes `src/main/java/magma/Main.cpp` and `target/classes/magma/Main.cpp` — do not edit generated `Main.cpp` by hand.
 
-- `src/main/java/magma/Main.java`: The source of truth. Contains the compiler and the runtime library definitions.
-- `src/main/java/magma/Main.cpp`: The generated output. Do not edit this manually; it is a build artifact.
+- **Try compiling the generated C++**: example (may need platform tweak):
 
-## Coding Guidelines for Agents
+  - `clang++ -std=c++20 src/main/java/magma/Main.cpp -O2 -o magma_generated` or
+  - `g++ -std=c++20 src/main/java/magma/Main.cpp -O2 -o magma_generated`
+  - Note: generated C++ can be large and platform-dependent; compilation may require additional flags.
 
-- **Preserve Functional Style**: When adding logic, use the existing `Option`, `Result`, and `Iter` primitives. Do not introduce null checks if `Option` can be used.
-- **AST Modifications**: If adding new language features, ensure you add corresponding nodes to both `J*` (Java AST) and `C*` (C++ AST) hierarchies and implement the transformation logic.
-- **No External Dependencies**: The project appears to be zero-dependency. Do not add Maven/Gradle dependencies without explicit instruction.
+- **Testing & Validation**: the canonical check is `Main.java` successfully self-transpiles and the produced C++ compiles; there are no automated unit tests in the repo.
 
-### Platform Independence & JDK Usage
+## Important files and hotspots (where to change behavior)
 
-- **Avoid JDK Dependencies**: Do not use standard JDK classes (e.g., `java.util.*`, `java.io.*`) in the core logic or AST nodes. The code must be transpiled to C++, which does not have the JVM standard library.
-- **`@Actual` Annotation**:
-  - Use `@Actual` to mark classes or methods that are required for the Java bootstrap environment but should be **omitted** or **stubbed** in the C++ output.
-  - **Classes**: If a class is annotated with `@Actual` (e.g., `JavaList` wrapping `ArrayList`), it is skipped entirely during transpilation.
-  - **Methods**: If a method is annotated with `@Actual`, only a C++ function declaration (prototype) is generated, with no body. This allows defining interfaces in Java that map to native C++ implementations.
-  - **Usage**: Use this pattern to bridge Java-specific implementations (like file I/O or collections) that allow the compiler to run on the JVM, while keeping the transpiled code platform-independent.
+- `src/main/java/magma/Main.java` — single-file compiler (parser, AST, transformation, codegen). This is the only place you normally edit to change the transpiler.
+- `src/main/java/magma/Main.cpp` — generated C++. Overwritten by `Main.java::run()`.
+- `pom.xml` — Maven build and `exec-maven-plugin` config; project uses Java 24 (`maven.compiler.release=24`).
+
+Hotspots inside `Main.java` (examples of where to update when adding language features):
+
+- Parsing and splitting: `divide`, `foldStatement`, `EscapedFolder`, `ValueFolder`.
+- AST types and transforms: add new `J*` nodes, `C*` nodes and implement conversion via `transformType`, `transformExpression`, `transformInvocation`.
+- Object/method handling: `parseObject`, `transformObject`, `completeMethodProto`, `computeMethodBody`.
+
+## Coding guidelines (project-specific)
+
+- Prefer the project's functional primitives (`Option`, `Result`, `Iter`, `List`) instead of `null` or raw Java collections in compiler core logic.
+- Keep changes inside `Main.java` for transpiler logic — this file contains the full pipeline: parsing → AST (`J*` types) → C AST (`C*` types) → codegen.
+- When adding features:
+  - Add new `J*` and `C*` types (records/sealed interfaces) and a matching `generate()` or `toCType()` where appropriate.
+  - Update transformation helpers: `transformType`, `transformExpression`, `transformInvocation`, `transformMethodDeclaration`.
+  - Update `compileRootSegment`/`compileStatements` if you add new top-level constructs.
+- Do not add runtime or core libraries that rely on JVM-only classes (e.g., `java.io.*`, `java.util.*`) into core AST nodes — use `@Actual` to provide JVM-only helpers (these are omitted or stubbed in C++ output).
+- Avoid adding Maven/Gradle dependencies without explicit approval — the project is intentionally zero-dependency to keep the generated C++ independent.
+
+### Platform-specific notes and `@Actual`
+
+- The transpiled code is intended to be platform-independent C++; any Java-only helpers should be marked `@Actual`.
+  - `@Actual` classes are used during Java bootstrap (e.g., `JavaList`, `JavaPath`) but are omitted from the C++ generator output.
+  - `@Actual` methods are emitted as prototypes only in the generated C++ (no body) — this is the pattern to provide native implementations later.
+
+Key constraints:
+
+- Compiler core logic should avoid depending on JVM-only libs; use `@Actual` for any build-time helpers.
+- Make incremental, small changes and regenerate `Main.cpp` often to keep transformations visible and debuggable.
