@@ -1797,6 +1797,8 @@ public class Main {
 
 	private boolean isIdentifier(String input) {
 		final var stripped = input.strip();
+		if (stripped.isEmpty()) return false;
+
 		return IntStream.range(0, stripped.length()).allMatch(i -> {
 			final var c = stripped.charAt(i);
 			return Character.isLetter(c) || (i != 0 && Character.isDigit(c));
@@ -2082,26 +2084,23 @@ public class Main {
 	}
 
 	private JType resolveExpression(JExpression source) {
+		return this.cleanupType(this.resolveUncleanedExpression(source));
+	}
+
+	private JType resolveUncleanedExpression(JExpression source) {
 		return switch (source) {
-			case Identifier(var value) -> {
-				if (value.equals("this")) yield this.environment
-						.resolveCurrent()
-						.<JType>map(thisType -> thisType)
-						.orElseGet(() -> new Placeholder("Not within a struct"));
-
-				final var maybeFound = this.environment.resolveExpression(value).map(JDeclaration::type);
-				if (maybeFound instanceof Some<JType>(var found)) yield found;
-				yield new Placeholder("Undefined identifier: " + value);
-			}
-
+			case Identifier(var value) -> this.resolveIdentifier(value);
 			case JMemberAccess access -> {
-				final var instanceType = this.resolveExpression(access.instance);
+				final var instance = access.instance;
+				final var instanceType = this.resolveExpression(instance);
+
 				if (instanceType instanceof JRecursiveType recursiveType)
 					if (recursiveType.internal instanceof Some<JType>(var internal) && internal instanceof JObjectType objectType)
 						yield this.resolveMember(objectType, instanceType, access.memberName);
 
 				if (instanceType instanceof JObjectType type) yield this.resolveMember(type, instanceType, access.memberName);
 
+				assert !(instanceType instanceof JGenericType);
 				yield new Placeholder(
 						"Cannot access member '" + access.memberName + "' in '" + instanceType + "', not an object.");
 			}
@@ -2112,6 +2111,27 @@ public class Main {
 			case JNumber _ -> JPrimitiveType.Int;
 			case JNot _ -> JPrimitiveType.Boolean;
 		};
+	}
+
+	private JType resolveIdentifier(String value) {
+		if (value.equals("this")) return this.environment
+				.resolveCurrent()
+				.<JType>map(thisType -> thisType)
+				.orElseGet(() -> new Placeholder("Not within a struct"));
+
+		final var maybeFound = this.environment.resolveExpression(value).map(JDeclaration::type);
+		if (maybeFound instanceof Some<JType>(var found)) return found;
+		return new Placeholder("Undefined identifier: " + value);
+	}
+
+	private JType cleanupType(JType found) {
+		if (found instanceof JGenericType genericType) {
+			final var resolved = this.environment.resolveType(genericType.base);
+			if (resolved instanceof Some<JObjectType>(var objType)) return objType;
+			else return new Placeholder("Generic type '" + genericType.base + "' has not been defined");
+		}
+
+		return found;
 	}
 
 	private JType resolveMember(JObjectType type, JType instanceType, String name) {
