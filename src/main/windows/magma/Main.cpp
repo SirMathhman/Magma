@@ -645,7 +645,7 @@ struct JRecursiveType {
 };
 struct CStructure {
 	List<char*> typeParameters;
-	char* findName;
+	char* name;
 	List<CDefinable> fields;
 };
 struct CEnum {
@@ -654,7 +654,7 @@ struct CEnum {
 };
 struct CUnion {
 	List<char*> typeParameters;
-	char* findName;
+	char* name;
 	List<CDefinable> members;
 };
 struct JObject {
@@ -987,9 +987,11 @@ JRecursiveType new_JRecursiveType();
 JType create_JRecursiveType(void* _ref, F1R<JType, JType> mapper);
 void set_JRecursiveType(void* _ref, JType created);
 char* stringify_JRecursiveType(void* _ref);
+char* findName_CStructure(void* _ref);
 char* generate_CStructure(void* _ref);
 List<CNamedType> findDependencies_CStructure(void* _ref);
 char* generate_CEnum(void* _ref);
+char* findName_CUnion(void* _ref);
 char* generate_CUnion(void* _ref);
 List<CNamedType> findDependencies_CUnion(void* _ref);
 List<CDefinable> collectCFields_JObject(void* _ref);
@@ -2977,19 +2979,23 @@ CStructureOrUnion toCStructureOrUnion_CStructure(void* _ref){
 	data.CStructure = _this;
 	return { CStructureVariant, data };
 }
+char* findName_CStructure(void* _ref){
+	CStructure* _this = (CStructure*) _ref;
+	return *(_this->name);
+}
 char* generate_CStructure(void* _ref){
 	CStructure* _this = (CStructure*) _ref;
 	C joinedFields = collect_Iter(&(map_Iter(&(map_Iter(&(iter_List(_this->fields)), F? { alloc(CField), F?Table { new }})), F? { alloc(CField), F?Table { generate }})), new_Joiner());
-	return lineSeparator_/*Unwrapped expression: generateTemplateString(*(_this->typeParameters)) + "struct " + *(_this->findName) + " {" + joinedFields + lineSeparator_startUndefined identifier: Systemend(&(System)) + "};" + System*/(&(generateTemplateString(*(_this->typeParameters)) + "struct " + *(_this->findName) + " {" + joinedFields + lineSeparator_/*Undefined identifier: System*/(&(System)) + "};" + System));
+	return lineSeparator_/*Unwrapped expression: generateTemplateString(*(_this->typeParameters)) + "struct " + *(_this->name) + " {" + joinedFields + lineSeparator_startUndefined identifier: Systemend(&(System)) + "};" + System*/(&(generateTemplateString(*(_this->typeParameters)) + "struct " + *(_this->name) + " {" + joinedFields + lineSeparator_/*Undefined identifier: System*/(&(System)) + "};" + System));
 }
 List<CNamedType> findDependencies_CStructure(void* _ref){
 	CStructure* _this = (CStructure*) _ref;
 	return collect_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(_this->fields)), F? { alloc(CDefinable), F?Table { extractIdentifiers }})), F? { alloc(List), F?Table { iter }})), new_ListCollector());
 }
-CStructure new_CStructure(List<char*> typeParameters, char* findName, List<CDefinable> fields){
+CStructure new_CStructure(List<char*> typeParameters, char* name, List<CDefinable> fields){
 	CStructure _this;
 	_this.typeParameters = typeParameters;
-	_this.findName = findName;
+	_this.name = name;
 	_this.fields = fields;
 	return _this;
 }
@@ -3016,19 +3022,23 @@ CStructureOrUnion toCStructureOrUnion_CUnion(void* _ref){
 	data.CUnion = _this;
 	return { CUnionVariant, data };
 }
+char* findName_CUnion(void* _ref){
+	CUnion* _this = (CUnion*) _ref;
+	return *(_this->name);
+}
 char* generate_CUnion(void* _ref){
 	CUnion* _this = (CUnion*) _ref;
 	C unionFields = collect_Iter(&(map_Iter(&(map_Iter(&(iter_List(_this->members)), F? { alloc(CDefinable), F?Table { generate }})), F? { alloc(Main), F?Table { generateStatement }})), new_Joiner());
-	return lineSeparator_/*Unwrapped expression: generateTemplateString(typeParameters_CUnion(&((*_this)))) + "union " + *(_this->findName) + "Data {" + unionFields + lineSeparator_startUndefined identifier: Systemend(&(System)) + "};" + System*/(&(generateTemplateString(typeParameters_CUnion(&((*_this)))) + "union " + *(_this->findName) + "Data {" + unionFields + lineSeparator_/*Undefined identifier: System*/(&(System)) + "};" + System));
+	return lineSeparator_/*Unwrapped expression: generateTemplateString(typeParameters_CUnion(&((*_this)))) + "union " + *(_this->name) + "Data {" + unionFields + lineSeparator_startUndefined identifier: Systemend(&(System)) + "};" + System*/(&(generateTemplateString(typeParameters_CUnion(&((*_this)))) + "union " + *(_this->name) + "Data {" + unionFields + lineSeparator_/*Undefined identifier: System*/(&(System)) + "};" + System));
 }
 List<CNamedType> findDependencies_CUnion(void* _ref){
 	CUnion* _this = (CUnion*) _ref;
 	return toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(_this->members)), F? { alloc(CDefinable), F?Table { extractIdentifiers }})), F? { alloc(List), F?Table { iter }})));
 }
-CUnion new_CUnion(List<char*> typeParameters, char* findName, List<CDefinable> members){
+CUnion new_CUnion(List<char*> typeParameters, char* name, List<CDefinable> members){
 	CUnion _this;
 	_this.typeParameters = typeParameters;
-	_this.findName = findName;
+	_this.name = name;
 	_this.members = members;
 	return _this;
 }

@@ -1275,13 +1275,18 @@ public class Main {
 		}
 	}
 
-	private record CStructure(List<String> typeParameters, String findName, List<CDefinable> fields)
+	private record CStructure(List<String> typeParameters, String name, List<CDefinable> fields)
 			implements CStructureOrUnion {
+		@Override
+		public String findName() {
+			return this.name;
+		}
+
 		@Override
 		public String generate() {
 			final var joinedFields = this.fields.iter().map(CField::new).map(CField::generate).collect(new Joiner());
 
-			return generateTemplateString(this.typeParameters) + "struct " + this.findName + " {" + joinedFields +
+			return generateTemplateString(this.typeParameters) + "struct " + this.name + " {" + joinedFields +
 						 System.lineSeparator() + "};" + System.lineSeparator();
 		}
 
@@ -1308,14 +1313,19 @@ public class Main {
 		}
 	}
 
-	private record CUnion(List<String> typeParameters, String findName, List<CDefinable> members)
+	private record CUnion(List<String> typeParameters, String name, List<CDefinable> members)
 			implements CStructureOrUnion {
+		@Override
+		public String findName() {
+			return this.name;
+		}
+
 		@Override
 		public String generate() {
 			final var unionFields =
 					this.members.iter().map(CDefinable::generate).map(Main::generateStatement).collect(new Joiner());
 
-			return generateTemplateString(this.typeParameters()) + "union " + this.findName + "Data {" + unionFields +
+			return generateTemplateString(this.typeParameters()) + "union " + this.name + "Data {" + unionFields +
 						 System.lineSeparator() + "};" + System.lineSeparator();
 		}
 
