@@ -464,6 +464,12 @@ struct JNumber {
 struct CNumber {
 	char* value;
 };
+struct JNot {
+	CExpression instance;
+};
+struct CNot {
+	CExpression instance;
+};
 struct Main {
 };
 CPrimitiveType CPrimitiveTypeVoid = new_CPrimitiveType("void");
@@ -716,6 +722,7 @@ new CFunction_JObjectPrototype(void* _ref);
 char* generate_CFunctionHeader(void* _ref);
 char* generate_CFunction(void* _ref);
 char* generate_CNumber(void* _ref);
+char* generate_CNot(void* _ref);
 /*private static final JType StringType = JRecursiveType.create*/(/*-> {
 		// We don't need parameter types for*/ now);
 new Environment_Main(void* _ref);
@@ -2251,6 +2258,22 @@ char* generate_CNumber(void* _ref){
 	CNumber* _this = (CNumber*) _ref;
 	return _this->value;
 }
+JExpression toJExpression_JNot(void* _ref){
+	JNot _this = *((JNot*) _ref);
+	JExpressionData data;
+	data.JNot = _this;
+	return { JNotVariant, data };
+}
+CExpression toCExpression_CNot(void* _ref){
+	CNot _this = *((CNot*) _ref);
+	CExpressionData data;
+	data.CNot = _this;
+	return { CNotVariant, data };
+}
+char* generate_CNot(void* _ref){
+	CNot* _this = (CNot*) _ref;
+	return generate_/*Cannot access member 'instance' in 'Placeholder[input=Unwrapped expression: "!" + this]', not an object.*/("!" + this.instance, );
+}
 /*private static final JType StringType = JRecursiveType.create*/(/*-> {
 		// We don't need parameter types for*/ now){?
 }
@@ -2422,13 +2445,13 @@ char* compileRootSegment_Main(void* _ref, char* input){
 	return orElseGet_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'JGenericType[base=Option, typeArguments=magma.Main$JavaList@47f6473]', not an object.]]', not an object.]*/(map_/*Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'JGenericType[base=Option, typeArguments=magma.Main$JavaList@47f6473]', not an object.]*/(flatMap_Option(partiallyParseObject_Main(this, "class", stripped), F? { alloc(this), F?Table { transformObject }}), F? { alloc(CStructMember), F?Table { generate }}), lambda17);
 }
 /*?*/ lambda18(void* _ref, /*?*/ slice){
-	return isEmpty_/*Unwrapped expression: !slice*/(!slice, );
+	return isEmpty_int(!slice, );
 }
 /*?*/ lambda19(void* _ref, /*?*/ input){
 	return transformType(parseType_Main(this, input));
 }
 /*?*/ lambda20(void* _ref, /*?*/ slice){
-	return isEmpty_/*Unwrapped expression: !slice*/(!slice, );
+	return isEmpty_int(!slice, );
 }
 Option<JObjectPrototype> partiallyParseObject_Main(void* _ref, char* type, char* stripped){
 	Main* _this = (Main*) _ref;
@@ -2452,7 +2475,7 @@ Option<JObjectPrototype> partiallyParseObject_Main(void* _ref, char* type, char*
 		return new_None<JObjectPrototype>();
 	char* beforeContent = strip_char_ptr(substring_char_ptr(afterKeyword, 0, i1), );
 	char* withEnd = strip_char_ptr(substring_char_ptr(afterKeyword, i1 + 1), );
-	if (endsWith_/*Unwrapped expression: !withEnd*/(!withEnd, "}")) 
+	if (endsWith_int(!withEnd, "}")) 
 		return new_None<JObjectPrototype>();
 	char* inputContent = substring_char_ptr(withEnd, 0, length_char_ptr(withEnd, ) - 1);
 	List<char*> variants = empty_/*Undefined identifier: Lists*/(Lists, );
@@ -2488,7 +2511,7 @@ Option<JObjectPrototype> partiallyParseObject_Main(void* _ref, char* type, char*
 			typeParameters = splitValues_Main(this, substring);
 		}
 	}
-	if (isIdentifier_/*Unwrapped expression: !this*/(!this, beforeContent)) 
+	if (isIdentifier_int(!this, beforeContent)) 
 		return new_None<JObjectPrototype>();
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'fromObjArray' in 'Placeholder[input=Undefined identifier: Streams]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ modifiersList = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'fromObjArray' in 'Placeholder[input=Undefined identifier: Streams]', not an object.]]', not an object.]]', not an object.]*/(filter_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'fromObjArray' in 'Placeholder[input=Undefined identifier: Streams]', not an object.]]', not an object.]*/(map_/*Not a functional type: Placeholder[input=Cannot access member 'fromObjArray' in 'Placeholder[input=Undefined identifier: Streams]', not an object.]*/(fromObjArray_/*Undefined identifier: Streams*/(Streams, split_else(modifiers, quote_/*Undefined identifier: Pattern*/(Pattern, " "))), F? { alloc(String), F?Table { strip }}), lambda20), );
 	char* name = strip_char_ptr(beforeContent, );
@@ -2626,7 +2649,7 @@ Option<JObjectMemberPrototype> partiallyParseObjectMember_Main(void* _ref, JObje
 	return new_Some<JObjectMemberPrototype>(new_Placeholder(stripped));
 }
 /*?*/ lambda25(void* _ref, /*?*/ slice){
-	return isEmpty_/*Unwrapped expression: !slice*/(!slice, );
+	return isEmpty_int(!slice, );
 }
 Option<JObjectMemberPrototype> parseMethod_Main(void* _ref, JObjectPrototype object, char* stripped){
 	Main* _this = (Main*) _ref;
@@ -2671,7 +2694,7 @@ Option<CDefinable> retainDefinables_Main(void* _ref, CStructMember member){
 	/*else return new None<CDefinable>()*/;
 }
 /*?*/ lambda28(void* _ref, /*?*/ slice){
-	return isEmpty_/*Unwrapped expression: !slice*/(!slice, );
+	return isEmpty_int(!slice, );
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
@@ -2788,7 +2811,7 @@ Option<JMethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, 
 	return apply_ValueFolder(new_ValueFolder(), state, character);
 }
 /*?*/ lambda39(void* _ref, /*?*/ slice){
-	return isEmpty_/*Unwrapped expression: !slice*/(!slice, );
+	return isEmpty_int(!slice, );
 }
 /*?*/ lambda40(void* _ref, /*?*/ enumValue){
 	return compileEnumValue_Main(this, structName, enumValue);
@@ -2796,10 +2819,10 @@ Option<JMethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, 
 Option<JObjectMemberPrototype> compileEnumValues_Main(void* _ref, char* input, char* structName){
 	Main* _this = (Main*) _ref;
 	char* stripped = strip_char_ptr(input, );
-	if (endsWith_/*Unwrapped expression: !stripped*/(!stripped, ";")) 
+	if (endsWith_int(!stripped, ";")) 
 		return new_None<JObjectMemberPrototype>();
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]*/ enumValues = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]*/(filter_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]*/(map_Iter(divide_Main(this, substring_char_ptr(stripped, 0, length_char_ptr(stripped, ) - 1), lambda38), F? { alloc(String), F?Table { strip }}), lambda39), );
-	if (isEmpty_/*Unwrapped expression: !enumValues*/(!enumValues, )) {
+	if (isEmpty_int(!enumValues, )) {
 		/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ optionStream = map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(iter_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]*/(enumValues, ), lambda40);
 		/*final var areAnyInvalid =
 					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>))*/;
@@ -2815,7 +2838,7 @@ Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* 
 		int i = indexOf_char_ptr(substring, "(");
 		if (i >= 0) {
 			char* name = substring_char_ptr(substring, 0, i);
-			if (isIdentifier_/*Unwrapped expression: !this*/(!this, name)) 
+			if (isIdentifier_int(!this, name)) 
 				return new_None<CStructMember>();
 			char* substring2 = substring_char_ptr(substring, i + 1);
 			/*Not a functional type: Placeholder[input=Cannot access member 'lineSeparator' in 'Placeholder[input=Unwrapped expression: structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System]', not an object.]*/ generated = lineSeparator_/*Unwrapped expression: structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System*/(structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System, );
@@ -2853,7 +2876,7 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	return wrap_/*Unwrapped expression: lineSeparator_startUndefined identifier: Systemend(System, ) + "\t" + Placeholder*/(lineSeparator_/*Undefined identifier: System*/(System, ) + "\t" + Placeholder, stripped);
 }
 /*?*/ lambda41(void* _ref, /*?*/ slice){
-	return isEmpty_/*Unwrapped expression: !slice*/(!slice, );
+	return isEmpty_int(!slice, );
 }
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input){
 	Main* _this = (Main*) _ref;
@@ -2866,7 +2889,7 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 				return new_None<char*>();
 			/*Not a functional type: Placeholder[input=Cannot access member 'getFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ first = getFirst_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]*/(divisions, );
 			char* maybeWithBraces = joinStrings_Main(this, subList_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]*/(divisions, 1, size_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]*/(divisions, )));
-			if (endsWith_/*Unwrapped expression: !first*/(!first, ")")) 
+			if (endsWith_int(!first, ")")) 
 				return new_None<char*>();
 			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'getFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ condition = substring_/*Not a functional type: Placeholder[input=Cannot access member 'getFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(first, 0, length_/*Not a functional type: Placeholder[input=Cannot access member 'getFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Iter, typeArguments=magma.Main$JavaList@90f6bfd]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(first, ) - 1);
 			if (endsWith_/*Unwrapped expression: startsWith_char_ptr(maybeWithBraces, "{") && maybeWithBraces*/(startsWith_char_ptr(maybeWithBraces, "{") && maybeWithBraces, "}")) {
@@ -3044,9 +3067,9 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 		return new_Some<JExpression>(new_Identifier(stripped));
 	if (startsWith_char_ptr(stripped, "!")) {
 		char* substring = substring_char_ptr(stripped, 1);
-		/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'JGenericType[base=Option, typeArguments=magma.Main$JavaList@67b6d4ae]', not an object.]*/ maybeInstance = map_Option(parseCExpression_Main(this, substring), F? { alloc(CExpression), F?Table { generate }});
-		if (maybeInstance.variant = ?.SomeVariant) 
-			return map_Some(new_Some<char*>("!" + instance), F? { alloc(JExpressionWrapper), F?Table { new }});
+		Option<CExpression> maybeInstance = parseCExpression_Main(this, substring);
+		if (maybeInstance.variant = ?.Some(var instance)Variant) 
+			return new_Some<JExpression>(new_JNot(instance));
 	}
 	if (isNumber_Main(this, stripped)) 
 		return new_Some<JExpression>(new_JNumber(stripped));
@@ -3080,7 +3103,7 @@ Option<char*> compileLambda_Main(void* _ref, char* input){
 	return new_Some<char*>(generatedName);
 }
 /*?*/ lambda52(void* _ref, /*?*/ slice){
-	return isEmpty_/*Unwrapped expression: !slice*/(!slice, );
+	return isEmpty_int(!slice, );
 }
 Option<List<char*>> parseLambdaParams_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
@@ -3104,7 +3127,7 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 	Main* _this = (Main*) _ref;
 	if (length_char_ptr(input, ) < 3) 
 		return new_None<char*>();
-	if (contains_/*Unwrapped expression: !input*/(!input, operator)) 
+	if (contains_int(!input, operator)) 
 		return new_None<char*>();
 	int i1 = -1;
 	int depth = 0;
@@ -3133,7 +3156,7 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 }
 Option<JExpression> parseInvokable_Main(void* _ref, char* stripped){
 	Main* _this = (Main*) _ref;
-	if (endsWith_/*Unwrapped expression: !stripped*/(!stripped, ")")) 
+	if (endsWith_int(!stripped, ")")) 
 		return new_None<JExpression>();
 	int length = length_char_ptr(stripped, );
 	char* withoutEnd = substring_char_ptr(stripped, 0, length - 1);
@@ -3197,7 +3220,7 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 		char* beforeName = strip_char_ptr(substring_char_ptr(stripped, 0, nameSeparator), );
 		char* name = strip_char_ptr(substring_char_ptr(stripped, nameSeparator + 1), );
 		int typeSeparator = findTypeSeparator_Main(this, beforeName);
-		if (isIdentifier_/*Unwrapped expression: !this*/(!this, name)) 
+		if (isIdentifier_int(!this, name)) 
 			return new_None<JDeclaration>();
 		if (typeSeparator < 0) {
 			JType type = parseType_Main(this, beforeName);
@@ -3229,7 +3252,7 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 	return new_None<JDeclaration>();
 }
 /*?*/ lambda53(void* _ref, /*?*/ slice){
-	return isEmpty_/*Unwrapped expression: !slice*/(!slice, );
+	return isEmpty_int(!slice, );
 }
 /*?*/ lambda54(void* _ref, /*?*/ slice){
 	return substring_/*Undefined identifier: slice*/(slice, 1);

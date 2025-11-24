@@ -157,7 +157,7 @@ public class Main {
 	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
 
 	sealed private interface JExpression extends JCaller, JAssignable
-			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess, JNumber {}
+			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess, JNot, JNumber {}
 
 	private interface CExpression extends CAssignable {}
 
@@ -1158,6 +1158,15 @@ public class Main {
 		}
 	}
 
+	private record JNot(CExpression instance) implements JExpression {}
+
+	private record CNot(CExpression instance) implements CExpression {
+		@Override
+		public String generate() {
+			return "!" + this.instance.generate();
+		}
+	}
+
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
 		final var methods = Lists.of(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)),
@@ -1267,6 +1276,7 @@ public class Main {
 				else yield new CFieldAccess(cExpression, memberName);
 			}
 			case JNumber jNumber -> new CNumber(jNumber.value);
+			case JNot jNot -> new CNot(jNot.instance);
 		};
 	}
 
@@ -2031,6 +2041,7 @@ public class Main {
 					new Placeholder("Unwrapped expression: " + jExpressionWrapper.content);
 			case JInvokable jInvokable -> this.resolveCaller(jInvokable.caller);
 			case JNumber jNumber -> JPrimitiveType.Int;
+			case JNot jNot -> JPrimitiveType.Boolean;
 		};
 	}
 
@@ -2143,9 +2154,8 @@ public class Main {
 
 		if (stripped.startsWith("!")) {
 			final var substring = stripped.substring(1);
-			final var maybeInstance = this.parseCExpression(substring).map(CExpression::generate);
-			if (maybeInstance instanceof Some<String>(var instance))
-				return new Some<String>("!" + instance).map(JExpressionWrapper::new);
+			final var maybeInstance = this.parseCExpression(substring);
+			if (maybeInstance instanceof Some(var instance)) return new Some<JExpression>(new JNot(instance));
 		}
 
 		if (this.isNumber(stripped)) return new Some<JExpression>(new JNumber(stripped));
