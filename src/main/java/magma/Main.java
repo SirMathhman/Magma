@@ -1326,7 +1326,8 @@ public class Main {
 
 			final var conversionFunctionName = "to" + identifier + "_" + this.name;
 			final var parameters = Lists.of(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
-			final var header = new CFunctionHeader(new CDeclaration(typeParameters, implementee, conversionFunctionName), parameters);
+			final var header =
+					new CFunctionHeader(new CDeclaration(this.typeParameters, implementee, conversionFunctionName), parameters);
 
 			return new CFunction(header, content);
 		}
@@ -1424,7 +1425,8 @@ public class Main {
 																 new JDeclaration("lastIndexOf", new JFunctionalType(JPrimitiveType.Int)),
 																 new JDeclaration("length", new JFunctionalType(JPrimitiveType.Int)),
 																 new JDeclaration("strip", new JFunctionalType(StringType)),
-																 new JDeclaration("substring", new JFunctionalType(StringType)));
+																 new JDeclaration("substring", new JFunctionalType(StringType)),
+																 new JDeclaration("replace", new JFunctionalType(StringType)));
 
 		return new JObjectType("String", methods);
 	});
@@ -1523,10 +1525,10 @@ public class Main {
 
 	private Tuple<CExpression, List<CType>> destroyConstruction(JConstruction jConstruction) {
 		final var cType = transformType(jConstruction.jType);
-		if (cType instanceof Identifier(String value))
+		if (cType instanceof Identifier(var value))
 			return new Tuple<CExpression, List<CType>>(new Identifier("new_" + value), Lists.empty());
 
-		if (cType instanceof CTemplateType(String base, List<CType> typeArguments))
+		if (cType instanceof CTemplateType(var base, var typeArguments))
 			return new Tuple<CExpression, List<CType>>(new Identifier("new_" + base), typeArguments);
 
 		return new Tuple<CExpression, List<CType>>(new Identifier("new_" + cType.generate()), Lists.empty());
