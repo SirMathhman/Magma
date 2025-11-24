@@ -1574,7 +1574,12 @@ public class Main {
 			case JMemberAccess jMemberAccess -> {
 				final var instance = jMemberAccess.instance;
 				final var memberName = jMemberAccess.memberName;
-				yield new CFieldAccess(this.transformExpression(instance), memberName);
+				final var transformed = this.transformExpression(instance);
+				if (transformed instanceof CQuantity(CExpression expression1))
+					if (expression1 instanceof CDereference(CExpression expression2))
+						yield new CPointerAccess(expression2, memberName);
+
+				yield new CFieldAccess(transformed, memberName);
 			}
 			case JNumber jNumber -> new CNumber(jNumber.value);
 			case JNot jNot -> new CNot(jNot.instance);
