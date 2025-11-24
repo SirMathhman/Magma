@@ -1504,6 +1504,20 @@ public class Main {
 			variants = this.splitValues(substring1);
 		}
 
+		// TODO: generate conversion methods
+		List<CType> extensions = Lists.empty();
+		final var extendsIndex = beforeContent.indexOf("extends ");
+		if (extendsIndex >= 0) {
+			final var extensionsString = beforeContent.substring(extendsIndex + "extends ".length());
+			beforeContent = beforeContent.substring(0, extendsIndex).strip();
+			extensions = this
+					.divide(extensionsString, new ValueFolder())
+					.map(String::strip)
+					.filter(slice -> !slice.isEmpty())
+					.map(input -> transformType(this.parseType(input)))
+					.toList();
+		}
+
 		List<CType> implementees = Lists.empty();
 		final var i4 = beforeContent.indexOf("implements ");
 		if (i4 >= 0) {
