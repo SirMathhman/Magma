@@ -188,6 +188,7 @@ struct CPrimitiveType {
 	char* content;
 };
 struct JPrimitiveType {
+	char* name;
 };
 template <typename T>
 struct HeadTable {
@@ -684,15 +685,16 @@ struct Main {
 CPrimitiveType CPrimitiveTypeVoid = new_CPrimitiveType("void");
 CPrimitiveType CPrimitiveTypeChar = new_CPrimitiveType("char");
 CPrimitiveType CPrimitiveTypeInt = new_CPrimitiveType("int");
-JPrimitiveType JPrimitiveTypeInt = new_JPrimitiveType();
-JPrimitiveType JPrimitiveTypeVoid = new_JPrimitiveType();
-JPrimitiveType JPrimitiveTypeBoolean = new_JPrimitiveType();
-JPrimitiveType JPrimitiveTypeChar = new_JPrimitiveType();
-JPrimitiveType JPrimitiveTypeVar = new_JPrimitiveType();
+JPrimitiveType JPrimitiveTypeInt = new_JPrimitiveType("int");
+JPrimitiveType JPrimitiveTypeVoid = new_JPrimitiveType("void");
+JPrimitiveType JPrimitiveTypeBoolean = new_JPrimitiveType("bool");
+JPrimitiveType JPrimitiveTypeChar = new_JPrimitiveType("char");
+JPrimitiveType JPrimitiveTypeVar = new_JPrimitiveType("var");
 CPrimitiveType new_CPrimitiveType(char* content);
 char* generate_CPrimitiveType(void* _ref);
 char* toBaseName_CPrimitiveType(void* _ref);
 List<CNamedType> extractIdentifiers_CPrimitiveType(void* _ref);
+JPrimitiveType new_JPrimitiveType(char* name);
 char* stringify_JPrimitiveType(void* _ref);
 template <typename T>
 Option<T> next_Head(void* _ref);
@@ -1101,9 +1103,14 @@ JType toJType_JPrimitiveType(void* _ref){
 	data.JPrimitiveType = _this;
 	return { JPrimitiveTypeVariant, data };
 }
+JPrimitiveType new_JPrimitiveType(char* name){
+	JPrimitiveType _this;
+	_this.name = name;
+	return _this;
+}
 char* stringify_JPrimitiveType(void* _ref){
 	JPrimitiveType* _this = (JPrimitiveType*) _ref;
-	return name_JPrimitiveType(&((*_this)));
+	return _this.name;
 }
 template <typename T>
 Option<T> next_Head(void* _ref){
@@ -3431,7 +3438,7 @@ Option<JObject> parseObject_Main(void* _ref, char* type, char* stripped){
 		return new_None();
 	char* beforeContent = strip_String(&(substring_String(&(afterKeyword), 0, i1)));
 	char* withEnd = strip_String(&(substring_String(&(afterKeyword), i1 + 1)));
-	if (endsWith_Boolean(&(!withEnd), "}")) 
+	if (endsWith_bool(&(!withEnd), "}")) 
 		return new_None();
 	char* inputContent = substring_String(&(withEnd), 0, length_String(&(withEnd)) - 1);
 	List<char*> variants = empty_Lists(&(Lists));
@@ -3495,7 +3502,7 @@ Option<JObject> parseObject_Main(void* _ref, char* type, char* stripped){
 	typeParameters = splitValues_Main(&((*_this)), substring);
 	/*}*/
 	/*}*/
-	if (isIdentifier_Boolean(&(!Identifier), beforeContent)) 
+	if (isIdentifier_bool(&(!Identifier), beforeContent)) 
 		return new_None();
 	/*var modifiersList = Streams*/
 	/*.fromObjArray(modifiers.split(Pattern.quote(" ")))*/
@@ -3684,7 +3691,7 @@ Option<JObjectMember> parseObjectMember_Main(void* _ref, char* input, char* name
 	return new_Some(new_Placeholder(stripped));
 }
 /*TODO:  resolve lambda return type*/ lambda32(void* _ref, /*TODO: resolve type of lambda param*/ slice){
-	return isEmpty_Boolean(&(!slice));
+	return isEmpty_bool(&(!slice));
 }
 Option<JObjectMember> parseMethod_Main(void* _ref, char* stripped, char* name, List<char*> typeParameters){
 	Main* _this = (Main*) _ref;
@@ -3720,7 +3727,7 @@ Option<CDefinable> retainDefinables_Main(void* _ref, CStructMember member){
 	return _switch;
 }
 /*TODO:  resolve lambda return type*/ lambda35(void* _ref, /*TODO: resolve type of lambda param*/ slice){
-	return isEmpty_Boolean(&(!slice));
+	return isEmpty_bool(&(!slice));
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
@@ -3837,7 +3844,7 @@ Option<JObjectMember> parseEnumValuesStatement_Main(void* _ref, char* input, cha
 	return apply_ValueFolder(&(new_ValueFolder()), state, character);
 }
 /*TODO:  resolve lambda return type*/ lambda45(void* _ref, /*TODO: resolve type of lambda param*/ slice){
-	return isEmpty_Boolean(&(!slice));
+	return isEmpty_bool(&(!slice));
 }
 /*TODO:  resolve lambda return type*/ lambda46(void* _ref, /*TODO: resolve type of lambda param*/ enumValue){
 	return compileEnumValue_Main(&((*_this)), structName, enumValue);
@@ -3845,7 +3852,7 @@ Option<JObjectMember> parseEnumValuesStatement_Main(void* _ref, char* input, cha
 Option<JObjectMember> parseEnumValues_Main(void* _ref, char* structName, char* input){
 	Main* _this = (Main*) _ref;
 	List enumValues = toList_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), input, lambda44)), F? { alloc(String), F?Table { strip }})), lambda45)));
-	if (isEmpty_Boolean(&(!enumValues))) {
+	if (isEmpty_bool(&(!enumValues))) {
 		Iter optionStream = map_Iter(&(iter_List(&(enumValues))), lambda46);
 		/*final var areAnyInvalid =
 					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>))*/;
@@ -3862,7 +3869,7 @@ Option<CStructMember> compileEnumValue_Main(void* _ref, char* structName, char* 
 		int i = indexOf_String(&(substring), "(");
 		if (i >= 0) {
 			char* name = substring_String(&(substring), 0, i);
-			if (isIdentifier_Boolean(&(!Identifier), name)) 
+			if (isIdentifier_bool(&(!Identifier), name)) 
 				return new_None();
 			char* substring2 = substring_String(&(substring), i + 1);
 			/*Not a functional type: Placeholder[input=Cannot access member 'lineSeparator' in 'Placeholder[input=Unwrapped expression: structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System]', not an object.]*/ generated = lineSeparator_/*Unwrapped expression: structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System*/(&(structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System));
@@ -3906,7 +3913,7 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	return wrap_/*Unwrapped expression: lineSeparator_startUndefined identifier: Systemend(&(System)) + "\t" + Placeholder*/(&(lineSeparator_/*Undefined identifier: System*/(&(System)) + "\t" + Placeholder), stripped);
 }
 /*TODO:  resolve lambda return type*/ lambda47(void* _ref, /*TODO: resolve type of lambda param*/ slice){
-	return isEmpty_Boolean(&(!slice));
+	return isEmpty_bool(&(!slice));
 }
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input){
 	Main* _this = (Main*) _ref;
@@ -3919,7 +3926,7 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 				return new_None();
 			T first = getFirst_List(&(divisions));
 			char* maybeWithBraces = joinStrings_Main(&((*_this)), subList_List(&(divisions), 1, size_List(&(divisions))));
-			if (endsWith_Boolean(&(!first), ")")) 
+			if (endsWith_bool(&(!first), ")")) 
 				return new_None();
 			/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Identifier[value=T]', not an object.]*/ condition = substring_T(&(first), 0, length_T(&(first)) - 1);
 			if (endsWith_/*Unwrapped expression: startsWith_String(&(maybeWithBraces), "{") && maybeWithBraces*/(&(startsWith_String(&(maybeWithBraces), "{") && maybeWithBraces), "}")) {
@@ -4164,7 +4171,7 @@ Option<char*> compileLambda_Main(void* _ref, char* input){
 	return new_Some(generatedName);
 }
 /*TODO:  resolve lambda return type*/ lambda58(void* _ref, /*TODO: resolve type of lambda param*/ slice){
-	return isEmpty_Boolean(&(!slice));
+	return isEmpty_bool(&(!slice));
 }
 Option<List<char*>> parseLambdaParams_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
@@ -4189,7 +4196,7 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 	Main* _this = (Main*) _ref;
 	if (length_String(&(input)) < 3) 
 		return new_None();
-	if (contains_Boolean(&(!input), operator)) 
+	if (contains_bool(&(!input), operator)) 
 		return new_None();
 	int i1 = -1;
 	int depth = 0;
@@ -4218,7 +4225,7 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 }
 Option<JExpression> parseInvokable_Main(void* _ref, char* stripped){
 	Main* _this = (Main*) _ref;
-	if (endsWith_Boolean(&(!stripped), ")")) 
+	if (endsWith_bool(&(!stripped), ")")) 
 		return new_None();
 	int length = length_String(&(stripped));
 	char* withoutEnd = substring_String(&(stripped), 0, length - 1);
@@ -4285,7 +4292,7 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 		char* beforeName = strip_String(&(substring_String(&(stripped), 0, nameSeparator)));
 		char* name = strip_String(&(substring_String(&(stripped), nameSeparator + 1)));
 		int typeSeparator = findTypeSeparator_Main(&((*_this)), beforeName);
-		if (isIdentifier_Boolean(&(!Identifier), name)) 
+		if (isIdentifier_bool(&(!Identifier), name)) 
 			return new_None();
 		if (typeSeparator < 0) {
 			JType type = parseType_Main(&((*_this)), beforeName);
@@ -4317,7 +4324,7 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 	return new_None();
 }
 /*TODO:  resolve lambda return type*/ lambda59(void* _ref, /*TODO: resolve type of lambda param*/ slice){
-	return isEmpty_Boolean(&(!slice));
+	return isEmpty_bool(&(!slice));
 }
 /*TODO:  resolve lambda return type*/ lambda60(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return substring_/*Undefined identifier: slice*/(&(slice), 1);

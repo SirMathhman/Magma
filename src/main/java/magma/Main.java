@@ -38,11 +38,15 @@ public class Main {
 	}
 
 	private enum JPrimitiveType implements JType {
-		Int, Void, Boolean, Char, Var;
+		Int("int"), Void("void"), Boolean("bool"), Char("char"), Var("var");
+
+		private final String name;
+
+		JPrimitiveType(String name) {this.name = name;}
 
 		@Override
 		public String stringify() {
-			return this.name();
+			return this.name;
 		}
 	}
 
