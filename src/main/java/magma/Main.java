@@ -514,10 +514,6 @@ public class Main {
 		public String toBaseName() {
 			return this.value;
 		}
-
-		public CExpression toExpression() {
-			return new CQuantity(new CDereference(new Identifier("_this")));
-		}
 	}
 
 	private record Placeholder(String input)
@@ -1000,32 +996,37 @@ public class Main {
 			return this.frames.iterReversed().map(Frame::toStructureType).flatMap(Option::iter).next();
 		}
 
-		public Environment withName(String name) {
-			this.frames = this.frames.mapLast(last -> last.withName(name));
+		public Environment withObject(JObject object) {
+			this.frames = this.frames.mapLast(last -> last.withObject(object));
 			return this;
 		}
 
 		public Option<JObjectType> resolveType(String name) {
 			return this.frames.iterReversed().map(frame -> frame.resolveType(name)).flatMap(Option::iter).next();
 		}
+
+		public Environment defineAllTypes(List<JObjectType> types) {
+			this.frames = this.frames.mapLast(last -> last.defineAllTypes(types));
+			return this;
+		}
 	}
 
 	private static class Frame {
-		private final Option<String> maybeName;
-		private final List<JObjectType> types = new JavaList<JObjectType>();
+		private final Option<JObject> maybeObject;
+		private List<JObjectType> types = new JavaList<JObjectType>();
 		private List<JDeclaration> definitions;
 
-		private Frame(Option<String> maybeName, List<JDeclaration> defined) {
-			this.maybeName = maybeName;
+		private Frame(Option<JObject> maybeName, List<JDeclaration> defined) {
+			this.maybeObject = maybeName;
 			this.definitions = defined;
 		}
 
 		public Frame() {
-			this(new None<String>(), new JavaList<JDeclaration>());
+			this(new None<JObject>(), new JavaList<JDeclaration>());
 		}
 
 		public Frame defineAll(List<JDeclaration> declarations) {
-			return new Frame(this.maybeName, this.definitions.addAllLast(declarations));
+			return new Frame(this.maybeObject, this.definitions.addAllLast(declarations));
 		}
 
 		public Option<JDeclaration> resolveExpression(String identifier) {
@@ -1038,15 +1039,20 @@ public class Main {
 		}
 
 		public Option<JObjectType> toStructureType() {
-			return this.maybeName.map(name -> new JObjectType(name, this.definitions));
+			return this.maybeObject.map(obj -> new JObjectType(obj.name, this.definitions));
 		}
 
-		public Frame withName(String name) {
-			return new Frame(new Some<String>(name), this.definitions);
+		public Frame withObject(JObject name) {
+			return new Frame(new Some<JObject>(name), this.definitions);
 		}
 
 		public Option<JObjectType> resolveType(String name) {
 			return this.types.iter().filter(type -> type.name.equals(name)).next();
+		}
+
+		public Frame defineAllTypes(List<JObjectType> types) {
+			this.types = this.types.addAllLast(types);
+			return this;
 		}
 	}
 
@@ -1107,7 +1113,7 @@ public class Main {
 
 	private record JObject(String type, List<String> annotations, List<String> modifiersList, String name,
 												 List<String> typeParameters, List<JDeclaration> recordFields, List<CType> implementees,
-												 List<String> variants, String inputContent) implements JObjectMember {
+												 List<String> variants, List<JObjectMember> children) implements JObjectMember {
 		private List<CDefinable> collectCFields() {
 			return this.recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList();
 		}
@@ -1135,6 +1141,19 @@ public class Main {
 
 			return new CFunction(header, content);
 		}
+
+		public JObjectType toType() {
+			final var memberDefinitions = this.children.iter().map(this::extractDefinition).flatMap(Option::iter).toList();
+			return new JObjectType(this.name, memberDefinitions);
+		}
+
+		private Option<JDeclaration> extractDefinition(JObjectMember child) {
+			return switch (child) {
+				case JField jField -> new Some<JDeclaration>(jField.declaration);
+				case JMethod jMethod -> jMethod.toDeclaration();
+				case EmptyStructMember _, JObject _, Placeholder _ -> new None<JDeclaration>();
+			};
+		}
 	}
 
 	public record CFunctionHeader(CFunctionDeclaration definition, List<CDeclaration> parameters) {
@@ -1151,7 +1170,18 @@ public class Main {
 	}
 
 	private record JMethod(List<String> typeParameters, List<JDeclaration> parameters,
-												 JMethodDeclaration methodDeclaration, String content) implements JObjectMember {}
+												 JMethodDeclaration methodDeclaration, String content) implements JObjectMember {
+		private Option<JDeclaration> toDeclaration() {
+			if (this.methodDeclaration instanceof JDeclaration declaration) {
+				final var returnType = declaration.type;
+				final var paramTypes = this.parameters.iter().map(JDeclaration::type).toList();
+				final var functionalType = new JFunctionalType(paramTypes, returnType);
+				return new Some<JDeclaration>(new JDeclaration(declaration.name, functionalType));
+			}
+
+			return new None<JDeclaration>();
+		}
+	}
 
 	private record JField(JDeclaration declaration) implements JObjectMember {}
 
@@ -1261,6 +1291,16 @@ public class Main {
 		else joinedTypeParameters = "<" + typeParameters.iter().collect(new Joiner(", ")) + ">";
 
 		return joinedTypeParameters;
+	}
+
+	private static Option<JObjectType> extractType(JObjectMember jObjectMember) {
+		return switch (jObjectMember) {
+			case JObject jObject -> new Some<JObjectType>(jObject.toType());
+			case EmptyStructMember _ -> new None<JObjectType>();
+			case JField _ -> new None<JObjectType>();
+			case JMethod _ -> new None<JObjectType>();
+			case Placeholder _ -> new None<JObjectType>();
+		};
 	}
 
 	private CExpression transformCaller(JCaller jCaller) {
@@ -1491,8 +1531,13 @@ public class Main {
 				.toList();
 
 		var name = beforeContent.strip();
+		var finalTypeParameters = typeParameters;
+		final var children = this
+				.divide(inputContent, new EscapedFolder(this::foldStatement))
+				.map(slice -> this.parseObjectMember(slice, name, finalTypeParameters))
+				.flatMap(Option::iter)
+				.toList();
 
-		// TODO: replace with the builder pattern
 		final var prototype = new JObject(type,
 																			annotations,
 																			modifiersList,
@@ -1501,7 +1546,7 @@ public class Main {
 																			recordFields,
 																			implementees,
 																			variants,
-																			inputContent);
+																			children);
 
 		return new Some<JObject>(prototype);
 	}
@@ -1514,30 +1559,23 @@ public class Main {
 
 		var fields = object.collectCFields();
 
-		final var within = this.environment.withinScoped((env) -> {
-			final var withName = env.withName(object.name());
+		final var within = this.environment.withinScoped(env -> {
+			this.environment = env.withObject(object);
 
-			// Note that withName is not used by members here, but should be accessible because Environment has a de facto
-			// mutable implementation
-			// But if environment becomes immutable, then we have to pass withName as a parameter here eventually
-			final var prototypes = this
-					.divide(object.inputContent, new EscapedFolder(this::foldStatement))
-					.map(slice -> this.parseObjectMember(object, slice))
-					.flatMap(Option::iter)
-					.toList();
+			final var types = object.children.iter().map(Main::extractType).flatMap(Option::iter).toList();
+			final var declarations =
+					object.children.iter().map(this::extractMethodDeclaration).flatMap(Option::iter).toList();
 
-
-			final var declarations = prototypes.iter().map(this::extractMethodDeclaration).flatMap(Option::iter).toList();
-
+			this.environment = this.environment.defineAllTypes(types);
 			this.environment = this.environment.defineAllExpressions(declarations);
 
-			final var members = prototypes
+			final var members = object.children
 					.iter()
-					.map(wrapper -> this.completeObjectMemberPrototype(object, wrapper))
+					.map(wrapper -> this.transformObjectMemberPrototype(object, wrapper))
 					.flatMap(Option::iter)
 					.toList();
 
-			return new Tuple<Environment, List<CStructMember>>(withName, members);
+			return new Tuple<Environment, List<CStructMember>>(this.environment, members);
 		});
 
 		this.environment = within.left;
@@ -1570,20 +1608,11 @@ public class Main {
 	}
 
 	private Option<JDeclaration> extractMethodDeclaration(JObjectMember prototype) {
-		if (prototype instanceof JMethod methodPrototype) {
-			final var methodDeclaration = methodPrototype.methodDeclaration;
-			if (methodDeclaration instanceof JDeclaration declaration) {
-				final var returnType = declaration.type;
-				final var paramTypes = methodPrototype.parameters.iter().map(JDeclaration::type).toList();
-				final var functionalType = new JFunctionalType(paramTypes, returnType);
-				return new Some<JDeclaration>(new JDeclaration(declaration.name, functionalType));
-			}
-		}
-
+		if (prototype instanceof JMethod methodPrototype) return methodPrototype.toDeclaration();
 		return new None<JDeclaration>();
 	}
 
-	private Option<CStructMember> completeObjectMemberPrototype(JObject object, JObjectMember wrapper) {
+	private Option<CStructMember> transformObjectMemberPrototype(JObject object, JObjectMember wrapper) {
 		return switch (wrapper) {
 			case JObject objectPrototype -> this.transformObject(objectPrototype);
 			case JMethod methodPrototype -> new Some<CStructMember>(this.completeMethodProto(methodPrototype, object));
@@ -1611,11 +1640,9 @@ public class Main {
 		if (jFunctionProto.content.startsWith("{") && jFunctionProto.content.endsWith("}")) {
 			final var inputContent = jFunctionProto.content.substring(1, jFunctionProto.content().length() - 1);
 
-			final var within = this.environment.withinScoped((env) -> {
-				return env.defineAllExpressions(jFunctionProto.parameters()).within(() -> {
-					return new Some<String>(this.compileMethodsSegments(inputContent, 1));
-				});
-			});
+			final var within = this.environment.withinScoped((env) -> env
+					.defineAllExpressions(jFunctionProto.parameters())
+					.within(() -> new Some<String>(this.compileMethodsSegments(inputContent, 1))));
 
 			this.environment = within.left;
 			maybeCompiled = within.right;
@@ -1653,7 +1680,7 @@ public class Main {
 		};
 	}
 
-	private Option<JObjectMember> parseObjectMember(JObject object, String input) {
+	private Option<JObjectMember> parseObjectMember(String input, String name, List<String> typeParameters) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) return new None<JObjectMember>();
 
@@ -1669,7 +1696,7 @@ public class Main {
 		final var maybeClass = this.parseObject("class", input);
 		if (maybeClass instanceof Some<JObject>(var class0)) return new Some<JObjectMember>(class0);
 
-		final var maybeEnumValues = this.parseEnumValues(input, object.name());
+		final var maybeEnumValues = this.parseEnumValues(input, name);
 		if (maybeEnumValues instanceof Some<JObjectMember>(var enumValues)) return new Some<JObjectMember>(enumValues);
 
 		if (stripped.endsWith(";")) {
@@ -1681,13 +1708,12 @@ public class Main {
 			}
 		}
 
-		final var maybeMethod = this.parseMethod(object, stripped);
+		final var maybeMethod = this.parseMethod(stripped, name, typeParameters);
 		if (maybeMethod instanceof Some<JObjectMember>(var temp)) return new Some<JObjectMember>(temp);
 		return new Some<JObjectMember>(new Placeholder(stripped));
 	}
 
-	private Option<JObjectMember> parseMethod(JObject object, String stripped) {
-		var structName = object.name();
+	private Option<JObjectMember> parseMethod(String stripped, String name, List<String> typeParameters) {
 		final var i = stripped.indexOf("(");
 		if (i < 0) return new None<JObjectMember>();
 
@@ -1708,8 +1734,8 @@ public class Main {
 				.flatMap(Option::iter)
 				.toList();
 
-		final var declaration = this.parseMethodDeclaration(declarationString, structName);
-		final var proto = new JMethod(object.typeParameters(), parameters, declaration, withBraces);
+		final var declaration = this.parseMethodDeclaration(declarationString, name);
+		final var proto = new JMethod(typeParameters, parameters, declaration, withBraces);
 		return new Some<JObjectMember>(proto);
 	}
 
