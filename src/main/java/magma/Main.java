@@ -7,9 +7,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -31,6 +29,11 @@ public class Main {
 		@Override
 		public String toBaseName() {
 			return this.content;
+		}
+
+		@Override
+		public List<Identifier> extractIdentifiers() {
+			return Lists.empty();
 		}
 	}
 
@@ -119,11 +122,13 @@ public class Main {
 		String generate();
 
 		String toBaseName();
+
+		List<Identifier> extractIdentifiers();
 	}
 
 	private sealed interface JMethodDeclaration permits JConstructor, JDeclaration, Placeholder {}
 
-	private sealed interface CStructMember permits EmptyStructMember, CField, FunctionDeclaration, Placeholder {
+	private sealed interface CStructMember permits EmptyStructMember, CField, CFunctionDeclaration, Placeholder {
 		String generate();
 	}
 
@@ -147,18 +152,6 @@ public class Main {
 		String display();
 	}
 
-	private interface CFunctionDeclaration {
-		default CFunctionDeclaration mapTypeParameters(F1R<List<String>, List<String>> mapper) {
-			return this;
-		}
-
-		default CFunctionDeclaration mapName(F1R<String, String> mapper) {
-			return this;
-		}
-
-		String generate();
-	}
-
 	private interface CAssignable {
 		String generate();
 	}
@@ -178,12 +171,22 @@ public class Main {
 
 	private sealed interface JCaller permits JConstruction, JExpression {}
 
-	private interface CDefinable {
+	private sealed interface CDefinable permits CDeclaration, CFunctionDeclaration, Placeholder {
 		String generate();
+
+		List<Identifier> extractIdentifiers();
+
+		CDefinable mapTypeParameters(F1R<List<String>, List<String>> mapper);
+
+		CDefinable mapName(F1R<String, String> mapper);
 	}
 
 	private sealed interface CStructureOrUnion permits CStructure, CUnion {
 		String generate();
+
+		List<Identifier> listDependencies();
+
+		String name();
 	}
 
 	private sealed interface JObjectMember permits EmptyStructMember, JField, JMethod, JObject, Placeholder {}
@@ -491,25 +494,39 @@ public class Main {
 		public String toBaseName() {
 			return this.type.toBaseName() + "_ptr";
 		}
+
+		@Override
+		public List<Identifier> extractIdentifiers() {
+			return this.type.extractIdentifiers();
+		}
 	}
 
-	private record CTemplateType(String base, List<CType> list) implements CType {
-		private CTemplateType(String base, List<CType> list) {
+	private record CTemplateType(String base, List<CType> typeArguments) implements CType {
+		private CTemplateType(String base, List<CType> typeArguments) {
 			this.base = base;
-			this.list = list;
+			this.typeArguments = typeArguments;
 
-			assert !list.isEmpty();
+			assert !typeArguments.isEmpty();
 		}
 
 		@Override
 		public String generate() {
-			final var typeArguments = this.list.iter().map(CType::generate).collect(new Joiner(", "));
+			final var typeArguments = this.typeArguments.iter().map(CType::generate).collect(new Joiner(", "));
 			return this.base + "<" + typeArguments + ">";
 		}
 
 		@Override
 		public String toBaseName() {
 			return this.base;
+		}
+
+		@Override
+		public List<Identifier> extractIdentifiers() {
+			return this.typeArguments
+					.iter()
+					.map(CType::extractIdentifiers)
+					.flatMap(List::iter)
+					.collect(new ListCollector<Identifier>());
 		}
 	}
 
@@ -530,8 +547,16 @@ public class Main {
 	private record Identifier(String value) implements CType, JType, JExpression, CExpression {
 		private Identifier(String value) {
 			this.value = value;
+		}
 
-			assert !value.isEmpty();
+		private static boolean isIdentifier(String input) {
+			final var stripped = input.strip();
+			if (stripped.isEmpty() || stripped.equals("return")) return false;
+
+			return IntStream.range(0, stripped.length()).allMatch(i -> {
+				final var c = stripped.charAt(i);
+				return c == '_' || Character.isLetter(c) || (i != 0 && Character.isDigit(c));
+			});
 		}
 
 		@Override
@@ -545,14 +570,19 @@ public class Main {
 		}
 
 		@Override
+		public List<Identifier> extractIdentifiers() {
+			return Lists.of(this);
+		}
+
+		@Override
 		public String stringify() {
 			return this.value;
 		}
 	}
 
 	private record Placeholder(String input)
-			implements CType, JMethodDeclaration, CStructMember, CFunctionDeclaration, CAssignable, JAssignable, JType,
-			JObjectMember, CExpression {
+			implements CType, JMethodDeclaration, CStructMember, CAssignable, JAssignable, JType, JObjectMember, CExpression,
+			CDefinable {
 		private static String wrap(String input) {
 			final var replaced = input.replace("/*", "start").replace("*/", "end");
 			return "/*" + replaced + "*/";
@@ -566,6 +596,21 @@ public class Main {
 		@Override
 		public String toBaseName() {
 			return wrap(this.input);
+		}
+
+		@Override
+		public List<Identifier> extractIdentifiers() {
+			return Lists.empty();
+		}
+
+		@Override
+		public CDefinable mapTypeParameters(F1R<List<String>, List<String>> mapper) {
+			return this;
+		}
+
+		@Override
+		public CDefinable mapName(F1R<String, String> mapper) {
+			return this;
 		}
 
 		@Override
@@ -630,7 +675,7 @@ public class Main {
 		}
 	}
 
-	private record FunctionDeclaration(CType type, String name, List<CType> parameterTypes)
+	private record CFunctionDeclaration(CType type, String name, List<CType> parameterTypes)
 			implements CDefinable, CStructMember {
 		@Override
 		public String generate() {
@@ -638,6 +683,23 @@ public class Main {
 					"(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")";
 
 			return this.type.generate() + " (*" + this.name + ")" + joinedParameterTypes;
+		}
+
+		@Override
+		public List<Identifier> extractIdentifiers() {
+			return this.type
+					.extractIdentifiers()
+					.addAllLast(this.parameterTypes.iter().map(CType::extractIdentifiers).flatMap(List::iter).toList());
+		}
+
+		@Override
+		public CDefinable mapTypeParameters(F1R<List<String>, List<String>> mapper) {
+			return this;
+		}
+
+		@Override
+		public CDefinable mapName(F1R<String, String> mapper) {
+			return new CFunctionDeclaration(this.type, mapper.apply(this.name), this.parameterTypes);
 		}
 	}
 
@@ -952,19 +1014,17 @@ public class Main {
 		}
 	}
 
-	private record CDeclaration(List<String> typeParameters, CType type, String name)
-			implements CFunctionDeclaration, CAssignable, CDefinable {
+	private record CDeclaration(List<String> typeParameters, CType type, String name) implements CAssignable,
+			CDefinable {
 		public CDeclaration(CType type, String name) {
 			this(Lists.empty(), type, name);
 		}
 
-		@Override
-		public CFunctionDeclaration mapName(F1R<String, String> mapper) {
+		public CDeclaration mapName(F1R<String, String> mapper) {
 			return new CDeclaration(this.typeParameters, this.type, mapper.apply(this.name));
 		}
 
-		@Override
-		public CFunctionDeclaration mapTypeParameters(F1R<List<String>, List<String>> mapper) {
+		public CDeclaration mapTypeParameters(F1R<List<String>, List<String>> mapper) {
 			return new CDeclaration(mapper.apply(this.typeParameters), this.type, this.name);
 		}
 
@@ -972,6 +1032,11 @@ public class Main {
 		public String generate() {
 			final var template = generateTemplateString(this.typeParameters);
 			return template + this.type.generate() + " " + this.name;
+		}
+
+		@Override
+		public List<Identifier> extractIdentifiers() {
+			return this.type.extractIdentifiers();
 		}
 	}
 
@@ -1181,11 +1246,11 @@ public class Main {
 
 		@Override
 		public String stringify() {
-			return this.maybeInternal.map(internal -> internal.stringify()).orElse("?");
+			return this.maybeInternal.map(JType::stringify).orElse("?");
 		}
 	}
 
-	public record CStructure(List<String> typeParameters, String name, List<CDefinable> fields)
+	private record CStructure(List<String> typeParameters, String name, List<CDefinable> fields)
 			implements CStructureOrUnion {
 		@Override
 		public String generate() {
@@ -1193,6 +1258,15 @@ public class Main {
 
 			return generateTemplateString(this.typeParameters()) + "struct " + this.name() + " {" + joinedFields +
 						 System.lineSeparator() + "};" + System.lineSeparator();
+		}
+
+		@Override
+		public List<Identifier> listDependencies() {
+			return this.fields
+					.iter()
+					.map(CDefinable::extractIdentifiers)
+					.flatMap(List::iter)
+					.collect(new ListCollector<Identifier>());
 		}
 	}
 
@@ -1209,13 +1283,20 @@ public class Main {
 		}
 	}
 
-	private record CUnion(List<String> typeParameters, String name, List<String> members) implements CStructureOrUnion {
+	private record CUnion(List<String> typeParameters, String name, List<CDefinable> members)
+			implements CStructureOrUnion {
 		@Override
 		public String generate() {
-			final var unionFields = this.members().iter().map(Main::generateStatement).collect(new Joiner());
+			final var unionFields =
+					this.members.iter().map(CDefinable::generate).map(Main::generateStatement).collect(new Joiner());
 
 			return generateTemplateString(this.typeParameters()) + "union " + this.name() + "Data {" + unionFields +
 						 System.lineSeparator() + "};" + System.lineSeparator();
+		}
+
+		@Override
+		public List<Identifier> listDependencies() {
+			return this.members.iter().map(CDefinable::extractIdentifiers).flatMap(List::iter).toList();
 		}
 	}
 
@@ -1264,7 +1345,7 @@ public class Main {
 		}
 	}
 
-	public record CFunctionHeader(CFunctionDeclaration definition, List<CDeclaration> parameters) {
+	public record CFunctionHeader(CDefinable definition, List<CDeclaration> parameters) {
 		private String generate() {
 			final var compiledParameters = this.parameters().iter().map(CDeclaration::generate).collect(new Joiner(", "));
 			return this.definition().generate() + "(" + compiledParameters + ")";
@@ -1302,8 +1383,6 @@ public class Main {
 	}
 
 	private record CNumber(String value) implements CExpression {
-		public static final CNumber NULL = new CNumber("0");
-
 		private CNumber(String value) {
 			this.value = value;
 
@@ -1322,6 +1401,19 @@ public class Main {
 		@Override
 		public String generate() {
 			return "!" + this.instance.generate();
+		}
+	}
+
+	private record MapCollector<K, V>() implements Collector<Tuple<K, V>, Map<K, V>> {
+		@Override
+		public Map<K, V> createInitial() {
+			return new HashMap<K, V>();
+		}
+
+		@Override
+		public Map<K, V> fold(Map<K, V> kvMap, Tuple<K, V> kvTuple) {
+			kvMap.put(kvTuple.left, kvTuple.right);
+			return kvMap;
 		}
 	}
 
@@ -1421,11 +1513,23 @@ public class Main {
 		};
 	}
 
-	private CExpression transformCaller(JCaller jCaller) {
+	private Tuple<CExpression, List<CType>> transformCaller(JCaller jCaller) {
 		return switch (jCaller) {
-			case JConstruction jConstruction -> new Identifier("new_" + transformType(jConstruction.jType).generate());
-			case JExpression jExpression -> this.transformExpression(jExpression);
+			case JConstruction jConstruction -> this.destroyConstruction(jConstruction);
+			case JExpression jExpression ->
+					new Tuple<CExpression, List<CType>>(this.transformExpression(jExpression), Lists.empty());
 		};
+	}
+
+	private Tuple<CExpression, List<CType>> destroyConstruction(JConstruction jConstruction) {
+		final var cType = transformType(jConstruction.jType);
+		if (cType instanceof Identifier(String value))
+			return new Tuple<CExpression, List<CType>>(new Identifier("new_" + value), Lists.empty());
+
+		if (cType instanceof CTemplateType(String base, List<CType> typeArguments))
+			return new Tuple<CExpression, List<CType>>(new Identifier("new_" + base), typeArguments);
+
+		return new Tuple<CExpression, List<CType>>(new Identifier("new_" + cType.generate()), Lists.empty());
 	}
 
 	private CExpression transformExpression(JExpression expression) {
@@ -1457,11 +1561,16 @@ public class Main {
 			final var jType = this.resolveExpression(instance);
 			final var baseName = jType.stringify();
 
-			final var newArguments = arguments.addFirst(this.transformCaller(instance));
+			final var tuple = this.transformCaller(instance);
+			final var newArguments = arguments.addFirst(tuple.left);
 			return new CInvocation(new Identifier(memberName + "_" + baseName), newArguments);
 		}
 
-		return new CInvocation(this.transformCaller(caller), arguments);
+		/*
+		TODO: support explicit type arguments on invocations
+		*/
+		final var tuple = this.transformCaller(caller);
+		return new CInvocation(tuple.left, arguments);
 	}
 
 	private Option<IOError> run() {
@@ -1499,113 +1608,12 @@ public class Main {
 	}
 
 	private List<CStructureOrUnion> createTopologicallySortedList() {
-		// Build a map of structure/union name to the structure itself
-		final var nameToStructure = new HashMap<String, CStructureOrUnion>();
-		this.structuresOrUnions.iter().fold(null, (_, s) -> {
-			final var name = switch (s) {
-				case CStructure cs -> cs.name();
-				case CUnion cu -> cu.name() + "Data";
-			};
-			nameToStructure.put(name, s);
-			return null;
-		});
+		final var dependencyMap = this.structuresOrUnions
+				.iter()
+				.map(value -> new Tuple<String, List<Identifier>>(value.name(), value.listDependencies()))
+				.collect(new MapCollector<String, List<Identifier>>());
 
-		// Extract dependencies for each structure
-		final var dependencies = new HashMap<String, Set<String>>();
-		this.structuresOrUnions.iter().fold(null, (_, s) -> {
-			final var name = switch (s) {
-				case CStructure cs -> cs.name();
-				case CUnion cu -> cu.name() + "Data";
-			};
-			final var deps = this.extractDependencies(s, nameToStructure.keySet());
-			dependencies.put(name, deps);
-			return null;
-		});
-
-		// Perform topological sort using DFS
-		final var visited = new HashSet<String>();
-		final var visiting = new HashSet<String>();
-		final var result = new ArrayList<CStructureOrUnion>();
-
-		for (final var structureName : nameToStructure.keySet())
-			if (!visited.contains(structureName))
-				this.topologicalSortDFS(structureName, visited, visiting, dependencies, nameToStructure, result);
-
-		// Convert ArrayList to custom List
-		List<CStructureOrUnion> list = Lists.empty();
-		for (final var structure : result) list = list.addLast(structure);
-		return list;
-	}
-
-	private void topologicalSortDFS(String name,
-																	Set<String> visited,
-																	Set<String> visiting,
-																	Map<String, Set<String>> dependencies,
-																	Map<String, CStructureOrUnion> nameToStructure,
-																	ArrayList<CStructureOrUnion> result) {
-		if (visited.contains(name)) return;
-		// Cycle detected, just continue (prioritize compilation over cycle detection)
-		if (visiting.contains(name)) return;
-
-		visiting.add(name);
-		final var deps = dependencies.getOrDefault(name, new HashSet<String>());
-		for (final var dep : deps)
-			if (nameToStructure.containsKey(dep))
-				this.topologicalSortDFS(dep, visited, visiting, dependencies, nameToStructure, result);
-		visiting.remove(name);
-
-		visited.add(name);
-		final var structure = nameToStructure.get(name);
-		if (structure != null) result.add(structure);
-	}
-
-	private Set<String> extractDependencies(CStructureOrUnion structure, Set<String> allStructureNames) {
-		final var deps = new HashSet<String>();
-
-		switch (structure) {
-			case CStructure cs -> cs.fields().iter().fold(null, (_, field) -> {
-				if (field instanceof CDeclaration cd) this.extractTypeNames(cd.type(), deps);
-				return null;
-			});
-			case CUnion cu -> {
-				// Union members are strings, extract type names from their string
-				// representation
-				cu.members().iter().fold(null, (_, member) -> {
-					this.extractTypeNamesFromString(member, deps);
-					return null;
-				});
-			}
-		}
-
-		// Only keep dependencies that are actual structures/unions we know about
-		deps.removeIf(name -> !allStructureNames.contains(name));
-		return deps;
-	}
-
-	private void extractTypeNames(CType type, Set<String> typeNames) {
-		switch (type) {
-			case Identifier id -> this.extractTypeNamesFromString(id.value(), typeNames);
-			case CPointerType ptr -> this.extractTypeNames(ptr.type(), typeNames);
-			case CTemplateType template -> {
-				typeNames.add(template.base());
-				template.list().iter().fold(null, (_, t) -> {
-					this.extractTypeNames(t, typeNames);
-					return null;
-				});
-			}
-			case CPrimitiveType _, Placeholder _ -> {
-				// No dependencies
-			}
-		}
-	}
-
-	private void extractTypeNamesFromString(String typeString, Set<String> typeNames) {
-		// Extract identifiers from the string representation
-		// This is a simple heuristic: words that start with uppercase are likely type
-		// names
-		final var pattern = Pattern.compile("\\b([A-Z][a-zA-Z0-9]*)\\b");
-		final var matcher = pattern.matcher(typeString);
-		while (matcher.find()) typeNames.add(matcher.group(1));
+		return this.structuresOrUnions;
 	}
 
 	private String joinStrings(List<String> structures) {
@@ -1770,7 +1778,7 @@ public class Main {
 			}
 		}
 
-		if (!this.isIdentifier(beforeContent)) return new None<JObject>();
+		if (!Identifier.isIdentifier(beforeContent)) return new None<JObject>();
 
 		var modifiersList = Streams
 				.fromObjArray(modifiers.split(Pattern.quote(" ")))
@@ -1851,11 +1859,19 @@ public class Main {
 		final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
 		final var cStructure = new CStructure(object.typeParameters(), object.name() + "Table", list);
 		this.structuresOrUnions = this.structuresOrUnions.addLast(cStructure);
+
+		final var tableType = this.createStructureType(object.name + "Table", object.typeParameters);
+
 		fields = fields
-				.addLast(new CDeclaration(new Identifier(
-						object.name() + "Table" + Main.joinTypeParameters(object.typeParameters())), "table"))
+				.addLast(new CDeclaration(tableType, "table"))
 				.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "data"));
+
 		return fields;
+	}
+
+	private CType createStructureType(String name, List<String> typeArguments) {
+		if (typeArguments.isEmpty()) return new Identifier(name);
+		else return new CTemplateType(name, typeArguments.iter().<CType>map(Identifier::new).toList());
 	}
 
 	private List<CDefinable> handleSealedInterface(JObject object, List<CDefinable> fields) {
@@ -1864,18 +1880,22 @@ public class Main {
 		var variants = object.variants();
 		final var jEnum = new CEnum(name, variants);
 
-		final var joinedTypeParameters = Main.joinTypeParameters(typeParameters);
-		final var unionMembers = variants.iter().map(variant -> variant + joinedTypeParameters + " " + variant).toList();
+		final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList();
+		final var unionMembers = variants.iter().map(variant -> this.createUnionField(variant, typeArguments)).toList();
 		final var union = new CUnion(typeParameters, name, unionMembers);
 
 		fields = fields
 				.addLast(new CDeclaration(new Identifier(object.name() + "Variant"), "variant"))
-				.addLast(new CDeclaration(new Identifier(
-						object.name() + "Data" + Main.joinTypeParameters(object.typeParameters())), "data"));
+				.addLast(new CDeclaration(this.createStructureType(name, object.typeParameters), "data"));
 
 		this.enums = this.enums.addLast(jEnum);
 		this.structuresOrUnions = this.structuresOrUnions.addLast(union);
 		return fields;
+	}
+
+	private CDefinable createUnionField(String variant, List<CType> typeArguments) {
+		final var type = typeArguments.isEmpty() ? new Identifier(variant) : new CTemplateType(variant, typeArguments);
+		return new CDeclaration(type, variant);
 	}
 
 	private Option<JDeclaration> extractField(JObjectMember prototype) {
@@ -1949,7 +1969,7 @@ public class Main {
 			case JConstructor _ -> new EmptyStructMember();
 			case JDeclaration member -> {
 				final var cDeclaration = member.toCDeclaration();
-				final var f1RDeclaration = new FunctionDeclaration(cDeclaration.type, cDeclaration.name, parameterTypes);
+				final var f1RDeclaration = new CFunctionDeclaration(cDeclaration.type, cDeclaration.name, parameterTypes);
 				yield new CField(f1RDeclaration);
 			}
 			case Placeholder placeholder -> placeholder;
@@ -2018,17 +2038,17 @@ public class Main {
 	private List<CDefinable> retainFields(List<CStructMember> members) {
 		final var list = members.iter().map(member1 -> switch (member1) {
 			case CField(var declaration) -> new Some<CDefinable>(declaration);
-			case FunctionDeclaration _, EmptyStructMember _, Placeholder _ -> new None<CDefinable>();
+			case CFunctionDeclaration _, EmptyStructMember _, Placeholder _ -> new None<CDefinable>();
 		}).flatMap(Option::iter).toList();
 
-		final var list1 = list.iter().filter(member -> !(member instanceof FunctionDeclaration)).toList();
+		final var list1 = list.iter().filter(member -> !(member instanceof CFunctionDeclaration)).toList();
 		return list1;
 	}
 
 	private Option<CDefinable> retainDefinables(CStructMember member) {
 		return switch (member) {
 			case CField(var declaration) -> new Some<CDefinable>(declaration);
-			case FunctionDeclaration functionDeclaration -> new Some<CDefinable>(functionDeclaration);
+			case CFunctionDeclaration functionDeclaration -> new Some<CDefinable>(functionDeclaration);
 			case EmptyStructMember emptyStructMember -> new None<CDefinable>();
 			case Placeholder placeholder -> new None<CDefinable>();
 		};
@@ -2038,16 +2058,6 @@ public class Main {
 		final var segments = input.split(Pattern.quote(","));
 		final var list = Arrays.stream(segments).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 		return new JavaList<String>(list);
-	}
-
-	private boolean isIdentifier(String input) {
-		final var stripped = input.strip();
-		if (stripped.isEmpty() || stripped.equals("return")) return false;
-
-		return IntStream.range(0, stripped.length()).allMatch(i -> {
-			final var c = stripped.charAt(i);
-			return Character.isLetter(c) || (i != 0 && Character.isDigit(c));
-		});
 	}
 
 	private String computeMethodBody(List<String> typeParameters,
@@ -2097,17 +2107,16 @@ public class Main {
 		}
 	}
 
-	private CFunctionDeclaration transformMethodDeclaration(String structName,
-																													List<String> typeParameters,
-																													JMethodDeclaration methodDeclaration) {
+	private CDefinable transformMethodDeclaration(String structName,
+																								List<String> typeParameters,
+																								JMethodDeclaration methodDeclaration) {
 		return this
 				.convertToFunctionDeclarations(typeParameters, methodDeclaration)
 				.mapTypeParameters(typeParameters0 -> typeParameters0.addAllLast(typeParameters))
 				.mapName(name -> name + "_" + structName);
 	}
 
-	private CFunctionDeclaration convertToFunctionDeclarations(List<String> typeParameters,
-																														 JMethodDeclaration methodDeclaration) {
+	private CDefinable convertToFunctionDeclarations(List<String> typeParameters, JMethodDeclaration methodDeclaration) {
 		return switch (methodDeclaration) {
 			case JConstructor constructor -> {
 				final var type = this.toConstructorReturnType(constructor.type, typeParameters);
@@ -2191,7 +2200,7 @@ public class Main {
 			final var i = substring.indexOf("(");
 			if (i >= 0) {
 				final var name = substring.substring(0, i);
-				if (!this.isIdentifier(name)) return new None<CStructMember>();
+				if (!Identifier.isIdentifier(name)) return new None<CStructMember>();
 
 				final var substring2 = substring.substring(i + 1);
 				final var generated =
@@ -2203,7 +2212,7 @@ public class Main {
 			}
 		}
 
-		if (this.isIdentifier(stripped)) {
+		if (Identifier.isIdentifier(stripped)) {
 			final var generated =
 					structName + " " + structName + stripped + " = " + "new_" + structName + "()" + ";" + System.lineSeparator();
 
@@ -2445,7 +2454,7 @@ public class Main {
 		if (i2 >= 0) {
 			final var substring = stripped.substring(0, i2);
 			final var name = stripped.substring(i2 + 2).strip();
-			if (this.isIdentifier(name)) {
+			if (Identifier.isIdentifier(name)) {
 				final var compiled = this.compileExpressionOrPlaceholder(substring);
 				final var functionalInterfaceName = "F?";
 				return new Some<String>(
@@ -2479,7 +2488,7 @@ public class Main {
 		if (i >= 0) {
 			final var instanceString = stripped.substring(0, i);
 			final var memberName = stripped.substring(i + 1).strip();
-			if (this.isIdentifier(memberName)) {
+			if (Identifier.isIdentifier(memberName)) {
 				final var maybeInstance = this.parseExpression(instanceString);
 				if (maybeInstance instanceof Some(var value))
 					return new Some<JExpression>(new JMemberAccess(value, memberName));
@@ -2500,7 +2509,7 @@ public class Main {
 				.or(() -> this.compileOperator(stripped, ">="));
 
 		if (maybeOperator instanceof Some<String>) return maybeOperator.map(JExpressionWrapper::new);
-		if (this.isIdentifier(stripped)) return new Some<JExpression>(new Identifier(stripped));
+		if (Identifier.isIdentifier(stripped)) return new Some<JExpression>(new Identifier(stripped));
 
 		if (stripped.startsWith("!")) {
 			final var substring = stripped.substring(1);
@@ -2547,7 +2556,7 @@ public class Main {
 	}
 
 	private Option<List<String>> parseLambdaParams(String input) {
-		if (this.isIdentifier(input)) return new Some<List<String>>(Lists.of(input));
+		if (Identifier.isIdentifier(input)) return new Some<List<String>>(Lists.of(input));
 		else if (input.startsWith("(") && input.endsWith(")")) {
 			final var substring = input.substring(1, input.length() - 1);
 			final var list =
@@ -2667,7 +2676,7 @@ public class Main {
 
 			final var typeSeparator = this.findTypeSeparator(beforeName);
 
-			if (!this.isIdentifier(name)) return new None<JDeclaration>();
+			if (!Identifier.isIdentifier(name)) return new None<JDeclaration>();
 
 			if (typeSeparator < 0) {
 				final var type = this.parseType(beforeName);
@@ -2695,7 +2704,7 @@ public class Main {
 				beforeType = beforeType.substring(i + 1).strip();
 			}
 
-			if (this.isIdentifier(name)) {
+			if (Identifier.isIdentifier(name)) {
 				final var type = this.parseType(beforeName.substring(typeSeparator + 1));
 				final var jDeclaration = new JDeclaration(annotations, copy, new Some<String>(beforeType), type, name);
 				return new Some<JDeclaration>(jDeclaration);
@@ -2770,7 +2779,7 @@ public class Main {
 			}
 		}
 
-		if (this.isIdentifier(stripped)) return new Identifier(stripped);
+		if (Identifier.isIdentifier(stripped)) return new Identifier(stripped);
 
 		// TODO: handle varargs through monomorphization
 
