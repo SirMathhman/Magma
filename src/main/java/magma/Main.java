@@ -548,7 +548,7 @@ public class Main {
 
 	private record Placeholder(String input)
 			implements CType, JMethodDeclaration, CStructMember, CFunctionDeclaration, CAssignable, JAssignable, JType,
-			JObjectMember {
+			JObjectMember, CExpression {
 		private static String wrap(String input) {
 			final var replaced = input.replace("/*", "start").replace("*/", "end");
 			return "/*" + replaced + "*/";
@@ -1452,18 +1452,17 @@ public class Main {
 		};
 	}
 
-	private CInvocation transformInvocation(JInvokable jInvokable) {
+	private CExpression transformInvocation(JInvokable jInvokable) {
 		final var arguments = jInvokable.arguments().iter().map(this::transformExpression).toList();
 		final var caller = jInvokable.caller();
 		if (caller instanceof JMemberAccess(var instance, var memberName)) {
-			if (instance instanceof Identifier(var name)) {
-				final var maybeType = this.environment.resolveType(name);
-				if (maybeType instanceof Some<JObjectType>(var foundType)) {
-					final var baseName = transformType(foundType).toBaseName();
+			if (instance instanceof Identifier(String value))
+				if (this.environment.resolveType(value) instanceof Some<JObjectType>(var objType)) {
+					final var baseName = objType.stringify();
+
 					final var newArguments = arguments.addFirst(CNumber.NULL);
 					return new CInvocation(new Identifier(memberName + "_" + baseName), newArguments);
 				}
-			}
 
 			final var jType = this.resolveExpression(instance);
 			final var baseName = jType.stringify();
