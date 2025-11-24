@@ -157,17 +157,11 @@ public class Main {
 	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
 
 	sealed private interface JExpression extends JCaller, JAssignable
-			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess {
-		default CAssignable toAssignable() {
-			return transformExpression(this);
-		}
-	}
+			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess {}
 
 	private interface CExpression extends CAssignable {}
 
-	private sealed interface JCaller permits JConstruction, JExpression {
-		CExpression toExpression();
-	}
+	private sealed interface JCaller permits JConstruction, JExpression {}
 
 	private interface CDefinable {
 		String generate();
@@ -907,7 +901,6 @@ public class Main {
 			return new CExpressionWrapper(this.content);
 		}
 
-		@Override
 		public CAssignable toAssignable() {
 			return new CExpressionWrapper(this.content);
 		}
@@ -947,17 +940,9 @@ public class Main {
 		}
 	}
 
-	private record JMemberAccess(JExpression instance, String memberName) implements JExpression {
-		public CExpression toExpression() {
-			final var cExpression = transformExpression(this.instance);
-			if (this.instance instanceof Identifier(var value) && value.equals("this"))
-				return new CPointerAccess(new Identifier("_this"), this.memberName);
-			else return new CFieldAccess(cExpression, this.memberName);
-		}
-	}
+	private record JMemberAccess(JExpression instance, String memberName) implements JExpression {}
 
 	private record JConstruction(JType jType) implements JCaller {
-		@Override
 		public CExpression toExpression() {
 			return new Identifier("new_" + transformType(this.jType).generate());
 		}
@@ -971,13 +956,7 @@ public class Main {
 		}
 	}
 
-	private record JInvokable(JCaller caller, List<JExpression> arguments) implements JExpression {
-		public CExpression toExpression() {
-			final var cArguments = this.arguments().iter().map(Main::transformExpression).toList();
-			final var expression = this.caller().toExpression();
-			return new CInvocation(expression, cArguments);
-		}
-	}
+	private record JInvokable(JCaller caller, List<JExpression> arguments) implements JExpression {}
 
 	private record JFunctionalType(List<JType> parameterTypes, JType returnType) implements JType {
 		public JFunctionalType(JType returnType) {
@@ -1261,13 +1240,40 @@ public class Main {
 		return joinedTypeParameters;
 	}
 
-	private static CExpression transformExpression(JExpression expression) {
+	private CExpression transformCaller(JCaller jCaller) {
+		return switch (jCaller) {
+			case JConstruction jConstruction -> new Identifier("new_" + transformType(jConstruction.jType).generate());
+			case JExpression jExpression -> this.transformExpression(jExpression);
+		};
+	}
+
+	private CExpression transformExpression(JExpression expression) {
 		return switch (expression) {
 			case Identifier identifier -> identifier;
-			case JExpressionWrapper jExpressionWrapper -> jExpressionWrapper.toExpression();
-			case JInvokable jInvokable -> jInvokable.toExpression();
-			case JMemberAccess jMemberAccess -> jMemberAccess.toExpression();
+			case JExpressionWrapper jExpressionWrapper -> new CExpressionWrapper(jExpressionWrapper.content);
+			case JInvokable jInvokable -> this.transformInvocation(jInvokable);
+			case JMemberAccess jMemberAccess -> {
+				final var instance = jMemberAccess.instance;
+				final var memberName = jMemberAccess.memberName;
+				final var cExpression = this.transformExpression(instance);
+				if (instance instanceof Identifier(var value) && value.equals("this"))
+					yield new CPointerAccess(new Identifier("_this"), memberName);
+				else yield new CFieldAccess(cExpression, memberName);
+			}
 		};
+	}
+
+	private CInvocation transformInvocation(JInvokable jInvokable) {
+		final var arguments = jInvokable.arguments().iter().map(this::transformExpression).toList();
+		final var caller = jInvokable.caller();
+		if (caller instanceof JMemberAccess(var instance, var memberName)) {
+			final var jType = this.resolveExpression(instance);
+			final var newArguments = arguments.addFirst(this.transformCaller(instance));
+			final var baseName = transformType(jType).toBaseName();
+			return new CInvocation(new Identifier(memberName + "_" + baseName), newArguments);
+		}
+
+		return new CInvocation(this.transformCaller(caller), arguments);
 	}
 
 	private Option<IOError> run() {
@@ -1648,7 +1654,7 @@ public class Main {
 	}
 
 	private Option<JObjectMemberPrototype> parseMethod(JObjectPrototype object, String stripped) {
-		String structName = object.name();
+		var structName = object.name();
 		final var i = stripped.indexOf("(");
 		if (i < 0) return new None<JObjectMemberPrototype>();
 
@@ -1939,7 +1945,7 @@ public class Main {
 		if (maybeAssignment instanceof Some<String>(var assignment)) return assignment;
 
 		final var maybeInvokable = this.parseInvokable(stripped);
-		if (maybeInvokable instanceof Some(var value)) return transformExpression(value).generate();
+		if (maybeInvokable instanceof Some(var value)) return this.transformExpression(value).generate();
 
 		final var instance = this.post(stripped, "++");
 		if (instance instanceof Some<String>(var x)) return x;
@@ -1963,7 +1969,7 @@ public class Main {
 
 			if (maybeSource instanceof Some<JExpression>(var source)) {
 				final var cAssignable = this.transformAssignable(assignable, source);
-				return new Some<String>(cAssignable.generate() + " = " + source.toAssignable().generate());
+				return new Some<String>(cAssignable.generate() + " = " + this.transformExpression(source).generate());
 			}
 		}
 
@@ -1979,7 +1985,7 @@ public class Main {
 				yield jDeclaration.toCAssignable();
 			}
 
-			case JExpression jExpression -> jExpression.toAssignable();
+			case JExpression jExpression -> this.transformExpression(jExpression);
 			case Placeholder placeholder -> placeholder.toCAssignable();
 		};
 	}
@@ -2016,9 +2022,7 @@ public class Main {
 
 			case JExpressionWrapper jExpressionWrapper ->
 					new Placeholder("Unwrapped expression: " + jExpressionWrapper.content);
-			case JInvokable jInvokable -> {
-				yield this.resolveCaller(jInvokable.caller);
-			}
+			case JInvokable jInvokable -> this.resolveCaller(jInvokable.caller);
 		};
 	}
 
@@ -2061,7 +2065,7 @@ public class Main {
 	}
 
 	private Option<CExpression> parseCExpression(String input) {
-		return this.parseExpression(input).map(Main::transformExpression);
+		return this.parseExpression(input).map(this::transformExpression);
 	}
 
 	private Option<JExpression> parseExpression(String input) {
