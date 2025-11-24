@@ -140,6 +140,11 @@ enum CStructMemberTag {
 	CFunctionDeclarationVariant,
 	PlaceholderVariant
 };
+enum CAssignableTag {
+	CDeclarationVariant,
+	CExpressionVariant,
+	PlaceholderVariant
+};
 enum JTypeTag {
 	IdentifierVariant,
 	JArrayTypeVariant,
@@ -359,12 +364,14 @@ struct IOError {
 	void* data;
 	IOErrorTable table;
 };
-struct CAssignableTable {
-	char* (*generate)(void*);
+union CAssignableData {
+	CDeclaration CDeclaration;
+	CExpression CExpression;
+	Placeholder Placeholder;
 };
 struct CAssignable {
-	void* data;
-	CAssignableTable table;
+	CAssignableTag variant;
+	CAssignableData data;
 };
 union JTypeData {
 	Identifier Identifier;
@@ -1469,7 +1476,19 @@ char* display_IOError(void* _ref){
 }
 char* generate_CAssignable(void* _ref){
 	CAssignable* _this = (CAssignable*) _ref;
-	return _this->table.generate(_this->data);
+	char* _ret;
+	switch (_this->variant) {
+		case CDeclarationVariant:
+			_ret = generate_CDeclaration(&(_this->data.CDeclaration));
+			break;
+		case CExpressionVariant:
+			_ret = generate_CExpression(&(_this->data.CExpression));
+			break;
+		case PlaceholderVariant:
+			_ret = generate_Placeholder(&(_this->data.Placeholder));
+			break;
+	}
+	return _ret;
 }
 char* stringify_JType(void* _ref){
 	JType* _this = (JType*) _ref;

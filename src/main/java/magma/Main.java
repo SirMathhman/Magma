@@ -162,7 +162,7 @@ public class Main {
 		String display();
 	}
 
-	private interface CAssignable {
+	private sealed interface CAssignable permits CDeclaration, CExpression, Placeholder {
 		String generate();
 	}
 
