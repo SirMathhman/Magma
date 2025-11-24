@@ -6,7 +6,6 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -60,7 +59,7 @@ public class Main {
 
 		List<T> removeLast();
 
-		List<T> mapLast(Function<T, T> mapper);
+		List<T> mapLast(F1R<T, T> mapper);
 
 		Iter<T> iterReversed();
 	}
@@ -357,7 +356,7 @@ public class Main {
 		}
 
 		@Override
-		public List<T> mapLast(Function<T, T> mapper) {
+		public List<T> mapLast(F1R<T, T> mapper) {
 			if (!this.nativeList.isEmpty()) {
 				final var last = this.nativeList.getLast();
 				final var newLast = mapper.apply(last);
@@ -2334,7 +2333,8 @@ public class Main {
 
 		final var generatedName = this.generateName();
 		final var cFunction =
-				new CFunction(new CFunctionHeader(new CDeclaration(new Placeholder("TODO:  resolve lambda return type"), generatedName), paramList), output);
+				new CFunction(new CFunctionHeader(new CDeclaration(new Placeholder("TODO:  resolve lambda return type"),
+																													 generatedName), paramList), output);
 
 		this.functions = this.functions.addLast(cFunction);
 		return new Some<String>(generatedName);
@@ -2429,7 +2429,7 @@ public class Main {
 
 	private boolean isNumber(String input) {
 		final var stripped = input.strip();
-		if(stripped.isEmpty()) return false;
+		if (stripped.isEmpty()) return false;
 		if (stripped.startsWith("-")) return this.allDigits(stripped.substring(1));
 		return this.allDigits(stripped);
 	}
