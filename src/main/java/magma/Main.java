@@ -80,6 +80,8 @@ public class Main {
 		List<T> mapLast(F1R<T, T> mapper);
 
 		Iter<T> iterReversed();
+
+		List<T> copy();
 	}
 
 	private interface Path {
@@ -129,7 +131,6 @@ public class Main {
 	private sealed interface CType permits CNamedType, CPointerType, CPrimitiveType, Placeholder {
 		String generate();
 
-		@Deprecated
 		String toBaseName();
 
 		List<CNamedType> extractIdentifiers();
@@ -400,6 +401,11 @@ public class Main {
 			return new Iter<Integer>(new RangeHead(this.nativeList.size()))
 					.map(index -> this.nativeList.size() - index - 1)
 					.map(this.nativeList::get);
+		}
+
+		@Override
+		public List<T> copy() {
+			return new JavaList<T>(new ArrayList<T>(this.nativeList));
 		}
 	}
 
@@ -2137,7 +2143,8 @@ public class Main {
 		} else {
 			final var returnValueDefinition = Main.generateStatement(type.generate() + " _ret");
 
-			final var cases = variants.iter().map(variant -> this.generateCase(variant, name)).collect(new Joiner());
+			final var cases =
+					variants.iter().map(variant -> this.generateCase(variant, name, parameterNames)).collect(new Joiner());
 
 			return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
 						 generateIndent(1) + "}" + Main.generateStatement("return _ret");
@@ -2176,10 +2183,12 @@ public class Main {
 		return this.compileStatements(inputContent, input -> this.compileMethodSegment(input, indent));
 	}
 
-	private String generateCase(String variant, String name) {
+	private String generateCase(String variant, String name, List<String> parameterNames) {
+		final var s = "&(_this->data." + variant + ")";
+		final var joined = parameterNames.copy().addFirst(s).iter().collect(new Joiner(", "));
+
 		return generateIndent(2) + "case " + variant + "Variant:" +
-					 generateStatement(3, "_ret = " + name + "_" + variant + "(&(_this->data." + variant + "))") +
-					 generateStatement(3, "break");
+					 generateStatement(3, "_ret = " + name + "_" + variant + "(" + joined + ")") + generateStatement(3, "break");
 	}
 
 	private JMethodDeclaration parseMethodDeclaration(String declaration, String structName) {
