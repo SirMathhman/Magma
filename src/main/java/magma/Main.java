@@ -2660,7 +2660,7 @@ public class Main {
 			final var maybeInstance = this.parseCExpression(substring).map(CExpression::generate);
 			if (maybeInstance instanceof Some<String>(var instance)) {
 				final var i4 = substring1.indexOf("<");
-				return new Some<JExpression>(new Placeholder("instance"));
+				return new Some<JExpression>(new Placeholder(input));
 			}
 		}
 
