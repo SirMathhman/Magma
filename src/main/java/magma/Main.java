@@ -1169,7 +1169,8 @@ public class Main {
 	}
 
 	private record JMethodPrototype(List<String> typeParameters, List<JDeclaration> parameters,
-																	JMethodDeclaration methodDeclaration, String content) implements JObjectMemberPrototype {}
+																	JMethodDeclaration methodDeclaration, String content)
+			implements JObjectMemberPrototype {}
 
 	private record JField(JDeclaration declaration) implements JObjectMemberPrototype {}
 
@@ -1281,16 +1282,16 @@ public class Main {
 		final var all = this.compileStatements(input, this::compileRootSegment);
 
 		final var joinedStructures = this.rootSegments.iter().map(CRootSegment::generate).collect(new Joiner());
-		final var joinedGlobals = this.joinStrings("", this.globals);
+		final var joinedGlobals = this.joinStrings(this.globals);
 
-		final var joinedFunctionDeclarations = this.joinStrings("", this.functionDeclarations);
+		final var joinedFunctionDeclarations = this.joinStrings(this.functionDeclarations);
 		final var joinedFunctions = this.functions.iter().map(CFunction::generate).collect(new Joiner());
 
 		return joinedStructures + joinedGlobals + joinedFunctionDeclarations + joinedFunctions + all;
 	}
 
-	private String joinStrings(String delimiter, List<String> structures) {
-		return structures.iter().collect(new Joiner(delimiter));
+	private String joinStrings(List<String> structures) {
+		return structures.iter().collect(new Joiner(""));
 	}
 
 	private String compileStatements(String input, F1R<String, String> mapper) {
@@ -1479,7 +1480,7 @@ public class Main {
 					.divide(object.inputContent, new EscapedFolder(this::foldStatement))
 					.map(slice -> this
 							.partiallyParseObjectMember(object, slice)
-							.flatMap(wrapper -> this.getCStructMemberOption(object, wrapper)))
+							.flatMap(wrapper -> this.completeObjectMemberPrototype(object, wrapper)))
 					.flatMap(Option::iter)
 					.toList();
 
@@ -1515,11 +1516,12 @@ public class Main {
 		return new Some<CStructMember>(new EmptyStructMember());
 	}
 
-	private Option<CStructMember> getCStructMemberOption(JObjectPrototype object, JObjectMemberPrototype wrapper) {
+	private Option<CStructMember> completeObjectMemberPrototype(JObjectPrototype object,
+																															JObjectMemberPrototype wrapper) {
 		return switch (wrapper) {
 			case JObjectPrototype objectPrototype -> this.transformObject(objectPrototype);
-			case JMethodPrototype jFunctionProto ->
-					new Some<CStructMember>(this.completeMethodProto(jFunctionProto, object));
+			case JMethodPrototype methodPrototype ->
+					new Some<CStructMember>(this.completeMethodProto(methodPrototype, object));
 			case Placeholder placeholder -> new Some<CStructMember>(placeholder);
 			case EmptyStructMember _ -> new None<CStructMember>();
 			case JField jField -> new Some<CStructMember>(new CField(jField.declaration.toCDeclaration()));
@@ -1561,10 +1563,13 @@ public class Main {
 		final var outputContent = this.computeMethodBody(jFunctionProto.typeParameters(),
 																										 jFunctionProto.methodDeclaration(),
 																										 cParameters,
-																										 maybeCompiled, object.name, object.variants);
+																										 maybeCompiled,
+																										 object.name,
+																										 object.variants);
 
-		final var mapped =
-				this.transformMethodDeclaration(object.name, jFunctionProto.typeParameters(), jFunctionProto.methodDeclaration());
+		final var mapped = this.transformMethodDeclaration(object.name,
+																											 jFunctionProto.typeParameters(),
+																											 jFunctionProto.methodDeclaration());
 		final var header = new CFunctionHeader(mapped, cParameters);
 		final var cFunction = new CFunction(header, outputContent);
 
@@ -1613,12 +1618,12 @@ public class Main {
 			}
 		}
 
-		final var maybeMethod = this.compileMethod(object, stripped);
+		final var maybeMethod = this.parseMethod(object, stripped);
 		if (maybeMethod instanceof Some<JObjectMemberPrototype>(var temp)) return new Some<JObjectMemberPrototype>(temp);
 		return new Some<JObjectMemberPrototype>(new Placeholder(stripped));
 	}
 
-	private Option<JObjectMemberPrototype> compileMethod(JObjectPrototype object, String stripped) {
+	private Option<JObjectMemberPrototype> parseMethod(JObjectPrototype object, String stripped) {
 		String structName = object.name();
 		final var i = stripped.indexOf("(");
 		if (i < 0) return new None<JObjectMemberPrototype>();
@@ -1878,7 +1883,7 @@ public class Main {
 				if (divisions.size() < 2) return new None<String>();
 
 				final var first = divisions.getFirst();
-				final var maybeWithBraces = this.joinStrings("", divisions.subList(1, divisions.size()));
+				final var maybeWithBraces = this.joinStrings(divisions.subList(1, divisions.size()));
 
 				if (!first.endsWith(")")) return new None<String>();
 				final var condition = first.substring(0, first.length() - 1);
