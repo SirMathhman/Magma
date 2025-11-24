@@ -524,6 +524,11 @@ public class Main {
 	private record Placeholder(String input)
 			implements CType, JMethodDeclaration, CStructMember, CFunctionDeclaration, CAssignable, JAssignable, JType,
 			JObjectMemberPrototype {
+		private static String wrap(String input) {
+			final var replaced = input.replace("/*", "start").replace("*/", "end");
+			return "/*" + replaced + "*/";
+		}
+
 		@Override
 		public String generate() {
 			return wrap(this.input);
@@ -1190,11 +1195,6 @@ public class Main {
 		return templateString;
 	}
 
-	private static String wrap(String input) {
-		final var replaced = input.replace("/*", "start").replace("*/", "end");
-		return "/*" + replaced + "*/";
-	}
-
 	public static void main(String[] args) {
 		if (new Main().run() instanceof Some<IOError>(
 				var value
@@ -1375,7 +1375,7 @@ public class Main {
 				.partiallyParseObject("class", stripped)
 				.flatMap(this::transformObject)
 				.map(CStructMember::generate)
-				.orElseGet(() -> wrap(stripped));
+				.orElseGet(() -> Placeholder.wrap(stripped));
 	}
 
 	private Option<JObjectPrototype> partiallyParseObject(String type, String stripped) {
@@ -1899,7 +1899,7 @@ public class Main {
 
 		if (stripped.startsWith("//")) return generateIndent(indent) + stripped;
 
-		return System.lineSeparator() + "\t" + wrap(stripped);
+		return System.lineSeparator() + "\t" + Placeholder.wrap(stripped);
 	}
 
 	private Option<String> compileConditional(String type, int indent, String input) {
@@ -1960,7 +1960,7 @@ public class Main {
 		final var maybeDeclaration = this.parseDeclaration(input);
 		if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) return declaration.toCDeclaration().generate();
 
-		return wrap(stripped);
+		return Placeholder.wrap(stripped);
 	}
 
 	private Option<String> compileAssignment(String stripped) {
@@ -2065,7 +2065,7 @@ public class Main {
 	}
 
 	private String compileExpressionOrPlaceholder(String input) {
-		return this.parseCExpression(input).map(CExpression::generate).orElseGet(() -> wrap(input));
+		return this.parseCExpression(input).map(CExpression::generate).orElseGet(() -> Placeholder.wrap(input));
 	}
 
 	private Option<CExpression> parseCExpression(String input) {
