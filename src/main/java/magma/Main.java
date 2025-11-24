@@ -1577,14 +1577,13 @@ public class Main {
 		List<CRootSegment> dependencies = new JavaList<CRootSegment>();
 		this.functions = object.createConversionFunctions().iter().fold(this.functions, List::addLast);
 
-		var fields = object.collectCFields();
 
 		final var within = this.environment.within(env -> {
 			this.environment = env.withObject(object);
 
 			final var types = object.children.iter().map(Main::extractType).flatMap(Option::iter).toList();
 			final var declarations =
-					object.children.iter().map(this::extractMethodDeclaration).flatMap(Option::iter).toList();
+					object.children.iter().map(this::extractField).flatMap(Option::iter).toList().addAllLast(object.recordFields);
 
 			this.environment = this.environment.defineAllTypes(types);
 			this.environment = this.environment.defineAllExpressions(declarations);
@@ -1601,6 +1600,7 @@ public class Main {
 		this.environment = within.left;
 		var members = within.right;
 
+		var fields = object.collectCFields();
 		if (object.type().equals("interface")) if (object.modifiersList().contains("sealed")) {
 			final var elements = this.flattenSealedStructure(object.name(), object.typeParameters(), object.variants());
 
@@ -1627,9 +1627,12 @@ public class Main {
 		return new Some<CStructMember>(new EmptyStructMember());
 	}
 
-	private Option<JDeclaration> extractMethodDeclaration(JObjectMember prototype) {
-		if (prototype instanceof JMethod methodPrototype) return methodPrototype.toDeclaration();
-		return new None<JDeclaration>();
+	private Option<JDeclaration> extractField(JObjectMember prototype) {
+		return switch (prototype) {
+			case JMethod methodPrototype -> methodPrototype.toDeclaration();
+			case JField field -> new Some<JDeclaration>(field.declaration);
+			default -> new None<JDeclaration>();
+		};
 	}
 
 	private Option<CStructMember> transformObjectMemberPrototype(JObject object, JObjectMember wrapper) {
