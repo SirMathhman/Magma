@@ -165,7 +165,7 @@ public class Main {
 		String generate();
 	}
 
-	private sealed interface CRootSegment permits CStructure, CEnum, JUnion {
+	private sealed interface CRootSegment permits CStructure, CEnum, CUnion {
 		String generate();
 	}
 
@@ -1130,7 +1130,7 @@ public class Main {
 		}
 	}
 
-	private record JUnion(List<String> typeParameters, String name, List<String> members) implements CRootSegment {
+	private record CUnion(List<String> typeParameters, String name, List<String> members) implements CRootSegment {
 		@Override
 		public String generate() {
 			final var unionFields = this.members().iter().map(Main::generateStatement).collect(new Joiner());
@@ -1819,7 +1819,7 @@ public class Main {
 
 		final var joinedTypeParameters = Main.joinTypeParameters(typeParameters);
 		final var unionMembers = variants.iter().map(variant -> variant + joinedTypeParameters + " " + variant).toList();
-		final var union = new JUnion(typeParameters, name, unionMembers);
+		final var union = new CUnion(typeParameters, name, unionMembers);
 		return Lists.of(jEnum, union);
 	}
 
