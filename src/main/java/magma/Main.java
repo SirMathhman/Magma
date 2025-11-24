@@ -1762,12 +1762,10 @@ public class Main {
 	}
 
 	private List<CDefinable> retainFields(List<CStructMember> members) {
-		return members
-				.iter()
-				.map(this::retainDefinables)
-				.flatMap(Option::iter)
-				.filter(member -> !(member instanceof CFunctionDeclaration))
-				.toList();
+		return members.iter().map(member1 -> switch (member1) {
+			case CField(var declaration) -> new Some<CDefinable>(declaration);
+			case FunctionDeclaration _, EmptyStructMember _, Placeholder _ -> new None<CDefinable>();
+		}).flatMap(Option::iter).filter(member -> !(member instanceof CFunctionDeclaration)).toList();
 	}
 
 	private List<CRootSegment> flattenSealedStructure(String name, List<String> typeParameters, List<String> variants) {
@@ -1781,7 +1779,7 @@ public class Main {
 
 	private Option<CDefinable> retainDefinables(CStructMember member) {
 		return switch (member) {
-			case CField(CDefinable declaration) -> new Some<CDefinable>(declaration);
+			case CField(var declaration) -> new Some<CDefinable>(declaration);
 			case FunctionDeclaration functionDeclaration -> new Some<CDefinable>(functionDeclaration);
 			case EmptyStructMember emptyStructMember -> new None<CDefinable>();
 			case Placeholder placeholder -> new None<CDefinable>();
