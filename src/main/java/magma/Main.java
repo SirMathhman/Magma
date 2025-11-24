@@ -2040,8 +2040,8 @@ public class Main {
 			case JExpressionWrapper jExpressionWrapper ->
 					new Placeholder("Unwrapped expression: " + jExpressionWrapper.content);
 			case JInvokable jInvokable -> this.resolveCaller(jInvokable.caller);
-			case JNumber jNumber -> JPrimitiveType.Int;
-			case JNot jNot -> JPrimitiveType.Boolean;
+			case JNumber _ -> JPrimitiveType.Int;
+			case JNot _ -> JPrimitiveType.Boolean;
 		};
 	}
 
