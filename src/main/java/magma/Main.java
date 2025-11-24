@@ -1721,7 +1721,7 @@ public class Main {
 		final var maybeClass = this.parseObject("class", input);
 		if (maybeClass instanceof Some<JObject>(var class0)) return new Some<JObjectMember>(class0);
 
-		final var maybeEnumValues = this.parseEnumValues(input, name);
+		final var maybeEnumValues = this.parseEnumValuesStatement(input, name);
 		if (maybeEnumValues instanceof Some<JObjectMember>(var enumValues)) return new Some<JObjectMember>(enumValues);
 
 		if (stripped.endsWith(";")) {
@@ -1914,13 +1914,15 @@ public class Main {
 		return new None<JMethodDeclaration>();
 	}
 
-	private Option<JObjectMember> parseEnumValues(String input, String structName) {
+	private Option<JObjectMember> parseEnumValuesStatement(String input, String structName) {
 		final var stripped = input.strip();
-		if (!stripped.endsWith(";")) return new None<JObjectMember>();
+		if (stripped.endsWith(";")) return this.parseEnumValues(structName, stripped.substring(0, stripped.length() - 1));
+		return this.parseEnumValues(structName, stripped);
+	}
 
+	private Option<JObjectMember> parseEnumValues(String structName, String input) {
 		final var enumValues = this
-				.divide(stripped.substring(0, stripped.length() - 1),
-								(state, character) -> new ValueFolder().apply(state, character))
+				.divide(input, (state, character) -> new ValueFolder().apply(state, character))
 				.map(String::strip)
 				.filter(slice -> !slice.isEmpty())
 				.toList();
@@ -1936,9 +1938,10 @@ public class Main {
 		return new Some<JObjectMember>(new EmptyStructMember());
 	}
 
-	private Option<CStructMember> compileEnumValue(String structName, String enumValue) {
-		if (enumValue.endsWith(")")) {
-			final var substring = enumValue.substring(0, enumValue.length() - 1);
+	private Option<CStructMember> compileEnumValue(String structName, String input) {
+		final var stripped = input.strip();
+		if (stripped.endsWith(")")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
 			final var i = substring.indexOf("(");
 			if (i >= 0) {
 				final var name = substring.substring(0, i);
@@ -1952,6 +1955,14 @@ public class Main {
 				this.globals = this.globals.addLast(generated);
 				return new Some<CStructMember>(new EmptyStructMember());
 			}
+		}
+
+		if (this.isIdentifier(stripped)) {
+			final var generated =
+					structName + " " + structName + stripped + " = " + "new_" + structName + "()" + ";" + System.lineSeparator();
+
+			this.globals = this.globals.addLast(generated);
+			return new Some<CStructMember>(new EmptyStructMember());
 		}
 
 		return new None<CStructMember>();
