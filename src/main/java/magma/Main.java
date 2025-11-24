@@ -1319,7 +1319,7 @@ public class Main {
 					.map(variant -> generateIndent(1) + variant)
 					.collect(new Joiner(","));
 
-			return "enum " + this.name + " {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
+			return "enum class " + this.name + " {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
 		}
 	}
 
