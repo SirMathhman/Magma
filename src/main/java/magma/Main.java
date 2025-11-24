@@ -1429,6 +1429,13 @@ public class Main {
 		}
 	}
 
+	private record CReference(CExpression instance) implements CExpression {
+		@Override
+		public String generate() {
+			return "&" + this.instance.generate();
+		}
+	}
+
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
 		final var methods = Lists.of(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)),
@@ -1575,7 +1582,7 @@ public class Main {
 			final var baseName = jType.stringify();
 
 			final var tuple = this.transformCaller(instance);
-			final var newArguments = arguments.addFirst(tuple.left);
+			final var newArguments = arguments.addFirst(new CReference(new CQuantity(tuple.left)));
 			return new CInvocation(new Identifier(memberName + "_" + baseName), newArguments);
 		}
 
@@ -1867,7 +1874,8 @@ public class Main {
 					.map(Main::generateStatement)
 					.collect(new Joiner());
 
-			final var content = generateStatement(structureType.generate() + " _this") + joinedAssignments + generateStatement("return _this");
+			final var content = generateStatement(structureType.generate() + " _this") + joinedAssignments +
+													generateStatement("return _this");
 
 			this.functions = this.functions.addLast(new CFunction(new CFunctionHeader(definition, recordFields), content));
 		}
