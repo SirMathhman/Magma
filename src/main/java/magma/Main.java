@@ -1903,7 +1903,7 @@ public class Main {
 
 			final var joinedAssignments = recordFields
 					.iter()
-					.map(field -> "_this." + field.name + " = " + field.name)
+					.map(field -> "_this->" + field.name + " = " + field.name)
 					.map(Main::generateStatement)
 					.collect(new Joiner());
 

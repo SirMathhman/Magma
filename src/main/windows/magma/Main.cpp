@@ -1647,7 +1647,7 @@ char* toString_StringBuilder(void* _ref){
 StringBuilder new_StringBuilder(List<char> list){
 	StringBuilder _thisInstance;
 	StringBuilder* _this = &_thisInstance;
-	_this.list = list;
+	_this->list = list;
 	return _thisInstance;
 }
 template <typename T, typename T>
@@ -1718,7 +1718,7 @@ template <typename T>
 Iter<T> new_Iter(Head<T> head){
 	Iter<T> _thisInstance;
 	Iter<T>* _this = &_thisInstance;
-	_this.head = head;
+	_this->head = head;
 	return _thisInstance;
 }
 Head<int> toHead_RangeHead(void* _ref){
@@ -1765,7 +1765,7 @@ template <typename T, typename X>
 Err<T, X> new_Err(X error){
 	Err<T, X> _thisInstance;
 	Err<T, X>* _this = &_thisInstance;
-	_this.error = error;
+	_this->error = error;
 	return _thisInstance;
 }
 template <typename T, typename X>
@@ -1784,15 +1784,15 @@ template <typename T, typename X>
 Ok<T, X> new_Ok(T value){
 	Ok<T, X> _thisInstance;
 	Ok<T, X>* _this = &_thisInstance;
-	_this.value = value;
+	_this->value = value;
 	return _thisInstance;
 }
 template <typename A, typename B>
 Tuple<A, B> new_Tuple(A left, B right){
 	Tuple<A, B> _thisInstance;
 	Tuple<A, B>* _this = &_thisInstance;
-	_this.left = left;
-	_this.right = right;
+	_this->left = left;
+	_this->right = right;
 	return _thisInstance;
 }
 State new_State(char* input){
@@ -1890,7 +1890,7 @@ List<CNamedType> extractIdentifiers_CPointerType(void* _ref){
 CPointerType new_CPointerType(CType type){
 	CPointerType _thisInstance;
 	CPointerType* _this = &_thisInstance;
-	_this.type = type;
+	_this->type = type;
 	return _thisInstance;
 }
 CNamedType toCNamedType_CTemplateType(void* _ref){
@@ -1927,8 +1927,8 @@ char* getName_CTemplateType(void* _ref){
 CTemplateType new_CTemplateType(char* base, List<CType> typeArguments){
 	CTemplateType _thisInstance;
 	CTemplateType* _this = &_thisInstance;
-	_this.base = base;
-	_this.typeArguments = typeArguments;
+	_this->base = base;
+	_this->typeArguments = typeArguments;
 	return _thisInstance;
 }
 CExpression toCExpression_CQuantity(void* _ref){
@@ -1944,7 +1944,7 @@ char* generate_CQuantity(void* _ref){
 CQuantity new_CQuantity(CExpression expression){
 	CQuantity _thisInstance;
 	CQuantity* _this = &_thisInstance;
-	_this.expression = expression;
+	_this->expression = expression;
 	return _thisInstance;
 }
 CExpression toCExpression_CDereference(void* _ref){
@@ -1960,7 +1960,7 @@ char* generate_CDereference(void* _ref){
 CDereference new_CDereference(CExpression expression){
 	CDereference _thisInstance;
 	CDereference* _this = &_thisInstance;
-	_this.expression = expression;
+	_this->expression = expression;
 	return _thisInstance;
 }
 CNamedType toCNamedType_Identifier(void* _ref){
@@ -2027,7 +2027,7 @@ char* getName_Identifier(void* _ref){
 Identifier new_Identifier(char* value){
 	Identifier _thisInstance;
 	Identifier* _this = &_thisInstance;
-	_this.value = value;
+	_this->value = value;
 	return _thisInstance;
 }
 CType toCType_Placeholder(void* _ref){
@@ -2124,7 +2124,7 @@ CType toCType_Placeholder(void* _ref){
 Placeholder new_Placeholder(char* input){
 	Placeholder _thisInstance;
 	Placeholder* _this = &_thisInstance;
-	_this.input = input;
+	_this->input = input;
 	return _thisInstance;
 }
 JMethodDeclaration toJMethodDeclaration_JConstructor(void* _ref){
@@ -2136,7 +2136,7 @@ JMethodDeclaration toJMethodDeclaration_JConstructor(void* _ref){
 JConstructor new_JConstructor(char* type){
 	JConstructor _thisInstance;
 	JConstructor* _this = &_thisInstance;
-	_this.type = type;
+	_this->type = type;
 	return _thisInstance;
 }
 JMethodDeclaration toJMethodDeclaration_JDeclaration(void* _ref){
@@ -2195,11 +2195,11 @@ JDeclaration withType_JDeclaration(void* _ref, JType type){
 JDeclaration new_JDeclaration(List<char*> annotations, List<char*> typeParameters, Option<char*> maybeBeforeType, JType type, char* name){
 	JDeclaration _thisInstance;
 	JDeclaration* _this = &_thisInstance;
-	_this.annotations = annotations;
-	_this.typeParameters = typeParameters;
-	_this.maybeBeforeType = maybeBeforeType;
-	_this.type = type;
-	_this.name = name;
+	_this->annotations = annotations;
+	_this->typeParameters = typeParameters;
+	_this->maybeBeforeType = maybeBeforeType;
+	_this->type = type;
+	_this->name = name;
 	return _thisInstance;
 }
 CDefinable toCDefinable_CFunctionDeclaration(void* _ref){
@@ -2234,9 +2234,9 @@ CDefinable mapName_CFunctionDeclaration(void* _ref, F1R<char*, char*> mapper){
 CFunctionDeclaration new_CFunctionDeclaration(CType type, char* name, List<CType> parameterTypes){
 	CFunctionDeclaration _thisInstance;
 	CFunctionDeclaration* _this = &_thisInstance;
-	_this.type = type;
-	_this.name = name;
-	_this.parameterTypes = parameterTypes;
+	_this->type = type;
+	_this->name = name;
+	_this->parameterTypes = parameterTypes;
 	return _thisInstance;
 }
 CStructMember toCStructMember_EmptyStructMember(void* _ref){
@@ -2292,7 +2292,7 @@ State apply_EscapedFolder(void* _ref, State state, char next){
 EscapedFolder new_EscapedFolder(Folder folder){
 	EscapedFolder _thisInstance;
 	EscapedFolder* _this = &_thisInstance;
-	_this.folder = folder;
+	_this->folder = folder;
 	return _thisInstance;
 }
 Folder toFolder_ValueFolder(void* _ref){
@@ -2365,7 +2365,7 @@ template <typename T>
 Some<T> new_Some(T value){
 	Some<T> _thisInstance;
 	Some<T>* _this = &_thisInstance;
-	_this.value = value;
+	_this->value = value;
 	return _thisInstance;
 }
 template <typename T>
@@ -2441,7 +2441,7 @@ char* generate_CField(void* _ref){
 CField new_CField(CDefinable declaration){
 	CField _thisInstance;
 	CField* _this = &_thisInstance;
-	_this.declaration = declaration;
+	_this->declaration = declaration;
 	return _thisInstance;
 }
 /*TODO:  resolve lambda return type*/ lambda7(void* _ref, /*TODO: resolve type of lambda param*/ index){
@@ -2468,8 +2468,8 @@ template <typename T, typename R>
 MapHead<T, R> new_MapHead(Head<T> head, F1R<T, R> mapper){
 	MapHead<T, R> _thisInstance;
 	MapHead<T, R>* _this = &_thisInstance;
-	_this.head = head;
-	_this.mapper = mapper;
+	_this->head = head;
+	_this->mapper = mapper;
 	return _thisInstance;
 }
 template <typename T>
@@ -2559,7 +2559,7 @@ template <typename T>
 AnyMatch<T> new_AnyMatch(F1R<T, int> predicate){
 	AnyMatch<T> _thisInstance;
 	AnyMatch<T>* _this = &_thisInstance;
-	_this.predicate = predicate;
+	_this->predicate = predicate;
 	return _thisInstance;
 }
 Collector<char*, char*> toCollector_Joiner(void* _ref){
@@ -2587,7 +2587,7 @@ char* fold_Joiner(void* _ref, char* current, char* element){
 Joiner new_Joiner(char* delimiter){
 	Joiner _thisInstance;
 	Joiner* _this = &_thisInstance;
-	_this.delimiter = delimiter;
+	_this->delimiter = delimiter;
 	return _thisInstance;
 }
 template <typename T>
@@ -2645,9 +2645,9 @@ List<CNamedType> extractIdentifiers_CDeclaration(void* _ref){
 CDeclaration new_CDeclaration(List<char*> typeParameters, CType type, char* name){
 	CDeclaration _thisInstance;
 	CDeclaration* _this = &_thisInstance;
-	_this.typeParameters = typeParameters;
-	_this.type = type;
-	_this.name = name;
+	_this->typeParameters = typeParameters;
+	_this->type = type;
+	_this->name = name;
 	return _thisInstance;
 }
 JExpression toJExpression_JExpressionWrapper(void* _ref){
@@ -2665,7 +2665,7 @@ JAssignable toJAssignable_JExpressionWrapper(void* _ref){
 JExpressionWrapper new_JExpressionWrapper(char* content){
 	JExpressionWrapper _thisInstance;
 	JExpressionWrapper* _this = &_thisInstance;
-	_this.content = content;
+	_this->content = content;
 	return _thisInstance;
 }
 CExpression toCExpression_CExpressionWrapper(void* _ref){
@@ -2681,7 +2681,7 @@ char* generate_CExpressionWrapper(void* _ref){
 CExpressionWrapper new_CExpressionWrapper(char* content){
 	CExpressionWrapper _thisInstance;
 	CExpressionWrapper* _this = &_thisInstance;
-	_this.content = content;
+	_this->content = content;
 	return _thisInstance;
 }
 JType toJType_JArrayType(void* _ref){
@@ -2701,7 +2701,7 @@ char* stringify_JArrayType(void* _ref){
 JArrayType new_JArrayType(JType type){
 	JArrayType _thisInstance;
 	JArrayType* _this = &_thisInstance;
-	_this.type = type;
+	_this->type = type;
 	return _thisInstance;
 }
 JType toJType_JGenericType(void* _ref){
@@ -2726,8 +2726,8 @@ char* stringify_JGenericType(void* _ref){
 JGenericType new_JGenericType(char* base, List<JType> typeArguments){
 	JGenericType _thisInstance;
 	JGenericType* _this = &_thisInstance;
-	_this.base = base;
-	_this.typeArguments = typeArguments;
+	_this->base = base;
+	_this->typeArguments = typeArguments;
 	return _thisInstance;
 }
 CExpression toCExpression_CPointerAccess(void* _ref){
@@ -2743,8 +2743,8 @@ char* generate_CPointerAccess(void* _ref){
 CPointerAccess new_CPointerAccess(CExpression instance, char* fieldName){
 	CPointerAccess _thisInstance;
 	CPointerAccess* _this = &_thisInstance;
-	_this.instance = instance;
-	_this.fieldName = fieldName;
+	_this->instance = instance;
+	_this->fieldName = fieldName;
 	return _thisInstance;
 }
 CExpression toCExpression_CFieldAccess(void* _ref){
@@ -2760,8 +2760,8 @@ char* generate_CFieldAccess(void* _ref){
 CFieldAccess new_CFieldAccess(CExpression instance, char* fieldName){
 	CFieldAccess _thisInstance;
 	CFieldAccess* _this = &_thisInstance;
-	_this.instance = instance;
-	_this.fieldName = fieldName;
+	_this->instance = instance;
+	_this->fieldName = fieldName;
 	return _thisInstance;
 }
 JExpression toJExpression_JMemberAccess(void* _ref){
@@ -2773,8 +2773,8 @@ JExpression toJExpression_JMemberAccess(void* _ref){
 JMemberAccess new_JMemberAccess(JExpression instance, char* memberName){
 	JMemberAccess _thisInstance;
 	JMemberAccess* _this = &_thisInstance;
-	_this.instance = instance;
-	_this.memberName = memberName;
+	_this->instance = instance;
+	_this->memberName = memberName;
 	return _thisInstance;
 }
 JCaller toJCaller_JConstruction(void* _ref){
@@ -2786,7 +2786,7 @@ JCaller toJCaller_JConstruction(void* _ref){
 JConstruction new_JConstruction(JType jType){
 	JConstruction _thisInstance;
 	JConstruction* _this = &_thisInstance;
-	_this.jType = jType;
+	_this->jType = jType;
 	return _thisInstance;
 }
 CExpression toCExpression_CInvocation(void* _ref){
@@ -2803,8 +2803,8 @@ char* generate_CInvocation(void* _ref){
 CInvocation new_CInvocation(CExpression expression, List<CExpression> cArguments){
 	CInvocation _thisInstance;
 	CInvocation* _this = &_thisInstance;
-	_this.expression = expression;
-	_this.cArguments = cArguments;
+	_this->expression = expression;
+	_this->cArguments = cArguments;
 	return _thisInstance;
 }
 JExpression toJExpression_JInvokable(void* _ref){
@@ -2816,8 +2816,8 @@ JExpression toJExpression_JInvokable(void* _ref){
 JInvokable new_JInvokable(JCaller caller, List<JExpression> arguments){
 	JInvokable _thisInstance;
 	JInvokable* _this = &_thisInstance;
-	_this.caller = caller;
-	_this.arguments = arguments;
+	_this->caller = caller;
+	_this->arguments = arguments;
 	return _thisInstance;
 }
 JType toJType_JFunctionalType(void* _ref){
@@ -2843,8 +2843,8 @@ char* stringify_JFunctionalType(void* _ref){
 JFunctionalType new_JFunctionalType(List<JType> parameterTypes, JType returnType){
 	JFunctionalType _thisInstance;
 	JFunctionalType* _this = &_thisInstance;
-	_this.parameterTypes = parameterTypes;
-	_this.returnType = returnType;
+	_this->parameterTypes = parameterTypes;
+	_this->returnType = returnType;
 	return _thisInstance;
 }
 Environment new_Environment(){
@@ -2992,8 +2992,8 @@ char* stringify_JObjectType(void* _ref){
 JObjectType new_JObjectType(char* name, List<JDeclaration> members){
 	JObjectType _thisInstance;
 	JObjectType* _this = &_thisInstance;
-	_this.name = name;
-	_this.members = members;
+	_this->name = name;
+	_this->members = members;
 	return _thisInstance;
 }
 JType toJType_JRecursiveType(void* _ref){
@@ -3045,9 +3045,9 @@ List<CNamedType> findDependencies_CStructure(void* _ref){
 CStructure new_CStructure(List<char*> typeParameters, char* name, List<CDefinable> fields){
 	CStructure _thisInstance;
 	CStructure* _this = &_thisInstance;
-	_this.typeParameters = typeParameters;
-	_this.name = name;
-	_this.fields = fields;
+	_this->typeParameters = typeParameters;
+	_this->name = name;
+	_this->fields = fields;
 	return _thisInstance;
 }
 /*TODO:  resolve lambda return type*/ lambda20(void* _ref, /*TODO: resolve type of lambda param*/ variant){
@@ -3064,8 +3064,8 @@ char* generate_CEnum(void* _ref){
 CEnum new_CEnum(char* name, List<char*> variants){
 	CEnum _thisInstance;
 	CEnum* _this = &_thisInstance;
-	_this.name = name;
-	_this.variants = variants;
+	_this->name = name;
+	_this->variants = variants;
 	return _thisInstance;
 }
 CStructureOrUnion toCStructureOrUnion_CUnion(void* _ref){
@@ -3090,9 +3090,9 @@ List<CNamedType> findDependencies_CUnion(void* _ref){
 CUnion new_CUnion(List<char*> typeParameters, char* name, List<CDefinable> members){
 	CUnion _thisInstance;
 	CUnion* _this = &_thisInstance;
-	_this.typeParameters = typeParameters;
-	_this.name = name;
-	_this.members = members;
+	_this->typeParameters = typeParameters;
+	_this->name = name;
+	_this->members = members;
 	return _thisInstance;
 }
 JObjectMember toJObjectMember_JObject(void* _ref){
@@ -3162,15 +3162,15 @@ Option<JDeclaration> extractDefinition_JObject(void* _ref, JObjectMember child){
 JObject new_JObject(char* type, List<char*> annotations, List<char*> modifiersList, char* name, List<char*> typeParameters, List<JDeclaration> recordFields, List<CType> implementees, List<char*> variants, List<JObjectMember> children){
 	JObject _thisInstance;
 	JObject* _this = &_thisInstance;
-	_this.type = type;
-	_this.annotations = annotations;
-	_this.modifiersList = modifiersList;
-	_this.name = name;
-	_this.typeParameters = typeParameters;
-	_this.recordFields = recordFields;
-	_this.implementees = implementees;
-	_this.variants = variants;
-	_this.children = children;
+	_this->type = type;
+	_this->annotations = annotations;
+	_this->modifiersList = modifiersList;
+	_this->name = name;
+	_this->typeParameters = typeParameters;
+	_this->recordFields = recordFields;
+	_this->implementees = implementees;
+	_this->variants = variants;
+	_this->children = children;
 	return _thisInstance;
 }
 char* generate_CFunctionHeader(void* _ref){
@@ -3181,8 +3181,8 @@ char* generate_CFunctionHeader(void* _ref){
 CFunctionHeader new_CFunctionHeader(CDefinable definition, List<CDeclaration> parameters){
 	CFunctionHeader _thisInstance;
 	CFunctionHeader* _this = &_thisInstance;
-	_this.definition = definition;
-	_this.parameters = parameters;
+	_this->definition = definition;
+	_this->parameters = parameters;
 	return _thisInstance;
 }
 char* generate_CFunction(void* _ref){
@@ -3192,8 +3192,8 @@ char* generate_CFunction(void* _ref){
 CFunction new_CFunction(CFunctionHeader header, char* content){
 	CFunction _thisInstance;
 	CFunction* _this = &_thisInstance;
-	_this.header = header;
-	_this.content = content;
+	_this->header = header;
+	_this->content = content;
 	return _thisInstance;
 }
 JObjectMember toJObjectMember_JMethod(void* _ref){
@@ -3215,10 +3215,10 @@ Option<JDeclaration> toDeclaration_JMethod(void* _ref){
 JMethod new_JMethod(List<char*> typeParameters, List<JDeclaration> parameters, JMethodDeclaration methodDeclaration, char* content){
 	JMethod _thisInstance;
 	JMethod* _this = &_thisInstance;
-	_this.typeParameters = typeParameters;
-	_this.parameters = parameters;
-	_this.methodDeclaration = methodDeclaration;
-	_this.content = content;
+	_this->typeParameters = typeParameters;
+	_this->parameters = parameters;
+	_this->methodDeclaration = methodDeclaration;
+	_this->content = content;
 	return _thisInstance;
 }
 JObjectMember toJObjectMember_JField(void* _ref){
@@ -3230,7 +3230,7 @@ JObjectMember toJObjectMember_JField(void* _ref){
 JField new_JField(JDeclaration declaration){
 	JField _thisInstance;
 	JField* _this = &_thisInstance;
-	_this.declaration = declaration;
+	_this->declaration = declaration;
 	return _thisInstance;
 }
 JExpression toJExpression_JNumber(void* _ref){
@@ -3249,7 +3249,7 @@ JNumber new_JNumber(char* value){
 JNumber new_JNumber(char* value){
 	JNumber _thisInstance;
 	JNumber* _this = &_thisInstance;
-	_this.value = value;
+	_this->value = value;
 	return _thisInstance;
 }
 CExpression toCExpression_CNumber(void* _ref){
@@ -3272,7 +3272,7 @@ char* generate_CNumber(void* _ref){
 CNumber new_CNumber(char* value){
 	CNumber _thisInstance;
 	CNumber* _this = &_thisInstance;
-	_this.value = value;
+	_this->value = value;
 	return _thisInstance;
 }
 JExpression toJExpression_JNot(void* _ref){
@@ -3284,7 +3284,7 @@ JExpression toJExpression_JNot(void* _ref){
 JNot new_JNot(CExpression instance){
 	JNot _thisInstance;
 	JNot* _this = &_thisInstance;
-	_this.instance = instance;
+	_this->instance = instance;
 	return _thisInstance;
 }
 CExpression toCExpression_CNot(void* _ref){
@@ -3300,7 +3300,7 @@ char* generate_CNot(void* _ref){
 CNot new_CNot(CExpression instance){
 	CNot _thisInstance;
 	CNot* _this = &_thisInstance;
-	_this.instance = instance;
+	_this->instance = instance;
 	return _thisInstance;
 }
 template <typename K, typename V>
@@ -3340,7 +3340,7 @@ char* generate_CReference(void* _ref){
 CReference new_CReference(CExpression instance){
 	CReference _thisInstance;
 	CReference* _this = &_thisInstance;
-	_this.instance = instance;
+	_this->instance = instance;
 	return _thisInstance;
 }
 /*private static final JType StringType = JRecursiveType.create*/(/*-> {
@@ -3673,7 +3673,7 @@ Option<JObject> parseObject_Main(void* _ref, char* type, char* stripped){
 	return new_Tuple(_this->environment, members);
 }
 /*TODO:  resolve lambda return type*/ lambda27(void* _ref, /*TODO: resolve type of lambda param*/ field){
-	return "_this." + field.name + " = " + field.name;
+	return "_this->" + field.name + " = " + field.name;
 }
 Option<CStructMember> transformObject_Main(void* _ref, JObject object){
 	Main* _this = (Main*) _ref;
