@@ -1568,10 +1568,7 @@ public class Main {
 			case JMemberAccess jMemberAccess -> {
 				final var instance = jMemberAccess.instance;
 				final var memberName = jMemberAccess.memberName;
-				final var cExpression = this.transformExpression(instance);
-				if (instance instanceof Identifier(var value) && value.equals("this"))
-					yield new CFieldAccess(new Identifier("_this"), memberName);
-				else yield new CFieldAccess(cExpression, memberName);
+				yield new CFieldAccess(this.transformExpression(instance), memberName);
 			}
 			case JNumber jNumber -> new CNumber(jNumber.value);
 			case JNot jNot -> new CNot(jNot.instance);
