@@ -1658,7 +1658,6 @@ public class Main {
 					Main.generateStatement(structName + " _this") + compiled + Main.generateStatement("return " + "_this");
 		} else if (methodDeclaration instanceof JDeclaration declaration) {
 			cParameters = cParameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
-
 			final var joinedTypeParameters = Main.joinTypeParameters(typeParameters);
 
 			final var thisInitialization = Main.generateStatement(
@@ -1666,38 +1665,14 @@ public class Main {
 
 			var finalParameters = cParameters;
 			outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
-				if (variants.isEmpty()) {
-					final var joinedParameters = finalParameters
-							.subList(1, finalParameters.size())
-							.iter()
-							.map(parameter -> parameter.name)
-							.toList()
-							.addFirst("_this->data")
-							.iter()
-							.collect(new Joiner(", "));
-
-					return Main.generateStatement("return _this->table." + declaration.name + "(" + joinedParameters + ")");
-				} else {
-					final var returnValueDefinition =
-							Main.generateStatement(transformType(declaration.type).generate() + " _ret");
-
-					final var cases =
-							variants.iter().map(variant -> this.generateCase(declaration, variant)).collect(new Joiner());
-
-					return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
-								 generateIndent(1) + "}" + Main.generateStatement("return _ret");
-				}
+				final var type = transformType(declaration.type);
+				final var list =
+						finalParameters.subList(1, finalParameters.size()).iter().map(parameter -> parameter.name).toList();
+				return this.createBodyForAbstractMethod(variants, type, declaration.name, list);
 			});
 		} else outputContent = "?";
 
 		final var mapped = this.transformMethodDeclaration(structName, typeParameters, methodDeclaration);
-		return this.getJObjectMemberPrototypeOption(mapped, methodDeclaration, cParameters, outputContent);
-	}
-
-	private Option<JObjectMemberPrototype> getJObjectMemberPrototypeOption(CFunctionDeclaration mapped,
-																																				 JMethodDeclaration methodDeclaration,
-																																				 List<CDeclaration> cParameters,
-																																				 String outputContent) {
 		final var header = new CFunctionHeader(mapped, cParameters);
 		final var cFunction = new CFunction(header, outputContent);
 
@@ -1707,6 +1682,24 @@ public class Main {
 		final var parameterTypes = cParameters.iter().map(CDeclaration::type).toList();
 
 		return this.getJObjectMemberPrototypeOption(methodDeclaration, parameterTypes);
+	}
+
+	private String createBodyForAbstractMethod(List<String> variants,
+																						 CType type,
+																						 String name,
+																						 List<String> parameterNames) {
+		if (variants.isEmpty()) {
+			final var joinedParameters = parameterNames.addFirst("_this->data").iter().collect(new Joiner(", "));
+
+			return Main.generateStatement("return _this->table." + name + "(" + joinedParameters + ")");
+		} else {
+			final var returnValueDefinition = Main.generateStatement(type.generate() + " _ret");
+
+			final var cases = variants.iter().map(variant -> this.generateCase(variant, name)).collect(new Joiner());
+
+			return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
+						 generateIndent(1) + "}" + Main.generateStatement("return _ret");
+		}
 	}
 
 	private Option<JObjectMemberPrototype> getJObjectMemberPrototypeOption(JMethodDeclaration methodDeclaration,
@@ -1754,9 +1747,9 @@ public class Main {
 		return this.compileStatements(inputContent, input -> this.compileMethodSegment(input, indent));
 	}
 
-	private String generateCase(JDeclaration declaration, String variant) {
+	private String generateCase(String variant, String name) {
 		return generateIndent(2) + "case " + variant + "Variant:" +
-					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&(_this->data." + variant + "))") +
+					 generateStatement(3, "_ret = " + name + "_" + variant + "(&(_this->data." + variant + "))") +
 					 generateStatement(3, "break");
 	}
 
