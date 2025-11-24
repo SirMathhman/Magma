@@ -31,7 +31,12 @@ public class Main {
 	}
 
 	private enum JPrimitiveType implements JType {
-		Int, Void, Boolean, Char, Var
+		Int, Void, Boolean, Char, Var;
+
+		@Override
+		public String stringify() {
+			return this.name();
+		}
 	}
 
 	private interface Head<T> {
@@ -112,8 +117,7 @@ public class Main {
 		String toBaseName();
 	}
 
-	private sealed interface JMethodDeclaration permits JConstructor, JDeclaration, Placeholder {
-	}
+	private sealed interface JMethodDeclaration permits JConstructor, JDeclaration, Placeholder {}
 
 	private sealed interface CStructMember permits EmptyStructMember, CField, FunctionDeclaration, Placeholder {
 		String generate();
@@ -127,8 +131,7 @@ public class Main {
 		R apply(A a, B b);
 	}
 
-	private @interface Actual {
-	}
+	private @interface Actual {}
 
 	private interface Collector<T, C> {
 		C createInitial();
@@ -159,20 +162,17 @@ public class Main {
 	private sealed interface JType
 			permits Identifier, JArrayType, JFunctionalType, JGenericType, JObjectType, JPrimitiveType, JRecursiveType,
 			Placeholder {
+		String stringify();
 	}
 
-	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {
-	}
+	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
 
 	sealed private interface JExpression extends JCaller, JAssignable
-			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess, JNot, JNumber {
-	}
+			permits Identifier, JExpressionWrapper, JInvokable, JMemberAccess, JNot, JNumber {}
 
-	private interface CExpression extends CAssignable {
-	}
+	private interface CExpression extends CAssignable {}
 
-	private sealed interface JCaller permits JConstruction, JExpression {
-	}
+	private sealed interface JCaller permits JConstruction, JExpression {}
 
 	private interface CDefinable {
 		String generate();
@@ -182,8 +182,7 @@ public class Main {
 		String generate();
 	}
 
-	private sealed interface JObjectMember permits EmptyStructMember, JField, JMethod, JObject, Placeholder {
-	}
+	private sealed interface JObjectMember permits EmptyStructMember, JField, JMethod, JObject, Placeholder {}
 
 	@Actual
 	private record JavaIOError(IOException e) implements IOError {
@@ -233,12 +232,10 @@ public class Main {
 			var current = initial;
 			while (true) {
 				var finalCurrent = current;
-				final var tuple = this.head.next().map(element -> folder.apply(finalCurrent, element))
-						.toTuple(() -> finalCurrent);
-				if (tuple.left)
-					current = tuple.right;
-				else
-					return current;
+				final var tuple =
+						this.head.next().map(element -> folder.apply(finalCurrent, element)).toTuple(() -> finalCurrent);
+				if (tuple.left) current = tuple.right;
+				else return current;
 			}
 		}
 
@@ -252,8 +249,7 @@ public class Main {
 
 		public Iter<T> filter(F1R<T, Boolean> predicate) {
 			return this.flatMap(element -> {
-				if (predicate.apply(element))
-					return new Iter<T>(new SingleHead<T>(element));
+				if (predicate.apply(element)) return new Iter<T>(new SingleHead<T>(element));
 				return new Iter<T>(new EmptyHead<T>());
 			});
 		}
@@ -282,8 +278,7 @@ public class Main {
 				final var value = this.counter;
 				this.counter++;
 				return new Some<Integer>(value);
-			} else
-				return new None<Integer>();
+			} else return new None<Integer>();
 		}
 	}
 
@@ -406,8 +401,7 @@ public class Main {
 		}
 	}
 
-	private record Tuple<A, B>(A left, B right) {
-	}
+	private record Tuple<A, B>(A left, B right) {}
 
 	private static class State {
 		private final String input;
@@ -442,8 +436,7 @@ public class Main {
 				final var value = this.input.charAt(this.index);
 				this.index++;
 				return new Some<Character>(value);
-			} else
-				return new None<Character>();
+			} else return new None<Character>();
 		}
 
 		private State advance() {
@@ -478,8 +471,7 @@ public class Main {
 		}
 
 		public Option<Character> peek() {
-			if (this.index < this.input.length())
-				return new Some<Character>(this.input.charAt(this.index));
+			if (this.index < this.input.length()) return new Some<Character>(this.input.charAt(this.index));
 
 			return new None<Character>();
 		}
@@ -547,6 +539,11 @@ public class Main {
 		public String toBaseName() {
 			return this.value;
 		}
+
+		@Override
+		public String stringify() {
+			return this.value;
+		}
 	}
 
 	private record Placeholder(String input)
@@ -567,6 +564,11 @@ public class Main {
 			return wrap(this.input);
 		}
 
+		@Override
+		public String stringify() {
+			return wrap(this.input);
+		}
+
 		private CAssignable toCAssignable() {
 			return this;
 		}
@@ -576,11 +578,10 @@ public class Main {
 		}
 	}
 
-	private record JConstructor(String type) implements JMethodDeclaration {
-	}
+	private record JConstructor(String type) implements JMethodDeclaration {}
 
 	private record JDeclaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
-			JType type, String name) implements JMethodDeclaration, JAssignable {
+															JType type, String name) implements JMethodDeclaration, JAssignable {
 		public JDeclaration(String name, JType type) {
 			this(Lists.empty(), Lists.empty(), new None<String>(), type, name);
 		}
@@ -588,33 +589,28 @@ public class Main {
 		@Override
 		public String toString() {
 			final String annotationsString;
-			if (this.annotations.isEmpty())
-				annotationsString = "";
-			else
-				annotationsString = "annotations=" + this.annotations + ", ";
+			if (this.annotations.isEmpty()) annotationsString = "";
+			else annotationsString = "annotations=" + this.annotations + ", ";
 
 			final String typeParametersString;
-			if (this.typeParameters.isEmpty())
-				typeParametersString = "";
-			else
-				typeParametersString = "typeParameters=" + this.typeParameters + ", ";
+			if (this.typeParameters.isEmpty()) typeParametersString = "";
+			else typeParametersString = "typeParameters=" + this.typeParameters + ", ";
 
 			final String maybeBeforeTypeString;
 			if (this.maybeBeforeType instanceof Some<String>(var result))
 				maybeBeforeTypeString = "maybeBeforeType=" + result + ", ";
-			else
-				maybeBeforeTypeString = "";
+			else maybeBeforeTypeString = "";
 
 			return "JDeclaration {" + annotationsString + typeParametersString + maybeBeforeTypeString + "type=" + this.type +
-					", name='" + this.name + '\'' + '}';
+						 ", name='" + this.name + '\'' + '}';
 		}
 
 		public JDeclaration mapName(F1R<String, String> mapper) {
 			return new JDeclaration(this.annotations,
-					this.typeParameters,
-					this.maybeBeforeType,
-					this.type,
-					mapper.apply(this.name));
+															this.typeParameters,
+															this.maybeBeforeType,
+															this.type,
+															mapper.apply(this.name));
 		}
 
 		public CDeclaration toCDeclaration() {
@@ -634,8 +630,8 @@ public class Main {
 			implements CDefinable, CStructMember {
 		@Override
 		public String generate() {
-			final var joinedParameterTypes = "(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", "))
-					+ ")";
+			final var joinedParameterTypes =
+					"(" + this.parameterTypes.iter().map(CType::generate).collect(new Joiner(", ")) + ")";
 
 			return this.type.generate() + " (*" + this.name + ")" + joinedParameterTypes;
 		}
@@ -654,8 +650,7 @@ public class Main {
 			if (next == '\'') {
 				final var appended = state.append(next);
 				return appended.popAndAppendToTuple().map(tuple -> {
-					if (tuple.right == '\\')
-						return tuple.left.popAndAppendToOption().orElse(tuple.left);
+					if (tuple.right == '\\') return tuple.left.popAndAppendToOption().orElse(tuple.left);
 					return tuple.left;
 				}).flatMap(State::popAndAppendToOption).orElse(appended);
 			}
@@ -664,17 +659,14 @@ public class Main {
 				var current = state.append(next);
 				while (true) {
 					final var maybeTuple = current.popAndAppendToTuple();
-					if (!(maybeTuple instanceof Some<Tuple<State, Character>>(var value)))
-						break;
+					if (!(maybeTuple instanceof Some<Tuple<State, Character>>(var value))) break;
 
 					current = value.left;
 
 					final var right = value.right;
-					if (right == '\\')
-						current = current.popAndAppendToOption().orElse(current);
+					if (right == '\\') current = current.popAndAppendToOption().orElse(current);
 
-					if (right == '\"')
-						break;
+					if (right == '\"') break;
 				}
 
 				return current;
@@ -687,23 +679,19 @@ public class Main {
 	private static class ValueFolder implements Folder {
 		@Override
 		public State apply(State state, Character next) {
-			if (next == ',' && state.isLevel())
-				return state.advance();
+			if (next == ',' && state.isLevel()) return state.advance();
 
 			final var appended = state.append(next);
 			if (next == '-') {
 				final var peeked = appended.peek();
 				if (peeked instanceof Some<Character>(var value) && value == '>')
 					return appended.popAndAppendToOption().orElse(appended);
-				else
-					return appended;
+				else return appended;
 			}
 
-			if (next == '<' || next == '(')
-				return appended.enter();
+			if (next == '<' || next == '(') return appended.enter();
 
-			if (next == '>' || next == ')')
-				return appended.exit();
+			if (next == '>' || next == ')') return appended.exit();
 			return appended;
 		}
 	}
@@ -786,12 +774,10 @@ public class Main {
 		@Override
 		public State apply(State state, Character c) {
 			final var appended = state.append(c);
-			if (c == '(')
-				return appended.enter();
+			if (c == '(') return appended.enter();
 
 			if (c == ')') {
-				if (appended.isLevel())
-					return appended.advance();
+				if (appended.isLevel()) return appended.advance();
 
 				return appended.exit();
 			}
@@ -831,8 +817,7 @@ public class Main {
 
 		@Override
 		public Option<T> next() {
-			if (this.retrieved)
-				return new None<T>();
+			if (this.retrieved) return new None<T>();
 			this.retrieved = true;
 			return new Some<T>(this.value);
 		}
@@ -854,13 +839,11 @@ public class Main {
 			while (true) {
 				if (this.maybeCurrent instanceof Some<Iter<R>>(var current)) {
 					final var next = current.head.next();
-					if (next instanceof Some<R>)
-						return next;
+					if (next instanceof Some<R>) return next;
 				}
 
 				final var maybeNext = this.head.next();
-				if (maybeNext instanceof None<T>)
-					return new None<R>();
+				if (maybeNext instanceof None<T>) return new None<R>();
 				this.maybeCurrent = maybeNext.map(this.mapper);
 			}
 		}
@@ -897,8 +880,7 @@ public class Main {
 
 		@Override
 		public String fold(String current, String element) {
-			if (current.isEmpty())
-				return element;
+			if (current.isEmpty()) return element;
 			return current + this.delimiter + element;
 		}
 	}
@@ -932,8 +914,7 @@ public class Main {
 		@Override
 		public Option<Path> getParent() {
 			final var parent = this.path.getParent();
-			if (parent instanceof java.nio.file.Path p)
-				return new Some<Path>(new JavaPath(p));
+			if (parent instanceof java.nio.file.Path p) return new Some<Path>(new JavaPath(p));
 			return new None<Path>();
 		}
 
@@ -991,8 +972,7 @@ public class Main {
 	}
 
 	@Deprecated
-	private record JExpressionWrapper(String content) implements JExpression, JAssignable {
-	}
+	private record JExpressionWrapper(String content) implements JExpression, JAssignable {}
 
 	private record CExpressionWrapper(String content) implements CExpression {
 		@Override
@@ -1005,12 +985,24 @@ public class Main {
 		public CType toCType() {
 			return new CPointerType(transformType(this.type));
 		}
+
+		@Override
+		public String stringify() {
+			return this.type.stringify() + "_array";
+		}
 	}
 
 	private record JGenericType(String base, List<JType> typeArguments) implements JType {
 		public CType toCType() {
 			final var newTypeArguments = this.typeArguments.iter().map(Main::transformType).toList();
 			return new CTemplateType(this.base, newTypeArguments);
+		}
+
+		@Override
+		public String stringify() {
+			final var joined =
+					this.typeArguments.iter().map(JType::stringify).map(slice -> "_" + slice).collect(new Joiner());
+			return this.base + joined;
 		}
 	}
 
@@ -1028,11 +1020,9 @@ public class Main {
 		}
 	}
 
-	private record JMemberAccess(JExpression instance, String memberName) implements JExpression {
-	}
+	private record JMemberAccess(JExpression instance, String memberName) implements JExpression {}
 
-	private record JConstruction(JType jType) implements JCaller {
-	}
+	private record JConstruction(JType jType) implements JCaller {}
 
 	private record CInvocation(CExpression expression, List<CExpression> cArguments) implements CExpression {
 		@Override
@@ -1042,12 +1032,18 @@ public class Main {
 		}
 	}
 
-	private record JInvokable(JCaller caller, List<JExpression> arguments) implements JExpression {
-	}
+	private record JInvokable(JCaller caller, List<JExpression> arguments) implements JExpression {}
 
 	private record JFunctionalType(List<JType> parameterTypes, JType returnType) implements JType {
 		public JFunctionalType(JType returnType) {
 			this(new JavaList<JType>(), returnType);
+		}
+
+		@Override
+		public String stringify() {
+			final var joined =
+					this.parameterTypes.iter().map(JType::stringify).map(slice -> "_" + slice).collect(new Joiner());
+			return "func_" + this.returnType.stringify() + joined;
 		}
 	}
 
@@ -1154,13 +1150,18 @@ public class Main {
 		private Option<JType> resolve(String name) {
 			return this.members.iter().filter(member -> member.name.equals(name)).next().map(JDeclaration::type);
 		}
+
+		@Override
+		public String stringify() {
+			return this.name;
+		}
 	}
 
 	private static final class JRecursiveType implements JType {
-		private Option<JType> internal;
+		private Option<JType> maybeInternal;
 
 		private JRecursiveType() {
-			this.internal = new None<JType>();
+			this.maybeInternal = new None<JType>();
 		}
 
 		public static JType create(F1R<JType, JType> mapper) {
@@ -1171,7 +1172,12 @@ public class Main {
 		}
 
 		private void set(JType created) {
-			this.internal = new Some<JType>(created);
+			this.maybeInternal = new Some<JType>(created);
+		}
+
+		@Override
+		public String stringify() {
+			return this.maybeInternal.map(internal -> internal.stringify()).orElse("?");
 		}
 	}
 
@@ -1181,7 +1187,7 @@ public class Main {
 			final var joinedFields = this.fields().iter().map(CField::new).map(CField::generate).collect(new Joiner());
 
 			return generateTemplateString(this.typeParameters()) + "struct " + this.name() + " {" + joinedFields +
-					System.lineSeparator() + "};" + System.lineSeparator();
+						 System.lineSeparator() + "};" + System.lineSeparator();
 		}
 	}
 
@@ -1205,13 +1211,13 @@ public class Main {
 			final var unionFields = this.members().iter().map(Main::generateStatement).collect(new Joiner());
 
 			return generateTemplateString(this.typeParameters()) + "union " + this.name() + "Data {" + unionFields +
-					System.lineSeparator() + "};" + System.lineSeparator();
+						 System.lineSeparator() + "};" + System.lineSeparator();
 		}
 	}
 
 	private record JObject(String type, List<String> annotations, List<String> modifiersList, String name,
-			List<String> typeParameters, List<JDeclaration> recordFields, List<CType> implementees,
-			List<String> variants, List<JObjectMember> children) implements JObjectMember {
+												 List<String> typeParameters, List<JDeclaration> recordFields, List<CType> implementees,
+												 List<String> variants, List<JObjectMember> children) implements JObjectMember {
 		private List<CDefinable> collectCFields() {
 			return this.recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList();
 		}
@@ -1249,7 +1255,7 @@ public class Main {
 			return switch (child) {
 				case JField jField -> new Some<JDeclaration>(jField.declaration);
 				case JMethod jMethod -> jMethod.toDeclaration();
-				case EmptyStructMember _,JObject _,Placeholder _ -> new None<JDeclaration>();
+				case EmptyStructMember _, JObject _, Placeholder _ -> new None<JDeclaration>();
 			};
 		}
 	}
@@ -1268,7 +1274,7 @@ public class Main {
 	}
 
 	private record JMethod(List<String> typeParameters, List<JDeclaration> parameters,
-			JMethodDeclaration methodDeclaration, String content) implements JObjectMember {
+												 JMethodDeclaration methodDeclaration, String content) implements JObjectMember {
 		private Option<JDeclaration> toDeclaration() {
 			if (this.methodDeclaration instanceof JDeclaration declaration) {
 				final var returnType = declaration.type;
@@ -1281,8 +1287,7 @@ public class Main {
 		}
 	}
 
-	private record JField(JDeclaration declaration) implements JObjectMember {
-	}
+	private record JField(JDeclaration declaration) implements JObjectMember {}
 
 	private record JNumber(String value) implements JExpression {
 		private JNumber(String value) {
@@ -1307,8 +1312,7 @@ public class Main {
 		}
 	}
 
-	private record JNot(CExpression instance) implements JExpression {
-	}
+	private record JNot(CExpression instance) implements JExpression {}
 
 	private record CNot(CExpression instance) implements CExpression {
 		@Override
@@ -1320,11 +1324,11 @@ public class Main {
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
 		final var methods = Lists.of(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)),
-				new JDeclaration("indexOf", new JFunctionalType(JPrimitiveType.Int)),
-				new JDeclaration("lastIndexOf", new JFunctionalType(JPrimitiveType.Int)),
-				new JDeclaration("length", new JFunctionalType(JPrimitiveType.Int)),
-				new JDeclaration("strip", new JFunctionalType(StringType)),
-				new JDeclaration("substring", new JFunctionalType(StringType)));
+																 new JDeclaration("indexOf", new JFunctionalType(JPrimitiveType.Int)),
+																 new JDeclaration("lastIndexOf", new JFunctionalType(JPrimitiveType.Int)),
+																 new JDeclaration("length", new JFunctionalType(JPrimitiveType.Int)),
+																 new JDeclaration("strip", new JFunctionalType(StringType)),
+																 new JDeclaration("substring", new JFunctionalType(StringType)));
 
 		return new JObjectType("String", methods);
 	});
@@ -1351,8 +1355,7 @@ public class Main {
 
 	private static String generateTemplateString(List<String> typeParameters) {
 		final String templateString;
-		if (typeParameters.isEmpty())
-			templateString = "";
+		if (typeParameters.isEmpty()) templateString = "";
 		else {
 			final var typeNames = typeParameters.iter().map(typeParam -> "typename " + typeParam).collect(new Joiner(", "));
 
@@ -1362,8 +1365,7 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		if (new Main().run() instanceof Some<IOError>(var value))
-			System.err.println(value.display());
+		if (new Main().run() instanceof Some<IOError>(var value)) System.err.println(value.display());
 	}
 
 	private static String generateStatement(int depth, String content) {
@@ -1384,10 +1386,8 @@ public class Main {
 			case JFunctionalType jFunctionalType -> new Placeholder(jFunctionalType.toString());
 			case JObjectType jStructureType -> new Identifier(jStructureType.name);
 			case JRecursiveType jRecursiveType -> {
-				if (jRecursiveType == StringType)
-					yield new CPointerType(CPrimitiveType.Char);
-				else
-					yield new Placeholder("Unknown built-in type");
+				if (jRecursiveType == StringType) yield new CPointerType(CPrimitiveType.Char);
+				else yield new Placeholder("Unknown built-in type");
 			}
 		};
 	}
@@ -1407,10 +1407,8 @@ public class Main {
 
 	private static String joinTypeParameters(List<String> typeParameters) {
 		final String joinedTypeParameters;
-		if (typeParameters.isEmpty())
-			joinedTypeParameters = "";
-		else
-			joinedTypeParameters = "<" + typeParameters.iter().collect(new Joiner(", ")) + ">";
+		if (typeParameters.isEmpty()) joinedTypeParameters = "";
+		else joinedTypeParameters = "<" + typeParameters.iter().collect(new Joiner(", ")) + ">";
 
 		return joinedTypeParameters;
 	}
@@ -1435,8 +1433,7 @@ public class Main {
 	private CExpression transformExpression(JExpression expression) {
 		return switch (expression) {
 			case Identifier identifier -> {
-				if (identifier.value.equals("this"))
-					yield new CQuantity(new CDereference(new Identifier("_this")));
+				if (identifier.value.equals("this")) yield new CQuantity(new CDereference(new Identifier("_this")));
 
 				yield identifier;
 			}
@@ -1448,8 +1445,7 @@ public class Main {
 				final var cExpression = this.transformExpression(instance);
 				if (instance instanceof Identifier(var value) && value.equals("this"))
 					yield new CPointerAccess(new Identifier("_this"), memberName);
-				else
-					yield new CFieldAccess(cExpression, memberName);
+				else yield new CFieldAccess(cExpression, memberName);
 			}
 			case JNumber jNumber -> new CNumber(jNumber.value);
 			case JNot jNot -> new CNot(jNot.instance);
@@ -1470,7 +1466,7 @@ public class Main {
 			}
 
 			final var jType = this.resolveExpression(instance);
-			final var baseName = transformType(jType).toBaseName();
+			final var baseName = jType.stringify();
 
 			final var newArguments = arguments.addFirst(this.transformCaller(instance));
 			return new CInvocation(new Identifier(memberName + "_" + baseName), newArguments);
@@ -1490,8 +1486,7 @@ public class Main {
 				final var maybeParent = target.getParent();
 				if (maybeParent instanceof Some<Path>(var parent)) {
 					final var maybeError = parent.createDirectories();
-					if (maybeError instanceof Some<IOError>(var error))
-						yield new Some<IOError>(error);
+					if (maybeError instanceof Some<IOError>(var error)) yield new Some<IOError>(error);
 				}
 				yield target.writeString(v.value);
 			}
@@ -1509,7 +1504,7 @@ public class Main {
 		final var joinedFunctions = this.functions.iter().map(CFunction::generate).collect(new Joiner());
 
 		return joinedStructureForwardDeclarations + joinedStructures + joinedGlobals + joinedFunctionDeclarations +
-				joinedFunctions + all;
+					 joinedFunctions + all;
 	}
 
 	private String joinStrings(List<String> structures) {
@@ -1528,8 +1523,7 @@ public class Main {
 		var current = new State(input);
 		while (true) {
 			final var maybeNext = current.pop();
-			if (!(maybeNext instanceof Some<Character>(var value)))
-				break;
+			if (!(maybeNext instanceof Some<Character>(var value))) break;
 
 			final Character next;
 			next = value;
@@ -1550,44 +1544,36 @@ public class Main {
 						withoutLineCommentPrefix = tuple.left;
 
 						final var right = tuple.right;
-						if (right == '\r' || right == '\n')
-							withoutLineCommentPrefix = withoutLineCommentPrefix.advance();
-					} else
-						return withoutLineCommentPrefix;
+						if (right == '\r' || right == '\n') withoutLineCommentPrefix = withoutLineCommentPrefix.advance();
+					} else return withoutLineCommentPrefix;
 				}
 			}
 		}
 
 		final var appended = current.append(next);
-		if (next == ';' && appended.isLevel())
-			return appended.advance();
+		if (next == ';' && appended.isLevel()) return appended.advance();
 
 		if (next == '}' && appended.isShallow()) {
 			final State appended1;
 			if (appended.peek() instanceof Some<Character>(var peek) && peek == ';')
 				appended1 = appended.popAndAppendToOption().orElse(appended);
-			else
-				appended1 = appended;
+			else appended1 = appended;
 
 			return appended1.advance().exit();
 		}
 
-		if (next == '{' || next == '(')
-			return appended.enter();
+		if (next == '{' || next == '(') return appended.enter();
 
-		if (next == '}' || next == ')')
-			return appended.exit();
+		if (next == '}' || next == ')') return appended.exit();
 
 		return appended;
 	}
 
 	private String compileRootSegment(String input) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty())
-			return "";
+		if (stripped.isEmpty()) return "";
 
-		if (stripped.startsWith("package ") || stripped.startsWith("import "))
-			return "";
+		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
 		return this
 				.parseObject("class", stripped)
@@ -1598,8 +1584,7 @@ public class Main {
 
 	private Option<JObject> parseObject(String type, String stripped) {
 		final var i = stripped.indexOf(type + " ");
-		if (i < 0)
-			return new None<JObject>();
+		if (i < 0) return new None<JObject>();
 		final var beforeType = stripped.substring(0, i).strip();
 
 		final String modifiers;
@@ -1611,19 +1596,16 @@ public class Main {
 			final var substring1 = beforeType.substring(i5 + 1);
 			annotations = this.collectAnnotations(substring);
 			modifiers = substring1;
-		} else
-			modifiers = beforeType;
+		} else modifiers = beforeType;
 
 		final var afterKeyword = stripped.substring(i + (type + " ").length()).strip();
 
 		final var i1 = afterKeyword.indexOf("{");
-		if (i1 < 0)
-			return new None<JObject>();
+		if (i1 < 0) return new None<JObject>();
 		var beforeContent = afterKeyword.substring(0, i1).strip();
 
 		final var withEnd = afterKeyword.substring(i1 + 1).strip();
-		if (!withEnd.endsWith("}"))
-			return new None<JObject>();
+		if (!withEnd.endsWith("}")) return new None<JObject>();
 		final var inputContent = withEnd.substring(0, withEnd.length() - 1);
 
 		List<String> variants = Lists.empty();
@@ -1687,8 +1669,7 @@ public class Main {
 			}
 		}
 
-		if (!this.isIdentifier(beforeContent))
-			return new None<JObject>();
+		if (!this.isIdentifier(beforeContent)) return new None<JObject>();
 
 		var modifiersList = Streams
 				.fromObjArray(modifiers.split(Pattern.quote(" ")))
@@ -1705,21 +1686,20 @@ public class Main {
 				.toList();
 
 		final var prototype = new JObject(type,
-				annotations,
-				modifiersList,
-				name,
-				typeParameters,
-				recordFields,
-				implementees,
-				variants,
-				children);
+																			annotations,
+																			modifiersList,
+																			name,
+																			typeParameters,
+																			recordFields,
+																			implementees,
+																			variants,
+																			children);
 
 		return new Some<JObject>(prototype);
 	}
 
 	private Option<CStructMember> transformObject(JObject object) {
-		if (object.annotations.contains("Actual"))
-			return new Some<CStructMember>(new EmptyStructMember());
+		if (object.annotations.contains("Actual")) return new Some<CStructMember>(new EmptyStructMember());
 
 		List<CRootSegment> dependencies = new JavaList<CRootSegment>();
 		this.functions = object.createConversionFunctions().iter().fold(this.functions, List::addLast);
@@ -1728,8 +1708,8 @@ public class Main {
 			this.environment = env.withObject(object);
 
 			final var types = object.children.iter().map(Main::extractType).flatMap(Option::iter).toList();
-			final var declarations = object.children.iter().map(this::extractField).flatMap(Option::iter).toList()
-					.addAllLast(object.recordFields);
+			final var declarations =
+					object.children.iter().map(this::extractField).flatMap(Option::iter).toList().addAllLast(object.recordFields);
 
 			this.environment = this.environment.defineAllTypes(types);
 			this.environment = this.environment.defineAllExpressions(declarations);
@@ -1747,28 +1727,26 @@ public class Main {
 		var members = within.right;
 
 		var fields = object.collectCFields();
-		if (object.type().equals("interface"))
-			if (object.modifiersList().contains("sealed")) {
-				final var elements = this.flattenSealedStructure(object.name(), object.typeParameters(), object.variants());
+		if (object.type().equals("interface")) if (object.modifiersList().contains("sealed")) {
+			final var elements = this.flattenSealedStructure(object.name(), object.typeParameters(), object.variants());
 
-				fields = fields
-						.addLast(new CDeclaration(new Identifier(object.name() + "Variant"), "variant"))
-						.addLast(new CDeclaration(new Identifier(
-								object.name() + "Data" + Main.joinTypeParameters(object.typeParameters())), "data"));
+			fields = fields
+					.addLast(new CDeclaration(new Identifier(object.name() + "Variant"), "variant"))
+					.addLast(new CDeclaration(new Identifier(
+							object.name() + "Data" + Main.joinTypeParameters(object.typeParameters())), "data"));
 
-				dependencies = dependencies.addAllLast(elements);
-			} else {
-				final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
-				final var cStructure = new CStructure(object.typeParameters(), object.name() + "Table", list);
+			dependencies = dependencies.addAllLast(elements);
+		} else {
+			final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
+			final var cStructure = new CStructure(object.typeParameters(), object.name() + "Table", list);
 
-				dependencies = dependencies.addLast(cStructure);
-				fields = fields
-						.addLast(new CDeclaration(new Identifier(
-								object.name() + "Table" + Main.joinTypeParameters(object.typeParameters())), "table"))
-						.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "data"));
-			}
-		else
-			fields = fields.addAllLast(this.retainFields(members));
+			dependencies = dependencies.addLast(cStructure);
+			fields = fields
+					.addLast(new CDeclaration(new Identifier(
+							object.name() + "Table" + Main.joinTypeParameters(object.typeParameters())), "table"))
+					.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "data"));
+		}
+		else fields = fields.addAllLast(this.retainFields(members));
 
 		// TODO: create a constructor for records
 		// TODO: create a default empty constructor for a class with no fields
@@ -1821,7 +1799,7 @@ public class Main {
 			final var within = this.environment.within((env) -> {
 				var self = env.defineAllExpressions(jFunctionProto.parameters());
 				return self.within(value -> new Tuple<Environment, String>(value,
-						this.compileMethodsSegments(inputContent, 1)));
+																																	 this.compileMethodsSegments(inputContent, 1)));
 			});
 
 			this.environment = within.left;
@@ -1833,15 +1811,15 @@ public class Main {
 			cParameters = cParameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
 		final var outputContent = this.computeMethodBody(jFunctionProto.typeParameters(),
-				jFunctionProto.methodDeclaration(),
-				cParameters,
-				maybeCompiled,
-				object.name,
-				object.variants);
+																										 jFunctionProto.methodDeclaration(),
+																										 cParameters,
+																										 maybeCompiled,
+																										 object.name,
+																										 object.variants);
 
 		final var mapped = this.transformMethodDeclaration(object.name,
-				jFunctionProto.typeParameters(),
-				jFunctionProto.methodDeclaration());
+																											 jFunctionProto.typeParameters(),
+																											 jFunctionProto.methodDeclaration());
 		final var header = new CFunctionHeader(mapped, cParameters);
 		final var cFunction = new CFunction(header, outputContent);
 
@@ -1862,28 +1840,22 @@ public class Main {
 
 	private Option<JObjectMember> parseObjectMember(String input, String name, List<String> typeParameters) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty())
-			return new None<JObjectMember>();
+		if (stripped.isEmpty()) return new None<JObjectMember>();
 
 		final var maybeEnum = this.parseObject("enum", input);
-		if (maybeEnum instanceof Some<JObject>(var enum0))
-			return new Some<JObjectMember>(enum0);
+		if (maybeEnum instanceof Some<JObject>(var enum0)) return new Some<JObjectMember>(enum0);
 
 		final var maybeInterface = this.parseObject("interface", input);
-		if (maybeInterface instanceof Some<JObject>(var interface0))
-			return new Some<JObjectMember>(interface0);
+		if (maybeInterface instanceof Some<JObject>(var interface0)) return new Some<JObjectMember>(interface0);
 
 		final var maybeRecord = this.parseObject("record", input);
-		if (maybeRecord instanceof Some<JObject>(var record0))
-			return new Some<JObjectMember>(record0);
+		if (maybeRecord instanceof Some<JObject>(var record0)) return new Some<JObjectMember>(record0);
 
 		final var maybeClass = this.parseObject("class", input);
-		if (maybeClass instanceof Some<JObject>(var class0))
-			return new Some<JObjectMember>(class0);
+		if (maybeClass instanceof Some<JObject>(var class0)) return new Some<JObjectMember>(class0);
 
 		final var maybeEnumValues = this.parseEnumValuesStatement(input, name);
-		if (maybeEnumValues instanceof Some<JObjectMember>(var enumValues))
-			return new Some<JObjectMember>(enumValues);
+		if (maybeEnumValues instanceof Some<JObjectMember>(var enumValues)) return new Some<JObjectMember>(enumValues);
 
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
@@ -1895,21 +1867,18 @@ public class Main {
 		}
 
 		final var maybeMethod = this.parseMethod(stripped, name, typeParameters);
-		if (maybeMethod instanceof Some<JObjectMember>(var temp))
-			return new Some<JObjectMember>(temp);
+		if (maybeMethod instanceof Some<JObjectMember>(var temp)) return new Some<JObjectMember>(temp);
 		return new Some<JObjectMember>(new Placeholder(stripped));
 	}
 
 	private Option<JObjectMember> parseMethod(String stripped, String name, List<String> typeParameters) {
 		final var i = stripped.indexOf("(");
-		if (i < 0)
-			return new None<JObjectMember>();
+		if (i < 0) return new None<JObjectMember>();
 
 		final var declarationString = stripped.substring(0, i);
 		final var substring1 = stripped.substring(i + 1);
 		final var i1 = substring1.indexOf(")");
-		if (i1 < 0)
-			return new None<JObjectMember>();
+		if (i1 < 0) return new None<JObjectMember>();
 		final var parametersString = substring1.substring(0, i1);
 		final var withBraces = substring1.substring(i1 + 1).strip();
 
@@ -1931,7 +1900,7 @@ public class Main {
 	private List<CDefinable> retainFields(List<CStructMember> members) {
 		return members.iter().map(member1 -> switch (member1) {
 			case CField(var declaration) -> new Some<CDefinable>(declaration);
-			case FunctionDeclaration _,EmptyStructMember _,Placeholder _ -> new None<CDefinable>();
+			case FunctionDeclaration _, EmptyStructMember _, Placeholder _ -> new None<CDefinable>();
 		}).flatMap(Option::iter).filter(member -> !(member instanceof CFunctionDeclaration)).toList();
 	}
 
@@ -1961,8 +1930,7 @@ public class Main {
 
 	private boolean isIdentifier(String input) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty())
-			return false;
+		if (stripped.isEmpty()) return false;
 
 		return IntStream.range(0, stripped.length()).allMatch(i -> {
 			final var c = stripped.charAt(i);
@@ -1971,11 +1939,11 @@ public class Main {
 	}
 
 	private String computeMethodBody(List<String> typeParameters,
-			JMethodDeclaration methodDeclaration,
-			List<CDeclaration> cParameters,
-			Option<String> maybeContent,
-			String structName,
-			List<String> structureVariants) {
+																	 JMethodDeclaration methodDeclaration,
+																	 List<CDeclaration> cParameters,
+																	 Option<String> maybeContent,
+																	 String structName,
+																	 List<String> structureVariants) {
 		if (methodDeclaration instanceof JConstructor) {
 			final var compiled = maybeContent.orElse("?");
 			return Main.generateStatement(structName + " _this") + compiled + Main.generateStatement("return " + "_this");
@@ -2000,9 +1968,9 @@ public class Main {
 	}
 
 	private String createBodyForAbstractMethod(List<String> variants,
-			CType type,
-			String name,
-			List<String> parameterNames) {
+																						 CType type,
+																						 String name,
+																						 List<String> parameterNames) {
 		if (variants.isEmpty()) {
 			final var joinedParameters = parameterNames.addFirst("_this->data").iter().collect(new Joiner(", "));
 
@@ -2013,13 +1981,13 @@ public class Main {
 			final var cases = variants.iter().map(variant -> this.generateCase(variant, name)).collect(new Joiner());
 
 			return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
-					generateIndent(1) + "}" + Main.generateStatement("return _ret");
+						 generateIndent(1) + "}" + Main.generateStatement("return _ret");
 		}
 	}
 
 	private CFunctionDeclaration transformMethodDeclaration(String structName,
-			List<String> typeParameters,
-			JMethodDeclaration methodDeclaration) {
+																													List<String> typeParameters,
+																													JMethodDeclaration methodDeclaration) {
 		return this
 				.convertToFunctionDeclarations(typeParameters, methodDeclaration)
 				.mapTypeParameters(typeParameters0 -> typeParameters0.addAllLast(typeParameters))
@@ -2027,7 +1995,7 @@ public class Main {
 	}
 
 	private CFunctionDeclaration convertToFunctionDeclarations(List<String> typeParameters,
-			JMethodDeclaration methodDeclaration) {
+																														 JMethodDeclaration methodDeclaration) {
 		return switch (methodDeclaration) {
 			case JConstructor constructor -> {
 				final var type = this.toConstructorReturnType(constructor.type, typeParameters);
@@ -2039,12 +2007,10 @@ public class Main {
 	}
 
 	private CType toConstructorReturnType(String base, List<String> typeParameters) {
-		if (base.isEmpty())
-			return new Identifier(base);
+		if (base.isEmpty()) return new Identifier(base);
 
 		final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList();
-		if (typeArguments.isEmpty())
-			return new Identifier(base);
+		if (typeArguments.isEmpty()) return new Identifier(base);
 		return new CTemplateType(base, typeArguments);
 	}
 
@@ -2054,8 +2020,8 @@ public class Main {
 
 	private String generateCase(String variant, String name) {
 		return generateIndent(2) + "case " + variant + "Variant:" +
-				generateStatement(3, "_ret = " + name + "_" + variant + "(&(_this->data." + variant + "))") +
-				generateStatement(3, "break");
+					 generateStatement(3, "_ret = " + name + "_" + variant + "(&(_this->data." + variant + "))") +
+					 generateStatement(3, "break");
 	}
 
 	private JMethodDeclaration parseMethodDeclaration(String declaration, String structName) {
@@ -2071,14 +2037,12 @@ public class Main {
 
 	private Option<JMethodDeclaration> parseConstructor(String declaration, String structName) {
 		final var stripped = declaration.strip();
-		if (stripped.equals(structName))
-			return new Some<JMethodDeclaration>(new JConstructor(structName));
+		if (stripped.equals(structName)) return new Some<JMethodDeclaration>(new JConstructor(structName));
 
 		final var i = stripped.lastIndexOf(" ");
 		if (i >= 0) {
 			final var substring = stripped.substring(i + 1).strip();
-			if (substring.equals(structName))
-				return new Some<JMethodDeclaration>(new JConstructor(structName));
+			if (substring.equals(structName)) return new Some<JMethodDeclaration>(new JConstructor(structName));
 		}
 
 		return new None<JMethodDeclaration>();
@@ -2086,8 +2050,7 @@ public class Main {
 
 	private Option<JObjectMember> parseEnumValuesStatement(String input, String structName) {
 		final var stripped = input.strip();
-		if (stripped.endsWith(";"))
-			return this.parseEnumValues(structName, stripped.substring(0, stripped.length() - 1));
+		if (stripped.endsWith(";")) return this.parseEnumValues(structName, stripped.substring(0, stripped.length() - 1));
 		return this.parseEnumValues(structName, stripped);
 	}
 
@@ -2100,11 +2063,10 @@ public class Main {
 
 		if (!enumValues.isEmpty()) {
 			var optionStream = enumValues.iter().map(enumValue -> this.compileEnumValue(structName, enumValue));
-			final var areAnyInvalid = (boolean) optionStream
-					.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>));
+			final var areAnyInvalid =
+					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>));
 
-			if (areAnyInvalid)
-				return new None<JObjectMember>();
+			if (areAnyInvalid) return new None<JObjectMember>();
 		}
 
 		return new Some<JObjectMember>(new EmptyStructMember());
@@ -2117,12 +2079,11 @@ public class Main {
 			final var i = substring.indexOf("(");
 			if (i >= 0) {
 				final var name = substring.substring(0, i);
-				if (!this.isIdentifier(name))
-					return new None<CStructMember>();
+				if (!this.isIdentifier(name)) return new None<CStructMember>();
 
 				final var substring2 = substring.substring(i + 1);
-				final var generated = structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2
-						+ ")" + ";" +
+				final var generated =
+						structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" +
 						System.lineSeparator();
 
 				this.globals = this.globals.addLast(generated);
@@ -2131,8 +2092,8 @@ public class Main {
 		}
 
 		if (this.isIdentifier(stripped)) {
-			final var generated = structName + " " + structName + stripped + " = " + "new_" + structName + "()" + ";"
-					+ System.lineSeparator();
+			final var generated =
+					structName + " " + structName + stripped + " = " + "new_" + structName + "()" + ";" + System.lineSeparator();
 
 			this.globals = this.globals.addLast(generated);
 			return new Some<CStructMember>(new EmptyStructMember());
@@ -2143,25 +2104,21 @@ public class Main {
 
 	private String compileMethodSegment(String input, int indent) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty())
-			return "";
+		if (stripped.isEmpty()) return "";
 
 		final var maybeIf = this.compileConditional("if", indent, stripped);
-		if (maybeIf instanceof Some<String>(var result))
-			return result;
+		if (maybeIf instanceof Some<String>(var result)) return result;
 
 		final var maybeWhile = this.compileConditional("while", indent, stripped);
-		if (maybeWhile instanceof Some<String>(var result))
-			return result;
+		if (maybeWhile instanceof Some<String>(var result)) return result;
 
 		if (stripped.startsWith("else ")) {
 			final var substring = stripped.substring("else ".length()).strip();
 			if (substring.startsWith("{") && substring.endsWith("}")) {
 				final var substring1 = substring.substring(1, substring.length() - 1);
 				return generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
-						generateIndent(indent) + "}";
-			} else
-				return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent + 1);
+							 generateIndent(indent) + "}";
+			} else return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent + 1);
 		}
 
 		if (stripped.endsWith(";")) {
@@ -2169,8 +2126,7 @@ public class Main {
 			return generateIndent(indent) + this.compileMethodStatement(substring) + ";";
 		}
 
-		if (stripped.startsWith("//"))
-			return generateIndent(indent) + stripped;
+		if (stripped.startsWith("//")) return generateIndent(indent) + stripped;
 
 		return System.lineSeparator() + "\t" + Placeholder.wrap(stripped);
 	}
@@ -2187,26 +2143,24 @@ public class Main {
 						.filter(slice -> !slice.isEmpty())
 						.toList();
 
-				if (divisions.size() < 2)
-					return new None<String>();
+				if (divisions.size() < 2) return new None<String>();
 
 				final var first = divisions.getFirst();
 				final var maybeWithBraces = this.joinStrings(divisions.subList(1, divisions.size()));
 
-				if (!first.endsWith(")"))
-					return new None<String>();
+				if (!first.endsWith(")")) return new None<String>();
 				final var condition = first.substring(0, first.length() - 1);
 
 				if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
 					final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 					return new Some<String>(
 							generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									this.compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
+							this.compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 				}
 
 				return new Some<String>(
 						generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") " +
-								this.compileMethodSegment(maybeWithBraces, indent + 1));
+						this.compileMethodSegment(maybeWithBraces, indent + 1));
 			}
 		}
 
@@ -2215,31 +2169,25 @@ public class Main {
 
 	private String compileMethodStatement(String input) {
 		final var stripped = input.strip();
-		if (stripped.equals("break"))
-			return "break";
+		if (stripped.equals("break")) return "break";
 
 		if (stripped.startsWith("return "))
 			return "return " + this.compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 
 		final var maybeAssignment = this.compileAssignment(stripped);
-		if (maybeAssignment instanceof Some<String>(var assignment))
-			return assignment;
+		if (maybeAssignment instanceof Some<String>(var assignment)) return assignment;
 
 		final var maybeInvokable = this.parseInvokable(stripped);
-		if (maybeInvokable instanceof Some(var value))
-			return this.transformExpression(value).generate();
+		if (maybeInvokable instanceof Some(var value)) return this.transformExpression(value).generate();
 
 		final var instance = this.post(stripped, "++");
-		if (instance instanceof Some<String>(var x))
-			return x;
+		if (instance instanceof Some<String>(var x)) return x;
 
 		final var instance0 = this.post(stripped, "--");
-		if (instance0 instanceof Some<String>(var x))
-			return x;
+		if (instance0 instanceof Some<String>(var x)) return x;
 
 		final var maybeDeclaration = this.parseDeclaration(input);
-		if (maybeDeclaration instanceof Some<JDeclaration>(var declaration))
-			return declaration.toCDeclaration().generate();
+		if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) return declaration.toCDeclaration().generate();
 
 		return Placeholder.wrap(stripped);
 	}
@@ -2276,8 +2224,7 @@ public class Main {
 	}
 
 	private JType resolveType(JExpression source, JType type) {
-		if (type.equals(JPrimitiveType.Var))
-			return this.resolveExpression(source);
+		if (type.equals(JPrimitiveType.Var)) return this.resolveExpression(source);
 		return type;
 	}
 
@@ -2293,11 +2240,11 @@ public class Main {
 				final var instanceType = this.resolveExpression(instance);
 
 				if (instanceType instanceof JRecursiveType recursiveType)
-					if (recursiveType.internal instanceof Some<JType>(var internal) && internal instanceof JObjectType objectType)
+					if (recursiveType.maybeInternal instanceof Some<JType>(var internal) &&
+							internal instanceof JObjectType objectType)
 						yield this.resolveMember(objectType, instanceType, access.memberName);
 
-				if (instanceType instanceof JObjectType type)
-					yield this.resolveMember(type, instanceType, access.memberName);
+				if (instanceType instanceof JObjectType type) yield this.resolveMember(type, instanceType, access.memberName);
 
 				assert !(instanceType instanceof JGenericType);
 				yield new Placeholder(
@@ -2305,7 +2252,7 @@ public class Main {
 			}
 
 			case JExpressionWrapper jExpressionWrapper ->
-				new Placeholder("Unwrapped expression: " + jExpressionWrapper.content);
+					new Placeholder("Unwrapped expression: " + jExpressionWrapper.content);
 			case JInvokable jInvokable -> this.resolveCaller(jInvokable.caller);
 			case JNumber _ -> JPrimitiveType.Int;
 			case JNot _ -> JPrimitiveType.Boolean;
@@ -2313,25 +2260,21 @@ public class Main {
 	}
 
 	private JType resolveIdentifier(String value) {
-		if (value.equals("this"))
-			return this.environment
-					.resolveCurrent()
-					.<JType>map(thisType -> thisType)
-					.orElseGet(() -> new Placeholder("Not within a struct"));
+		if (value.equals("this")) return this.environment
+				.resolveCurrent()
+				.<JType>map(thisType -> thisType)
+				.orElseGet(() -> new Placeholder("Not within a struct"));
 
 		final var maybeFound = this.environment.resolveExpression(value).map(JDeclaration::type);
-		if (maybeFound instanceof Some<JType>(var found))
-			return found;
+		if (maybeFound instanceof Some<JType>(var found)) return found;
 		return new Placeholder("Undefined identifier: " + value);
 	}
 
 	private JType cleanupType(JType found) {
 		if (found instanceof JGenericType genericType) {
 			final var resolved = this.environment.resolveType(genericType.base);
-			if (resolved instanceof Some<JObjectType>(var objType))
-				return objType;
-			else
-				return new Placeholder("Generic type '" + genericType.base + "' has not been defined");
+			if (resolved instanceof Some<JObjectType>(var objType)) return objType;
+			else return new Placeholder("Generic type '" + genericType.base + "' has not been defined");
 		}
 
 		return found;
@@ -2348,8 +2291,7 @@ public class Main {
 			case JConstruction jConstruction -> jConstruction.jType;
 			case JExpression jExpression -> {
 				final var jType = this.resolveExpression(jExpression);
-				if (jType instanceof JFunctionalType functionalType)
-					yield functionalType.returnType;
+				if (jType instanceof JFunctionalType functionalType) yield functionalType.returnType;
 				yield new Placeholder("Not a functional type: " + jType);
 			}
 		};
@@ -2382,8 +2324,7 @@ public class Main {
 
 	private Option<JExpression> parseExpression(String input) {
 		final var stripped = input.strip();
-		if (stripped.startsWith("switch "))
-			return new Some<String>("_switch").map(JExpressionWrapper::new);
+		if (stripped.startsWith("switch ")) return new Some<String>("_switch").map(JExpressionWrapper::new);
 
 		final var i2 = stripped.lastIndexOf("::");
 		if (i2 >= 0) {
@@ -2394,8 +2335,7 @@ public class Main {
 				final var functionalInterfaceName = "F?";
 				return new Some<String>(
 						functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name +
-								" }}")
-						.map(JExpressionWrapper::new);
+						" }}").map(JExpressionWrapper::new);
 			}
 		}
 
@@ -2403,8 +2343,7 @@ public class Main {
 			return new Some<String>(stripped).map(JExpressionWrapper::new);
 
 		final var maybeLambda = this.compileLambda(stripped);
-		if (maybeLambda instanceof Some<String>)
-			return maybeLambda.map(JExpressionWrapper::new);
+		if (maybeLambda instanceof Some<String>) return maybeLambda.map(JExpressionWrapper::new);
 
 		final var i3 = stripped.indexOf("instanceof");
 		if (i3 >= 0) {
@@ -2414,10 +2353,8 @@ public class Main {
 			if (maybeInstance instanceof Some<String>(var instance)) {
 				final var i4 = substring1.indexOf("<");
 				final String substring2;
-				if (i4 >= 0)
-					substring2 = substring1.substring(0, i4);
-				else
-					substring2 = substring1;
+				if (i4 >= 0) substring2 = substring1.substring(0, i4);
+				else substring2 = substring1;
 
 				return new Some<String>(instance + ".variant = ?." + substring2 + "Variant").map(JExpressionWrapper::new);
 			}
@@ -2435,8 +2372,7 @@ public class Main {
 		}
 
 		final var maybeInvokable = this.parseInvokable(stripped);
-		if (maybeInvokable instanceof Some<JExpression>)
-			return maybeInvokable;
+		if (maybeInvokable instanceof Some<JExpression>) return maybeInvokable;
 
 		final var maybeOperator = this
 				.compileOperator(stripped, "==")
@@ -2448,20 +2384,16 @@ public class Main {
 				.or(() -> this.compileOperator(stripped, "||"))
 				.or(() -> this.compileOperator(stripped, ">="));
 
-		if (maybeOperator instanceof Some<String>)
-			return maybeOperator.map(JExpressionWrapper::new);
-		if (this.isIdentifier(stripped))
-			return new Some<JExpression>(new Identifier(stripped));
+		if (maybeOperator instanceof Some<String>) return maybeOperator.map(JExpressionWrapper::new);
+		if (this.isIdentifier(stripped)) return new Some<JExpression>(new Identifier(stripped));
 
 		if (stripped.startsWith("!")) {
 			final var substring = stripped.substring(1);
 			final var maybeInstance = this.parseCExpression(substring);
-			if (maybeInstance instanceof Some(var instance))
-				return new Some<JExpression>(new JNot(instance));
+			if (maybeInstance instanceof Some(var instance)) return new Some<JExpression>(new JNot(instance));
 		}
 
-		if (this.isNumber(stripped))
-			return new Some<JExpression>(new JNumber(stripped));
+		if (this.isNumber(stripped)) return new Some<JExpression>(new JNumber(stripped));
 
 		if (stripped.startsWith("\"") && stripped.endsWith("\""))
 			return new Some<String>(stripped).map(JExpressionWrapper::new);
@@ -2471,15 +2403,13 @@ public class Main {
 
 	private Option<String> compileLambda(String input) {
 		final var index = input.indexOf("->");
-		if (index < 0)
-			return new None<String>();
+		if (index < 0) return new None<String>();
 
 		final var beforeContent = input.substring(0, index).strip();
 		final var maybeWithBraces = input.substring(index + 2).strip();
 
 		final var maybeParams = this.parseLambdaParams(beforeContent);
-		if (!(maybeParams instanceof Some<List<String>>(var params)))
-			return new None<String>();
+		if (!(maybeParams instanceof Some<List<String>>(var params))) return new None<String>();
 		var paramList = params
 				.iter()
 				.map(param -> new CDeclaration(new Placeholder("TODO: resolve type of lambda param"), param))
@@ -2490,29 +2420,25 @@ public class Main {
 		if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
 			final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 			output = this.compileMethodsSegments(content, 1);
-		} else
-			output = Main.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces));
+		} else output = Main.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces));
 
 		final var generatedName = this.generateName();
-		final var cFunction = new CFunction(
-				new CFunctionHeader(new CDeclaration(new Placeholder("TODO:  resolve lambda return type"),
-						generatedName), paramList),
-				output);
+		final var cFunction =
+				new CFunction(new CFunctionHeader(new CDeclaration(new Placeholder("TODO:  resolve lambda return type"),
+																													 generatedName), paramList), output);
 
 		this.functions = this.functions.addLast(cFunction);
 		return new Some<String>(generatedName);
 	}
 
 	private Option<List<String>> parseLambdaParams(String input) {
-		if (this.isIdentifier(input))
-			return new Some<List<String>>(Lists.of(input));
+		if (this.isIdentifier(input)) return new Some<List<String>>(Lists.of(input));
 		else if (input.startsWith("(") && input.endsWith(")")) {
 			final var substring = input.substring(1, input.length() - 1);
-			final var list = this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty())
-					.toList();
+			final var list =
+					this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 			return new Some<List<String>>(list);
-		} else
-			return new None<List<String>>();
+		} else return new None<List<String>>();
 	}
 
 	private String generateName() {
@@ -2522,26 +2448,21 @@ public class Main {
 	}
 
 	private Option<String> compileOperator(String input, String operator) {
-		if (input.length() < 3)
-			return new None<String>();
-		if (!input.contains(operator))
-			return new None<String>();
+		if (input.length() < 3) return new None<String>();
+		if (!input.contains(operator)) return new None<String>();
 
 		var i1 = -1;
 		var depth = 0;
 		var i = 0;
 		while (i < input.length() - 1) {
 			final var c = input.charAt(i);
-			if (c == operator.charAt(0))
-				if (depth == 0) {
-					i1 = i;
-					break;
-				}
+			if (c == operator.charAt(0)) if (depth == 0) {
+				i1 = i;
+				break;
+			}
 
-			if (c == '(')
-				depth++;
-			if (c == ')')
-				depth--;
+			if (c == '(') depth++;
+			if (c == ')') depth--;
 			i++;
 		}
 
@@ -2557,23 +2478,20 @@ public class Main {
 	}
 
 	private Option<JExpression> parseInvokable(String stripped) {
-		if (!stripped.endsWith(")"))
-			return new None<JExpression>();
+		if (!stripped.endsWith(")")) return new None<JExpression>();
 
 		final var length = stripped.length();
 		final var withoutEnd = stripped.substring(0, length - 1);
 
 		final var callerStart = this.findCallerStart(withoutEnd);
 
-		if (callerStart < 0)
-			return new None<JExpression>();
+		if (callerStart < 0) return new None<JExpression>();
 		final var callerString = withoutEnd.substring(0, callerStart);
 		final var argumentsString = withoutEnd.substring(callerStart + 1);
 
 		final var maybeCaller = this.parseCaller(callerString);
 
-		if (!(maybeCaller instanceof Some(var value)))
-			return new None<JExpression>();
+		if (!(maybeCaller instanceof Some(var value))) return new None<JExpression>();
 		final var arguments = this
 				.divide(argumentsString, new EscapedFolder(new ValueFolder()))
 				.map(this::parseExpression)
@@ -2590,13 +2508,11 @@ public class Main {
 		while (i < withoutEnd.length()) {
 			final var c = withoutEnd.charAt(i);
 			if (c == '(') {
-				if (depth == 0)
-					callerStart = i;
+				if (depth == 0) callerStart = i;
 
 				depth++;
 			}
-			if (c == ')')
-				depth--;
+			if (c == ')') depth--;
 			i++;
 		}
 		return callerStart;
@@ -2604,10 +2520,8 @@ public class Main {
 
 	private boolean isNumber(String input) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty())
-			return false;
-		if (stripped.startsWith("-"))
-			return this.allDigits(stripped.substring(1));
+		if (stripped.isEmpty()) return false;
+		if (stripped.startsWith("-")) return this.allDigits(stripped.substring(1));
 		return this.allDigits(stripped);
 	}
 
@@ -2618,8 +2532,7 @@ public class Main {
 	private Option<JCaller> parseCaller(String input) {
 		final var stripped = input.strip();
 		final var maybeExpression = this.parseExpression(stripped);
-		if (maybeExpression instanceof Some<JExpression>(var expression))
-			return new Some<JCaller>(expression);
+		if (maybeExpression instanceof Some<JExpression>(var expression)) return new Some<JCaller>(expression);
 
 		if (stripped.startsWith("new ")) {
 			final var type = stripped.substring("new ".length());
@@ -2639,8 +2552,7 @@ public class Main {
 
 			final var typeSeparator = this.findTypeSeparator(beforeName);
 
-			if (!this.isIdentifier(name))
-				return new None<JDeclaration>();
+			if (!this.isIdentifier(name)) return new None<JDeclaration>();
 
 			if (typeSeparator < 0) {
 				final var type = this.parseType(beforeName);
@@ -2693,12 +2605,9 @@ public class Main {
 		var i = 0;
 		while (i < beforeName.length()) {
 			final var c = beforeName.charAt(i);
-			if (c == ' ' && depth == 0)
-				typeSeparator = i;
-			if (c == '<')
-				depth++;
-			if (c == '>')
-				depth--;
+			if (c == ' ' && depth == 0) typeSeparator = i;
+			if (c == '<') depth++;
+			if (c == '>') depth--;
 			i++;
 		}
 		return typeSeparator;
@@ -2746,8 +2655,7 @@ public class Main {
 			}
 		}
 
-		if (this.isIdentifier(stripped))
-			return new Identifier(stripped);
+		if (this.isIdentifier(stripped)) return new Identifier(stripped);
 
 		// TODO: handle varargs through monomorphization
 
