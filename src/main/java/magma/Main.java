@@ -2624,7 +2624,7 @@ public class Main {
 
 		if (this.isNumber(stripped)) return new Some<JExpression>(new JNumber(stripped));
 
-		if (stripped.startsWith("\"") && stripped.endsWith("\""))
+		if (stripped.startsWith("\"") && stripped.endsWith("\"") && stripped.length() >= 2)
 			return new Some<JExpression>(new StringNode(stripped.substring(1, stripped.length() - 1)));
 
 		return new None<JExpression>();
