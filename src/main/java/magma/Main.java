@@ -478,6 +478,13 @@ public class Main {
 	}
 
 	private record CTemplateType(String base, List<CType> list) implements CType {
+		private CTemplateType(String base, List<CType> list) {
+			this.base = base;
+			this.list = list;
+
+			assert !list.isEmpty();
+		}
+
 		@Override
 		public String generate() {
 			final var typeArguments = this.list.iter().map(CType::generate).collect(new Joiner(", "));
@@ -505,7 +512,9 @@ public class Main {
 	}
 
 	private record Identifier(String value) implements CType, JType, JExpression, CExpression {
-		private Identifier {
+		private Identifier(String value) {
+			this.value = value;
+
 			assert !value.isEmpty();
 		}
 
@@ -1082,7 +1091,9 @@ public class Main {
 	}
 
 	private static final class JRecursiveType implements JType {
-		private Option<JType> internal = new None<JType>();
+		private Option<JType> internal;
+
+		private JRecursiveType() {this.internal = new None<JType>();}
 
 		public static JType create(F1R<JType, JType> mapper) {
 			final var created = new JRecursiveType();
@@ -2536,6 +2547,9 @@ public class Main {
 		}
 
 		if (this.isIdentifier(stripped)) return new Identifier(stripped);
+
+		// TODO: handle varargs through monomorphization
+
 		return new Placeholder(stripped);
 	}
 }
