@@ -1,7 +1,5 @@
 package magma;
 
-import com.sun.source.tree.Tree;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -11,7 +9,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -1713,12 +1710,16 @@ public class Main {
 			var dependencyMapKeysToRemove =
 					dependencyMap.entrySet().stream().filter(entry -> entry.getValue().isEmpty()).map(Entry::getKey).toList();
 
+			final var oldLength = dependencyMap.size();
 			for (var dependencyMapKeyToRemove : dependencyMapKeysToRemove) {
 				dependencyMap.remove(dependencyMapKeyToRemove);
 				order = order.addLast(dependencyMapKeyToRemove);
 
 				this.removeKeyFromValues(dependencyMap, dependencyMapKeyToRemove);
 			}
+
+			final var newLength = dependencyMap.size();
+			assert oldLength != newLength;
 		}
 
 		return this.structuresOrUnions;
