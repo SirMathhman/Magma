@@ -294,6 +294,11 @@ public class Main {
 			this(new ArrayList<T>());
 		}
 
+		@Override
+		public String toString() {
+			return this.nativeList.toString();
+		}
+
 		public JavaList<T> addLast(T element) {
 			this.nativeList.add(element);
 			return this;
@@ -548,6 +553,25 @@ public class Main {
 															JType type, String name) implements JMethodDeclaration, JAssignable {
 		public JDeclaration(String name, JType type) {
 			this(Lists.empty(), Lists.empty(), new None<String>(), type, name);
+		}
+
+		@Override
+		public String toString() {
+			final String annotationsString;
+			if (this.annotations.isEmpty()) annotationsString = "";
+			else annotationsString = "annotations=" + this.annotations + ", ";
+
+			final String typeParametersString;
+			if (this.typeParameters.isEmpty()) typeParametersString = "";
+			else typeParametersString = "typeParameters=" + this.typeParameters + ", ";
+
+			final String maybeBeforeTypeString;
+			if (this.maybeBeforeType instanceof Some<String>(var result))
+				maybeBeforeTypeString = "maybeBeforeType=" + result + ", ";
+			else maybeBeforeTypeString = "";
+
+			return "JDeclaration {" + annotationsString + typeParametersString + maybeBeforeTypeString + "type=" + this.type +
+						 ", name='" + this.name + '\'' + '}';
 		}
 
 		public JDeclaration mapName(F1R<String, String> mapper) {
