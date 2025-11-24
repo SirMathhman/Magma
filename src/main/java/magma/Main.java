@@ -1967,18 +1967,18 @@ public class Main {
 		final var maybeWhile = this.compileConditional("while", indent, stripped);
 		if (maybeWhile instanceof Some<String>(var result)) return result;
 
-		if (stripped.endsWith(";")) {
-			final var substring = stripped.substring(0, stripped.length() - 1);
-			return generateIndent(indent) + this.compileMethodStatement(substring) + ";";
-		}
-
 		if (stripped.startsWith("else ")) {
 			final var substring = stripped.substring("else ".length()).strip();
 			if (substring.startsWith("{") && substring.endsWith("}")) {
 				final var substring1 = substring.substring(1, substring.length() - 1);
 				return generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
 							 generateIndent(indent) + "}";
-			} else return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent);
+			} else return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent + 1);
+		}
+
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			return generateIndent(indent) + this.compileMethodStatement(substring) + ";";
 		}
 
 		if (stripped.startsWith("//")) return generateIndent(indent) + stripped;
