@@ -1780,8 +1780,12 @@ public class Main {
 	}
 
 	private Option<CDefinable> retainDefinables(CStructMember member) {
-		if (member instanceof CDefinable definable) return new Some<CDefinable>(definable);
-		else return new None<CDefinable>();
+		return switch (member) {
+			case CField(CDefinable declaration) -> new Some<CDefinable>(declaration);
+			case FunctionDeclaration functionDeclaration -> new Some<CDefinable>(functionDeclaration);
+			case EmptyStructMember emptyStructMember -> new None<CDefinable>();
+			case Placeholder placeholder -> new None<CDefinable>();
+		};
 	}
 
 	private List<String> splitValues(String input) {
