@@ -1476,11 +1476,18 @@ public class Main {
 			// Note that withName is not used by members here, but should be accessible because Environment has a de facto
 			// mutable implementation
 			// But if environment becomes immutable, then we have to pass withName as a parameter here eventually
-			final var members = this
+			final var prototypes = this
 					.divide(object.inputContent, new EscapedFolder(this::foldStatement))
-					.map(slice -> this
-							.partiallyParseObjectMember(object, slice)
-							.flatMap(wrapper -> this.completeObjectMemberPrototype(object, wrapper)))
+					.map(slice -> this.partiallyParseObjectMember(object, slice))
+					.flatMap(Option::iter)
+					.toList();
+
+			final var declarations = prototypes.iter().map(this::extractMethodDeclaration).flatMap(Option::iter).toList();
+			this.environment = this.environment.defineAll(declarations);
+
+			final var members = prototypes
+					.iter()
+					.map(wrapper -> this.completeObjectMemberPrototype(object, wrapper))
 					.flatMap(Option::iter)
 					.toList();
 
@@ -1514,6 +1521,20 @@ public class Main {
 		final var elements = dependencies.addLast(new CStructure(object.typeParameters(), object.name(), fields));
 		this.rootSegments = this.rootSegments.addAllLast(elements);
 		return new Some<CStructMember>(new EmptyStructMember());
+	}
+
+	private Option<JDeclaration> extractMethodDeclaration(JObjectMemberPrototype prototype) {
+		if (prototype instanceof JMethodPrototype methodPrototype) {
+			final var methodDeclaration = methodPrototype.methodDeclaration;
+			if (methodDeclaration instanceof JDeclaration declaration) {
+				final var returnType = declaration.type;
+				final var paramTypes = methodPrototype.parameters.iter().map(JDeclaration::type).toList();
+				final var functionalType = new JFunctionalType(paramTypes, returnType);
+				return new Some<JDeclaration>(new JDeclaration(declaration.name, functionalType));
+			}
+		}
+
+		return new None<JDeclaration>();
 	}
 
 	private Option<CStructMember> completeObjectMemberPrototype(JObjectPrototype object,
