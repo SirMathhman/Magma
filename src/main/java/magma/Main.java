@@ -72,6 +72,10 @@ public class Main {
 		Option<IOError> writeString(String output);
 
 		Result<String, IOError> readString();
+
+		Option<Path> getParent();
+
+		Option<IOError> createDirectories();
 	}
 
 	private interface FR<T> {
@@ -926,16 +930,26 @@ public class Main {
 		}
 
 		@Override
+		public Option<Path> getParent() {
+			final var parent = this.path.getParent();
+			if (parent instanceof java.nio.file.Path p)
+				return new Some<Path>(new JavaPath(p));
+			return new None<Path>();
+		}
+
+		@Override
+		public Option<IOError> createDirectories() {
+			try {
+				Files.createDirectories(this.path);
+				return new None<IOError>();
+			} catch (IOException e) {
+				return new Some<IOError>(new JavaIOError(e));
+			}
+		}
+
+		@Override
 		public Option<IOError> writeString(String output) {
 			try {
-				java.util.Optional.ofNullable(this.path.getParent())
-						.ifPresent(p -> {
-							try {
-								Files.createDirectories(p);
-							} catch (IOException e) {
-								throw new RuntimeException(e);
-							}
-						});
 				Files.writeString(this.path, output);
 				return new None<IOError>();
 			} catch (IOException e) {
@@ -1472,7 +1486,15 @@ public class Main {
 
 		return switch (input) {
 			case Err<String, IOError> v -> new Some<IOError>(v.error);
-			case Ok<String, IOError> v -> target.writeString(v.value);
+			case Ok<String, IOError> v -> {
+				final var maybeParent = target.getParent();
+				if (maybeParent instanceof Some<Path>(var parent)) {
+					final var maybeError = parent.createDirectories();
+					if (maybeError instanceof Some<IOError>(var error))
+						yield new Some<IOError>(error);
+				}
+				yield target.writeString(v.value);
+			}
 		};
 	}
 
