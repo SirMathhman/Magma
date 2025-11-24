@@ -1332,7 +1332,11 @@ public class Main {
 
 	private CExpression transformExpression(JExpression expression) {
 		return switch (expression) {
-			case Identifier identifier -> identifier;
+			case Identifier identifier -> {
+				if (identifier.value.equals("this")) yield new CQuantity(new CDereference(new Identifier("_this")));
+
+				yield identifier;
+			}
 			case JExpressionWrapper jExpressionWrapper -> new CExpressionWrapper(jExpressionWrapper.content);
 			case JInvokable jInvokable -> this.transformInvocation(jInvokable);
 			case JMemberAccess jMemberAccess -> {
