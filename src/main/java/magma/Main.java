@@ -1589,8 +1589,8 @@ public class Main {
 				final var instance = jMemberAccess.instance;
 				final var memberName = jMemberAccess.memberName;
 				final var transformed = this.transformExpression(instance);
-				if (transformed instanceof CQuantity(var expression1)) if (expression1 instanceof CDereference(var expression2))
-					yield new CDereference(new CQuantity(new CPointerAccess(expression2, memberName)));
+				if (transformed instanceof CQuantity(var expression1))
+					if (expression1 instanceof CDereference(var expression2)) yield new CPointerAccess(expression2, memberName);
 
 				yield new CFieldAccess(transformed, memberName);
 			}
@@ -1907,7 +1907,8 @@ public class Main {
 					.map(Main::generateStatement)
 					.collect(new Joiner());
 
-			final var content = generateStatement(structureType.generate() + " _this") + joinedAssignments +
+			final var content = generateStatement(structureType.generate() + " _thisInstance") +
+													generateStatement(structureType.generate() + "* _this = &_thisInstance") + joinedAssignments +
 													generateStatement("return _this");
 
 			this.functions = this.functions.addLast(new CFunction(new CFunctionHeader(definition, recordFields), content));
@@ -2137,7 +2138,7 @@ public class Main {
 																	 List<String> structureVariants) {
 		if (methodDeclaration instanceof JConstructor) {
 			final var compiled = maybeContent.orElse("?");
-			return Main.generateStatement(structName + " _this") + compiled + Main.generateStatement("return " + "_this");
+			return Main.generateStatement(structName + " _thisInstance") + generateStatement(structName + "* _this = &_thisInstance") + compiled + Main.generateStatement("return " + "_this");
 		}
 
 		if (methodDeclaration instanceof JDeclaration declaration) {
