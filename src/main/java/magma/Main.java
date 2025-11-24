@@ -1326,7 +1326,7 @@ public class Main {
 
 			final var conversionFunctionName = "to" + identifier + "_" + this.name;
 			final var parameters = Lists.of(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
-			final var header = new CFunctionHeader(new CDeclaration(implementee, conversionFunctionName), parameters);
+			final var header = new CFunctionHeader(new CDeclaration(typeParameters, implementee, conversionFunctionName), parameters);
 
 			return new CFunction(header, content);
 		}
