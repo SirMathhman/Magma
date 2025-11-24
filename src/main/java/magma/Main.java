@@ -1909,7 +1909,7 @@ public class Main {
 
 			final var content = generateStatement(structureType.generate() + " _thisInstance") +
 													generateStatement(structureType.generate() + "* _this = &_thisInstance") + joinedAssignments +
-													generateStatement("return _this");
+													generateStatement("return _thisInstance");
 
 			this.functions = this.functions.addLast(new CFunction(new CFunctionHeader(definition, recordFields), content));
 		}
@@ -2138,7 +2138,7 @@ public class Main {
 																	 List<String> structureVariants) {
 		if (methodDeclaration instanceof JConstructor) {
 			final var compiled = maybeContent.orElse("?");
-			return Main.generateStatement(structName + " _thisInstance") + generateStatement(structName + "* _this = &_thisInstance") + compiled + Main.generateStatement("return " + "_this");
+			return Main.generateStatement(structName + " _thisInstance") + generateStatement(structName + "* _this = &_thisInstance") + compiled + Main.generateStatement("return " + "_thisInstance");
 		}
 
 		if (methodDeclaration instanceof JDeclaration declaration) {
