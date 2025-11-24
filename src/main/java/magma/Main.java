@@ -1566,7 +1566,7 @@ public class Main {
 				final var memberName = jMemberAccess.memberName;
 				final var cExpression = this.transformExpression(instance);
 				if (instance instanceof Identifier(var value) && value.equals("this"))
-					yield new CPointerAccess(new Identifier("_this"), memberName);
+					yield new CFieldAccess(new Identifier("_this"), memberName);
 				else yield new CFieldAccess(cExpression, memberName);
 			}
 			case JNumber jNumber -> new CNumber(jNumber.value);
