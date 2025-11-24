@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Magma is a self-hosting Java-to-C++ transpiler. The core logic is contained within `src/main/java/magma/Main.java`, which reads its own source code and compiles it into `src/main/java/magma/Main.cpp`.
+Magma is a self-hosting Java-to-C++ transpiler. The core logic is contained within `src/main/java/magma/Main.java`, which reads its own source code and compiles it into `src/main/windows/magma/Main.cpp`.
 
 ## Architecture
 
@@ -49,12 +49,12 @@ The codebase relies heavily on functional programming patterns, implementing its
 
 - **Regenerate C++**: Run the `main` method in `src/main/java/magma/Main.java`.
 
-  - This writes `src/main/java/magma/Main.cpp` and `target/classes/magma/Main.cpp` — do not edit generated `Main.cpp` by hand.
+  - This writes `src/main/windows/magma/Main.cpp` and `target/classes/windows/magma/Main.cpp` — do not edit generated `Main.cpp` by hand.
 
 - **Try compiling the generated C++**: example (may need platform tweak):
 
-  - `clang++ -std=c++20 src/main/java/magma/Main.cpp -O2 -o magma_generated` or
-  - `g++ -std=c++20 src/main/java/magma/Main.cpp -O2 -o magma_generated`
+  - `clang++ -std=c++20 src/main/windows/magma/Main.cpp -O2 -o magma_generated` or
+  - `g++ -std=c++20 src/main/windows/magma/Main.cpp -O2 -o magma_generated`
   - Note: generated C++ can be large and platform-dependent; compilation may require additional flags.
 
 - **Testing & Validation**: the canonical check is `Main.java` successfully self-transpiles and the produced C++ compiles; there are no automated unit tests in the repo.
@@ -62,7 +62,7 @@ The codebase relies heavily on functional programming patterns, implementing its
 ## Important files and hotspots (where to change behavior)
 
 - `src/main/java/magma/Main.java` — single-file compiler (parser, AST, transformation, codegen). This is the only place you normally edit to change the transpiler.
-- `src/main/java/magma/Main.cpp` — generated C++. Overwritten by `Main.java::run()`.
+- `src/main/windows/magma/Main.cpp` — generated C++. Overwritten by `Main.java::run()`.
 - `pom.xml` — Maven build and `exec-maven-plugin` config; project uses Java 24 (`maven.compiler.release=24`).
 
 Hotspots inside `Main.java` (examples of where to update when adding language features):
