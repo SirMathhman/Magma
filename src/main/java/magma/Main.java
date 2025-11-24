@@ -2115,38 +2115,36 @@ public class Main {
 		final var beforeContent = input.substring(0, index).strip();
 		final var maybeWithBraces = input.substring(index + 2).strip();
 
-		List<String> params;
-		if (this.isIdentifier(beforeContent)) params = Lists.of(beforeContent);
-		else if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
-			final var substring = beforeContent.substring(1, beforeContent.length() - 1);
-			params = this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
-		} else return new None<String>();
+		final var maybeParams = this.parseLambdaParams(beforeContent);
+		if (!(maybeParams instanceof Some<List<String>>(var params))) return new None<String>();
+		var paramList = params
+				.iter()
+				.map(param -> new CDeclaration(new Placeholder("?"), param))
+				.toList()
+				.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
+		final String output;
 		if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
 			final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
-			final var compiled = this.compileMethodsSegments(content, 1);
+			output = this.compileMethodsSegments(content, 1);
+		} else output = Main.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces));
 
-			final var generatedName = this.generateName();
+		final var generatedName = this.generateName();
+		final var cFunction =
+				new CFunction(new CFunctionHeader(new CDeclaration(new Placeholder("?"), generatedName), paramList), output);
 
-			var paramList = params.iter().map(param -> "auto " + param).toList().addFirst("void* _ref");
+		this.functions = this.functions.addLast(cFunction);
+		return new Some<String>(generatedName);
+	}
 
-			final var joined = this.joinStrings(", ", paramList);
-
-			this.functions = this.functions.addLast(
-					"auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" +
-					System.lineSeparator());
-
-			return new Some<String>(generatedName);
-		} else {
-			final var generatedName = this.generateName();
-
-			this.functions = this.functions.addLast(
-					"auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" +
-					Main.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
-					System.lineSeparator() + "}" + System.lineSeparator());
-
-			return new Some<String>(generatedName);
-		}
+	private Option<List<String>> parseLambdaParams(String input) {
+		if (this.isIdentifier(input)) return new Some<List<String>>(Lists.of(input));
+		else if (input.startsWith("(") && input.endsWith(")")) {
+			final var substring = input.substring(1, input.length() - 1);
+			final var list =
+					this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+			return new Some<List<String>>(list);
+		} else return new None<List<String>>();
 	}
 
 	private String generateName() {
