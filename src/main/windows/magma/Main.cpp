@@ -645,19 +645,6 @@ struct Main {
 	int counter;
 	List<CEnum> enums;
 };
-CPrimitiveType CPrimitiveTypeVoid = new_CPrimitiveType("void");
-CPrimitiveType CPrimitiveTypeChar = new_CPrimitiveType("char");
-CPrimitiveType CPrimitiveTypeInt = new_CPrimitiveType("int");
-JPrimitiveType JPrimitiveTypeInt = new_JPrimitiveType("int");
-JPrimitiveType JPrimitiveTypeVoid = new_JPrimitiveType("void");
-JPrimitiveType JPrimitiveTypeBoolean = new_JPrimitiveType("bool");
-JPrimitiveType JPrimitiveTypeChar = new_JPrimitiveType("char");
-JPrimitiveType JPrimitiveTypeVar = new_JPrimitiveType("var");
-Operator OperatorEquals = new_Operator("!=", JPrimitiveType.Boolean);
-Operator OperatorNotEquals = new_Operator("!=", JPrimitiveType.Boolean);
-Operator OperatorLessThan = new_Operator("<", JPrimitiveType.Boolean), Add("+", JPrimitiveType.Int), Subtract("-", JPrimitiveType.Int),
-		And("&&", JPrimitiveType.Boolean), Or("||", JPrimitiveType.Boolean),
-		GreaterThanOrEquals(">=", JPrimitiveType.Boolean);
 CPrimitiveType new_CPrimitiveType(char* content);
 char* generate_CPrimitiveType(void* _ref);
 char* toBaseName_CPrimitiveType(void* _ref);
@@ -1055,6 +1042,19 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input);
 List<char*> collectAnnotations_Main(void* _ref, char* input);
 int findTypeSeparator_Main(void* _ref, char* beforeName);
 JType parseType_Main(void* _ref, char* input);
+CPrimitiveType CPrimitiveTypeVoid = new_CPrimitiveType("void");
+CPrimitiveType CPrimitiveTypeChar = new_CPrimitiveType("char");
+CPrimitiveType CPrimitiveTypeInt = new_CPrimitiveType("int");
+JPrimitiveType JPrimitiveTypeInt = new_JPrimitiveType("int");
+JPrimitiveType JPrimitiveTypeVoid = new_JPrimitiveType("void");
+JPrimitiveType JPrimitiveTypeBoolean = new_JPrimitiveType("bool");
+JPrimitiveType JPrimitiveTypeChar = new_JPrimitiveType("char");
+JPrimitiveType JPrimitiveTypeVar = new_JPrimitiveType("var");
+Operator OperatorEquals = new_Operator("!=", JPrimitiveType.Boolean);
+Operator OperatorNotEquals = new_Operator("!=", JPrimitiveType.Boolean);
+Operator OperatorLessThan = new_Operator("<", JPrimitiveType.Boolean), Add("+", JPrimitiveType.Int), Subtract("-", JPrimitiveType.Int),
+		And("&&", JPrimitiveType.Boolean), Or("||", JPrimitiveType.Boolean),
+		GreaterThanOrEquals(">=", JPrimitiveType.Boolean);
 CType toCType_CPrimitiveType(void* _ref){
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
 	CTypeData data;
@@ -3400,7 +3400,7 @@ char* compile_Main(void* _ref, char* input){
 	char* joinedFunctionDeclarations = joinStrings_Main(&((*_this)), _this->functionDeclarations);
 	C joinedFunctions = collect_Iter(&(map_Iter(&(iter_List(&(_this->functions))), /*Convert method references to a closure*/)), new_Joiner());
 	C joinedEnums = collect_Iter(&(map_Iter(&(iter_List(&(_this->enums))), /*Convert method references to a closure*/)), new_Joiner());
-	return joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedGlobals + joinedFunctionDeclarations + joinedFunctions + all;
+	return joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedFunctionDeclarations + joinedGlobals + joinedFunctions + all;
 }
 /*TODO:  resolve lambda return type*/ lambda24(void* _ref, /*TODO: resolve type of lambda param*/ value){
 	List withoutDuplicates = removeDuplicates_Main(&((*_this)), findDependencies_/*Undefined identifier: value*/(&(value)));

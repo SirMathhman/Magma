@@ -1700,8 +1700,8 @@ public class Main {
 		final var joinedFunctions = this.functions.iter().map(CFunction::generate).collect(new Joiner());
 
 		final var joinedEnums = this.enums.iter().map(CEnum::generate).collect(new Joiner());
-		return joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedGlobals +
-					 joinedFunctionDeclarations + joinedFunctions + all;
+		return joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedFunctionDeclarations +
+					 joinedGlobals + joinedFunctions + all;
 	}
 
 	private List<CStructureOrUnion> createTopologicallySortedList() {
@@ -2273,7 +2273,8 @@ public class Main {
 	private String createBodyForAbstractMethod(List<String> variants,
 																						 CType type,
 																						 String name,
-																						 List<String> parameterNames, String structName) {
+																						 List<String> parameterNames,
+																						 String structName) {
 		if (variants.isEmpty()) {
 			final var joinedParameters = parameterNames.addFirst("_this->data").iter().collect(new Joiner(", "));
 
@@ -2281,8 +2282,10 @@ public class Main {
 		} else {
 			final var returnValueDefinition = Main.generateStatement(type.generate() + " _ret");
 
-			final var cases =
-					variants.iter().map(variant -> this.generateCase(variant, name, parameterNames, structName)).collect(new Joiner());
+			final var cases = variants
+					.iter()
+					.map(variant -> this.generateCase(variant, name, parameterNames, structName))
+					.collect(new Joiner());
 
 			return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
 						 generateIndent(1) + "}" + Main.generateStatement("return _ret");
