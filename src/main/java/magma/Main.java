@@ -196,9 +196,9 @@ public class Main {
 	private sealed interface CStructureOrUnion permits CStructure, CUnion {
 		String generate();
 
-		List<CNamedType> listDependencies();
+		List<CNamedType> findDependencies();
 
-		String name();
+		String findName();
 	}
 
 	private sealed interface JObjectMember permits EmptyStructMember, JField, JMethod, JObject, Placeholder {}
@@ -1275,18 +1275,18 @@ public class Main {
 		}
 	}
 
-	private record CStructure(List<String> typeParameters, String name, List<CDefinable> fields)
+	private record CStructure(List<String> typeParameters, String findName, List<CDefinable> fields)
 			implements CStructureOrUnion {
 		@Override
 		public String generate() {
-			final var joinedFields = this.fields().iter().map(CField::new).map(CField::generate).collect(new Joiner());
+			final var joinedFields = this.fields.iter().map(CField::new).map(CField::generate).collect(new Joiner());
 
-			return generateTemplateString(this.typeParameters()) + "struct " + this.name() + " {" + joinedFields +
+			return generateTemplateString(this.typeParameters) + "struct " + this.findName + " {" + joinedFields +
 						 System.lineSeparator() + "};" + System.lineSeparator();
 		}
 
 		@Override
-		public List<CNamedType> listDependencies() {
+		public List<CNamedType> findDependencies() {
 			return this.fields
 					.iter()
 					.map(CDefinable::extractIdentifiers)
@@ -1308,19 +1308,19 @@ public class Main {
 		}
 	}
 
-	private record CUnion(List<String> typeParameters, String name, List<CDefinable> members)
+	private record CUnion(List<String> typeParameters, String findName, List<CDefinable> members)
 			implements CStructureOrUnion {
 		@Override
 		public String generate() {
 			final var unionFields =
 					this.members.iter().map(CDefinable::generate).map(Main::generateStatement).collect(new Joiner());
 
-			return generateTemplateString(this.typeParameters()) + "union " + this.name() + "Data {" + unionFields +
+			return generateTemplateString(this.typeParameters()) + "union " + this.findName + "Data {" + unionFields +
 						 System.lineSeparator() + "};" + System.lineSeparator();
 		}
 
 		@Override
-		public List<CNamedType> listDependencies() {
+		public List<CNamedType> findDependencies() {
 			return this.members.iter().map(CDefinable::extractIdentifiers).flatMap(List::iter).toList();
 		}
 	}
@@ -1600,10 +1600,10 @@ public class Main {
 			final var left = tuple.left;
 
 			CExpression element;
-			if (left instanceof CDereference(CExpression expression)) element = expression;
+			if (left instanceof CDereference(var expression)) element = expression;
 			else element = new CReference(new CQuantity(left));
 
-			if (element instanceof CQuantity(CExpression expression)) element = expression;
+			if (element instanceof CQuantity(var expression)) element = expression;
 
 			final var newArguments = arguments.addFirst(element);
 			return new CInvocation(new Identifier(memberName + "_" + baseName), newArguments);
@@ -1653,7 +1653,7 @@ public class Main {
 	private List<CStructureOrUnion> createTopologicallySortedList() {
 		final var dependencyMap = this.structuresOrUnions
 				.iter()
-				.map(value -> new Tuple<String, List<CNamedType>>(value.name(), value.listDependencies()))
+				.map(value -> new Tuple<String, List<CNamedType>>(value.findName(), value.findDependencies()))
 				.collect(new MapCollector<String, List<CNamedType>>());
 
 		return this.structuresOrUnions;
@@ -1904,7 +1904,7 @@ public class Main {
 		}
 
 		this.structuresOrUnions =
-				this.structuresOrUnions.addLast(new CStructure(object.typeParameters(), object.name(), fields));
+				this.structuresOrUnions.addLast(new CStructure(object.typeParameters(), object.name, fields));
 
 		this.structureForwardDeclarations = this.structureForwardDeclarations.addLast(
 				generateTemplateString(object.typeParameters) + "struct " + object.name + ";" + System.lineSeparator());
@@ -1916,7 +1916,7 @@ public class Main {
 																									 List<CStructMember> members,
 																									 List<CDefinable> fields) {
 		final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
-		final var cStructure = new CStructure(object.typeParameters(), object.name() + "Table", list);
+		final var cStructure = new CStructure(object.typeParameters(), object.name + "Table", list);
 		this.structuresOrUnions = this.structuresOrUnions.addLast(cStructure);
 
 		final var tableType = this.createStructureType(object.name + "Table", object.typeParameters);
@@ -1934,7 +1934,7 @@ public class Main {
 	}
 
 	private List<CDefinable> handleSealedInterface(JObject object, List<CDefinable> fields) {
-		var name = object.name();
+		var name = object.name;
 		var typeParameters = object.typeParameters();
 		var variants = object.variants();
 		final var jEnum = new CEnum(name + "Tag", variants);
@@ -1944,7 +1944,7 @@ public class Main {
 		final var union = new CUnion(typeParameters, name, unionMembers);
 
 		fields = fields
-				.addLast(new CDeclaration(new Identifier(object.name() + "Tag"), "variant"))
+				.addLast(new CDeclaration(new Identifier(object.name + "Tag"), "variant"))
 				.addLast(new CDeclaration(this.createStructureType(name + "Data", object.typeParameters), "data"));
 
 		this.enums = this.enums.addLast(jEnum);

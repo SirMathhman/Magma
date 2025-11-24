@@ -645,7 +645,7 @@ struct JRecursiveType {
 };
 struct CStructure {
 	List<char*> typeParameters;
-	char* name;
+	char* findName;
 	List<CDefinable> fields;
 };
 struct CEnum {
@@ -654,7 +654,7 @@ struct CEnum {
 };
 struct CUnion {
 	List<char*> typeParameters;
-	char* name;
+	char* findName;
 	List<CDefinable> members;
 };
 struct JObject {
@@ -803,8 +803,8 @@ List<CNamedType> extractIdentifiers_CDefinable(void* _ref);
 CDefinable mapTypeParameters_CDefinable(void* _ref, F1R<List<char*>, List<char*>> mapper);
 CDefinable mapName_CDefinable(void* _ref, F1R<char*, char*> mapper);
 char* generate_CStructureOrUnion(void* _ref);
-List<CNamedType> listDependencies_CStructureOrUnion(void* _ref);
-char* name_CStructureOrUnion(void* _ref);
+List<CNamedType> findDependencies_CStructureOrUnion(void* _ref);
+char* findName_CStructureOrUnion(void* _ref);
 StringBuilder empty_StringBuilders(void* _ref);
 StringBuilder appendChar_StringBuilder(void* _ref, char next);
 StringBuilder clear_StringBuilder(void* _ref);
@@ -988,10 +988,10 @@ JType create_JRecursiveType(void* _ref, F1R<JType, JType> mapper);
 void set_JRecursiveType(void* _ref, JType created);
 char* stringify_JRecursiveType(void* _ref);
 char* generate_CStructure(void* _ref);
-List<CNamedType> listDependencies_CStructure(void* _ref);
+List<CNamedType> findDependencies_CStructure(void* _ref);
 char* generate_CEnum(void* _ref);
 char* generate_CUnion(void* _ref);
-List<CNamedType> listDependencies_CUnion(void* _ref);
+List<CNamedType> findDependencies_CUnion(void* _ref);
 List<CDefinable> collectCFields_JObject(void* _ref);
 List<CFunction> createConversionFunctions_JObject(void* _ref);
 CFunction createConversionType_JObject(void* _ref, CType implementee);
@@ -1598,28 +1598,28 @@ char* generate_CStructureOrUnion(void* _ref){
 	}
 	return _ret;
 }
-List<CNamedType> listDependencies_CStructureOrUnion(void* _ref){
+List<CNamedType> findDependencies_CStructureOrUnion(void* _ref){
 	CStructureOrUnion* _this = (CStructureOrUnion*) _ref;
 	List<CNamedType> _ret;
 	switch (_this->variant) {
 		case CStructureVariant:
-			_ret = listDependencies_CStructure(&(_this->data.CStructure));
+			_ret = findDependencies_CStructure(&(_this->data.CStructure));
 			break;
 		case CUnionVariant:
-			_ret = listDependencies_CUnion(&(_this->data.CUnion));
+			_ret = findDependencies_CUnion(&(_this->data.CUnion));
 			break;
 	}
 	return _ret;
 }
-char* name_CStructureOrUnion(void* _ref){
+char* findName_CStructureOrUnion(void* _ref){
 	CStructureOrUnion* _this = (CStructureOrUnion*) _ref;
 	char* _ret;
 	switch (_this->variant) {
 		case CStructureVariant:
-			_ret = name_CStructure(&(_this->data.CStructure));
+			_ret = findName_CStructure(&(_this->data.CStructure));
 			break;
 		case CUnionVariant:
-			_ret = name_CUnion(&(_this->data.CUnion));
+			_ret = findName_CUnion(&(_this->data.CUnion));
 			break;
 	}
 	return _ret;
@@ -2979,17 +2979,17 @@ CStructureOrUnion toCStructureOrUnion_CStructure(void* _ref){
 }
 char* generate_CStructure(void* _ref){
 	CStructure* _this = (CStructure*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[Identifier[value=T]]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[Identifier[value=T]]]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Identifier[value=int]], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Identifier[value=T]], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=int], Identifier[value=int]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[Identifier[value=T], Identifier[value=T]]]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[Identifier[value=T]]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='copy'}]]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ joinedFields = collect_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[Identifier[value=T]]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[Identifier[value=T]]]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Identifier[value=int]], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Identifier[value=T]], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=int], Identifier[value=int]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[Identifier[value=T], Identifier[value=T]]]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[Identifier[value=T]]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='copy'}]]]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[Identifier[value=T]]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[Identifier[value=T]]]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Identifier[value=int]], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Identifier[value=T]], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=int], Identifier[value=int]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[Identifier[value=T], Identifier[value=T]]]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[Identifier[value=T]]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='copy'}]]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[Identifier[value=T]]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[Identifier[value=T]]]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Identifier[value=int]], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Identifier[value=T]], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=int], Identifier[value=int]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[Identifier[value=T], Identifier[value=T]]]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[Identifier[value=T]]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='copy'}]]]', not an object.]*/(&(iter_/*Not a functional type: JObjectType[name=List, members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[Identifier[value=T]]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=T]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[Identifier[value=T]]]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Identifier[value=int]], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Identifier[value=T]], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Identifier[value=int], Identifier[value=int]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[Identifier[value=T], Identifier[value=T]]]], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[Identifier[value=T]]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[Identifier[value=T]]]], name='copy'}]]*/(&(fields_CStructure(&((*_this)))))), F? { alloc(CField), F?Table { new }})), F? { alloc(CField), F?Table { generate }})), new_Joiner());
-	return lineSeparator_/*Unwrapped expression: generateTemplateString(typeParameters_CStructure(&((*_this)))) + "struct " + name_CStructure(&((*_this))) + " {" + joinedFields + lineSeparator_startUndefined identifier: Systemend(&(System)) + "};" + System*/(&(generateTemplateString(typeParameters_CStructure(&((*_this)))) + "struct " + name_CStructure(&((*_this))) + " {" + joinedFields + lineSeparator_/*Undefined identifier: System*/(&(System)) + "};" + System));
+	C joinedFields = collect_Iter(&(map_Iter(&(map_Iter(&(iter_List(_this->fields)), F? { alloc(CField), F?Table { new }})), F? { alloc(CField), F?Table { generate }})), new_Joiner());
+	return lineSeparator_/*Unwrapped expression: generateTemplateString(*(_this->typeParameters)) + "struct " + *(_this->findName) + " {" + joinedFields + lineSeparator_startUndefined identifier: Systemend(&(System)) + "};" + System*/(&(generateTemplateString(*(_this->typeParameters)) + "struct " + *(_this->findName) + " {" + joinedFields + lineSeparator_/*Undefined identifier: System*/(&(System)) + "};" + System));
 }
-List<CNamedType> listDependencies_CStructure(void* _ref){
+List<CNamedType> findDependencies_CStructure(void* _ref){
 	CStructure* _this = (CStructure*) _ref;
 	return collect_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(_this->fields)), F? { alloc(CDefinable), F?Table { extractIdentifiers }})), F? { alloc(List), F?Table { iter }})), new_ListCollector());
 }
-CStructure new_CStructure(List<char*> typeParameters, char* name, List<CDefinable> fields){
+CStructure new_CStructure(List<char*> typeParameters, char* findName, List<CDefinable> fields){
 	CStructure _this;
 	_this.typeParameters = typeParameters;
-	_this.name = name;
+	_this.findName = findName;
 	_this.fields = fields;
 	return _this;
 }
@@ -3019,16 +3019,16 @@ CStructureOrUnion toCStructureOrUnion_CUnion(void* _ref){
 char* generate_CUnion(void* _ref){
 	CUnion* _this = (CUnion*) _ref;
 	C unionFields = collect_Iter(&(map_Iter(&(map_Iter(&(iter_List(_this->members)), F? { alloc(CDefinable), F?Table { generate }})), F? { alloc(Main), F?Table { generateStatement }})), new_Joiner());
-	return lineSeparator_/*Unwrapped expression: generateTemplateString(typeParameters_CUnion(&((*_this)))) + "union " + name_CUnion(&((*_this))) + "Data {" + unionFields + lineSeparator_startUndefined identifier: Systemend(&(System)) + "};" + System*/(&(generateTemplateString(typeParameters_CUnion(&((*_this)))) + "union " + name_CUnion(&((*_this))) + "Data {" + unionFields + lineSeparator_/*Undefined identifier: System*/(&(System)) + "};" + System));
+	return lineSeparator_/*Unwrapped expression: generateTemplateString(typeParameters_CUnion(&((*_this)))) + "union " + *(_this->findName) + "Data {" + unionFields + lineSeparator_startUndefined identifier: Systemend(&(System)) + "};" + System*/(&(generateTemplateString(typeParameters_CUnion(&((*_this)))) + "union " + *(_this->findName) + "Data {" + unionFields + lineSeparator_/*Undefined identifier: System*/(&(System)) + "};" + System));
 }
-List<CNamedType> listDependencies_CUnion(void* _ref){
+List<CNamedType> findDependencies_CUnion(void* _ref){
 	CUnion* _this = (CUnion*) _ref;
 	return toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(_this->members)), F? { alloc(CDefinable), F?Table { extractIdentifiers }})), F? { alloc(List), F?Table { iter }})));
 }
-CUnion new_CUnion(List<char*> typeParameters, char* name, List<CDefinable> members){
+CUnion new_CUnion(List<char*> typeParameters, char* findName, List<CDefinable> members){
 	CUnion _this;
 	_this.typeParameters = typeParameters;
-	_this.name = name;
+	_this.findName = findName;
 	_this.members = members;
 	return _this;
 }
@@ -3360,11 +3360,11 @@ CExpression transformInvocation_Main(void* _ref, JInvokable jInvokable){
 		Tuple tuple = transformCaller_Main(&((*_this)), instance);
 		/*Member 'left' not defined in 'JObjectType[name=Tuple, members=[]]'*/ left = tuple.left;
 		CExpression element;
-		if (left.variant = ?.CDereference(CExpression expression)Variant) 
+		if (left.variant = ?.CDereference(var expression)Variant) 
 			element = expression;
 		else 
 			element = new_CReference(new_CQuantity(left));
-		if (element.variant = ?.CQuantity(CExpression expression)Variant) 
+		if (element.variant = ?.CQuantity(var expression)Variant) 
 			element = expression;
 		/*Not a functional type: Placeholder[input=Cannot access member 'addFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'arguments' in 'Identifier[value=JInvokable]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ newArguments = addFirst_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'arguments' in 'Identifier[value=JInvokable]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(arguments), element);
 		return new_CInvocation(new_Identifier(memberName + "_" + baseName), newArguments);
@@ -3391,7 +3391,7 @@ char* compile_Main(void* _ref, char* input){
 	return joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedGlobals + joinedFunctionDeclarations + joinedFunctions + all;
 }
 /*TODO:  resolve lambda return type*/ lambda23(void* _ref, /*TODO: resolve type of lambda param*/ value){
-	return new_Tuple(name_/*Undefined identifier: value*/(&(value)), listDependencies_/*Undefined identifier: value*/(&(value)));
+	return new_Tuple(findName_/*Undefined identifier: value*/(&(value)), findDependencies_/*Undefined identifier: value*/(&(value)));
 }
 List<CStructureOrUnion> createTopologicallySortedList_Main(void* _ref){
 	Main* _this = (Main*) _ref;
@@ -3624,14 +3624,14 @@ Option<CStructMember> transformObject_Main(void* _ref, JObject object){
 		/*Not a functional type: Placeholder[input=Unwrapped expression: generateStatement(generate_CNamedType(&(structureType)) + " _this") + joinedAssignments + generateStatement]*/ content = generateStatement(generate_CNamedType(&(structureType)) + " _this") + joinedAssignments + generateStatement("return _this");
 		*(_this->functions) = addLast_List(_this->functions, new_CFunction(new_CFunctionHeader(definition, recordFields), content));
 	}
-	*(_this->structuresOrUnions) = addLast_List(_this->structuresOrUnions, new_CStructure(typeParameters_JObject(&(object)), name_JObject(&(object)), fields));
+	*(_this->structuresOrUnions) = addLast_List(_this->structuresOrUnions, new_CStructure(typeParameters_JObject(&(object)), object.name, fields));
 	*(_this->structureForwardDeclarations) = addLast_List(_this->structureForwardDeclarations, lineSeparator_/*Unwrapped expression: generateTemplateString(object.typeParameters) + "struct " + object.name + ";" + System*/(&(generateTemplateString(object.typeParameters) + "struct " + object.name + ";" + System)));
 	return new_Some(new_EmptyStructMember());
 }
 List<CDefinable> handleUnsealedInterface_Main(void* _ref, JObject object, List<CStructMember> members, List<CDefinable> fields){
 	Main* _this = (Main*) _ref;
 	List list = toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(&(members))), F? { alloc((*_this)), F?Table { retainDefinables }})), F? { alloc(Option), F?Table { iter }})));
-	CStructure cStructure = new_CStructure(typeParameters_JObject(&(object)), name_JObject(&(object)) + "Table", list);
+	CStructure cStructure = new_CStructure(typeParameters_JObject(&(object)), object.name + "Table", list);
 	*(_this->structuresOrUnions) = addLast_List(_this->structuresOrUnions, cStructure);
 	CNamedType tableType = createStructureType_Main(&((*_this)), object.name + "Table", object.typeParameters);
 	fields = addFirst_List(&(addLast_List(&(fields), new_CDeclaration(tableType, "table"))), new_CDeclaration(new_CPointerType(CPrimitiveType.Void), "data"));
@@ -3649,14 +3649,14 @@ CNamedType createStructureType_Main(void* _ref, char* name, List<char*> typeArgu
 }
 List<CDefinable> handleSealedInterface_Main(void* _ref, JObject object, List<CDefinable> fields){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'name' in 'Identifier[value=JObject]', not an object.]*/ name = name_JObject(&(object));
+	/*Cannot access member 'name' in 'Identifier[value=JObject]', not an object.*/ name = object.name;
 	/*Not a functional type: Placeholder[input=Cannot access member 'typeParameters' in 'Identifier[value=JObject]', not an object.]*/ typeParameters = typeParameters_JObject(&(object));
 	/*Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]*/ variants = variants_JObject(&(object));
 	CEnum jEnum = new_CEnum(name + "Tag", variants);
 	/*final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList()*/;
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ unionMembers = toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]]', not an object.]*/(&(iter_/*Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]*/(&(variants))), lambda28)));
 	CUnion union = new_CUnion(typeParameters, name, unionMembers);
-	fields = addLast_List(&(addLast_List(&(fields), new_CDeclaration(new_Identifier(name_JObject(&(object)) + "Tag"), "variant"))), new_CDeclaration(createStructureType_Main(&((*_this)), name + "Data", object.typeParameters), "data"));
+	fields = addLast_List(&(addLast_List(&(fields), new_CDeclaration(new_Identifier(object.name + "Tag"), "variant"))), new_CDeclaration(createStructureType_Main(&((*_this)), name + "Data", object.typeParameters), "data"));
 	*(_this->enums) = addLast_List(_this->enums, jEnum);
 	*(_this->structuresOrUnions) = addLast_List(_this->structuresOrUnions, union);
 	return fields;
