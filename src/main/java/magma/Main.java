@@ -119,12 +119,13 @@ public class Main {
 	}
 
 	private sealed interface CNamedType extends CType permits CTemplateType, Identifier {
-
+		String getName();
 	}
 
 	private sealed interface CType permits CNamedType, CPointerType, CPrimitiveType, Placeholder {
 		String generate();
 
+		@Deprecated
 		String toBaseName();
 
 		List<CNamedType> extractIdentifiers();
@@ -528,6 +529,11 @@ public class Main {
 		public List<CNamedType> extractIdentifiers() {
 			return Lists.of(this);
 		}
+
+		@Override
+		public String getName() {
+			return this.base;
+		}
 	}
 
 	private record CQuantity(CExpression expression) implements CExpression {
@@ -576,6 +582,11 @@ public class Main {
 
 		@Override
 		public String stringify() {
+			return this.value;
+		}
+
+		@Override
+		public String getName() {
 			return this.value;
 		}
 	}
@@ -1843,8 +1854,23 @@ public class Main {
 			final var retained = this.retainFields(members);
 			fields = fields.addAllLast(retained);
 		}
-		// TODO: create a constructor for records
-		// TODO: create a default empty constructor for a class with no fields
+
+		if (object.type.equals("record")) {
+			final var recordFields = object.recordFields.iter().map(JDeclaration::toCDeclaration).toList();
+
+			final var structureType = this.createStructureType(object.name, object.typeParameters);
+			final var definition = new CDeclaration(object.typeParameters, structureType, "new_" + structureType.getName());
+
+			final var joinedAssignments = recordFields
+					.iter()
+					.map(field -> "_this." + field.name + " = " + field.name)
+					.map(Main::generateStatement)
+					.collect(new Joiner());
+
+			final var content = generateStatement(structureType.generate() + " _this") + joinedAssignments + generateStatement("return _this");
+
+			this.functions = this.functions.addLast(new CFunction(new CFunctionHeader(definition, recordFields), content));
+		}
 
 		this.structuresOrUnions =
 				this.structuresOrUnions.addLast(new CStructure(object.typeParameters(), object.name(), fields));
@@ -1871,7 +1897,7 @@ public class Main {
 		return fields;
 	}
 
-	private CType createStructureType(String name, List<String> typeArguments) {
+	private CNamedType createStructureType(String name, List<String> typeArguments) {
 		if (typeArguments.isEmpty()) return new Identifier(name);
 		else return new CTemplateType(name, typeArguments.iter().<CType>map(Identifier::new).toList());
 	}
