@@ -118,6 +118,8 @@ public class Main {
 		Option<Path> getParent();
 
 		Option<IOError> createDirectories();
+
+		Path resolve(String child);
 	}
 
 	private interface FR<T> {
@@ -1008,8 +1010,8 @@ public class Main {
 
 	private static class Paths {
 		@Actual
-		public static Path get(String first, String... more) {
-			return new JavaPath(java.nio.file.Paths.get(first, more));
+		public static Path get(String first) {
+			return new JavaPath(java.nio.file.Paths.get(first));
 		}
 	}
 
@@ -1030,6 +1032,11 @@ public class Main {
 			} catch (IOException e) {
 				return new Some<IOError>(new JavaIOError(e));
 			}
+		}
+
+		@Override
+		public Path resolve(String child) {
+			return new JavaPath(this.path.resolve(child));
 		}
 
 		@Override
@@ -1697,8 +1704,11 @@ public class Main {
 	}
 
 	private Option<IOError> run() {
-		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-		final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
+		final var source =
+				Paths.get(".").resolve("src").resolve("main").resolve("java").resolve("magma").resolve("Main.java");
+		final var target =
+				Paths.get(".").resolve("src").resolve("main").resolve("windows").resolve("magma").resolve("Main.cpp");
+
 		final var input = source.readString().mapValue(this::compile);
 
 		return switch (input) {
