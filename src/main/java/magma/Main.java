@@ -1993,7 +1993,7 @@ public class Main {
 	}
 
 	private Tuple<List<String>, Map<String, List<String>>> getListMapTuple(Tuple<List<String>,
-			Map<String, List<String>>> listMapTuple,
+																																						 Map<String, List<String>>> listMapTuple,
 																																				 String cleanedDependencyMapKeyToRemove) {
 		final var left = listMapTuple.left;
 		final var right = listMapTuple.right;
@@ -2843,14 +2843,20 @@ public class Main {
 		return new Placeholder("Undefined identifier: " + value);
 	}
 
-	private JType cleanupType(JType found) {
-		if (found instanceof JGenericType(var base, var typeArguments)) {
+	private JType cleanupType(JType type) {
+		if (type instanceof Identifier(String value)) {
+			final var maybeFound = environment.resolveType(value);
+			if (maybeFound instanceof Some<JObjectType>(var found)) return found;
+			else return new Placeholder("Identifier '" + value + "' has not been defined");
+		}
+
+		if (type instanceof JGenericType(var base, var typeArguments)) {
 			final var resolved = environment.resolveType(base);
 			if (resolved instanceof Some<JObjectType>(var objType)) return objType.specialize(typeArguments);
 			else return new Placeholder("Generic type '" + base + "' has not been defined");
 		}
 
-		return found;
+		return type;
 	}
 
 	private JType resolveMember(JObjectType type, JType instanceType, String name) {
@@ -3136,9 +3142,8 @@ public class Main {
 		if (stripped.startsWith("new ")) {
 			final var type = stripped.substring("new ".length());
 			final var maybeParsedType = this.parseType(type);
-			if (maybeParsedType instanceof Some<JType>(var parsedType)) {
+			if (maybeParsedType instanceof Some<JType>(var parsedType))
 				return new Some<JCaller>(new JConstruction(parsedType));
-			}
 		}
 
 		final var maybeExpression = this.parseExpression(stripped);
