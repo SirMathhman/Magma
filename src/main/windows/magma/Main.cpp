@@ -959,10 +959,11 @@ Frame new_Frame();
 Frame defineAllExpressions_Frame(void* _ref, List<JDeclaration> definitions);
 Option<JDeclaration> resolveExpression_Frame(void* _ref, char* identifier);
 Frame defineExpression_Frame(void* _ref, JDeclaration declaration);
-Option<JObjectType> toStructureType_Frame(void* _ref);
+Option<JObjectType> toObjectType_Frame(void* _ref);
 Frame withObject_Frame(void* _ref, JObject name);
 Option<JObjectType> resolveType_Frame(void* _ref, char* name);
 Frame defineAllTypes_Frame(void* _ref, List<JObjectType> types);
+JObjectType new_JObjectType(char* name, List<char*> variants, List<JDeclaration> members);
 Option<JType> resolve_JObjectType(void* _ref, char* name);
 char* stringify_JObjectType(void* _ref);
 JRecursiveType new_JRecursiveType();
@@ -1847,7 +1848,7 @@ Option<Tuple<State, char>> popAndAppendToTuple_State(void* _ref){
 	State* _this = (State*) _ref;
 	return map_Option(&(pop_State(&((*_this)))), lambda3);
 }
-/*Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/ lambda4(void* _ref, Tuple<State, char> tuple){
+A lambda4(void* _ref, Tuple<State, char> tuple){
 	return tuple.left;
 }
 Option<State> popAndAppendToOption_State(void* _ref){
@@ -2206,7 +2207,7 @@ Folder toFolder_EscapedFolder(void* _ref){
 }
 /*???*/ lambda6(void* _ref, Tuple<State, char> tuple){
 	if (tuple.right == '\\') 
-		return orElse_/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]*/(&(popAndAppendToOption_/*Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/(&(tuple.left))), tuple.left);
+		return orElse_/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Identifier[value=A]', not an object.]*/(&(popAndAppendToOption_A(&(tuple.left))), tuple.left);
 	return tuple.left;
 }
 State apply_EscapedFolder(void* _ref, State state, char next){
@@ -2838,7 +2839,7 @@ Frame defineExpression_Frame(void* _ref, JDeclaration declaration){
 JObjectType lambda17(void* _ref, JObject obj){
 	return new_JObjectType(obj.name, obj.variants, _this->definedExpressions);
 }
-Option<JObjectType> toStructureType_Frame(void* _ref){
+Option<JObjectType> toObjectType_Frame(void* _ref){
 	Frame* _this = (Frame*) _ref;
 	return map_Option(&(_this->maybeObject), lambda17);
 }
@@ -2860,6 +2861,14 @@ Frame defineAllTypes_Frame(void* _ref, List<JObjectType> types){
 JType toJType_JObjectType(void* _ref){
 	JObjectType* _this = (JObjectType*) _ref;
 	return _impl;
+}
+JObjectType new_JObjectType(char* name, List<char*> variants, List<JDeclaration> members){
+	JObjectType _thisInstance;
+	JObjectType* _this = &_thisInstance;
+	_this->name = name;
+	_this->variants = variants;
+	_this->members = members;
+	return _thisInstance;
 }
 /*Not a functional type: Placeholder[input=Cannot access member 'equals' in 'Placeholder[input=Cannot access member 'name' in 'Identifier[value=JDeclaration]', not an object.]', not an object.]*/ lambda19(void* _ref, JDeclaration member){
 	return equals_/*Cannot access member 'name' in 'Identifier[value=JDeclaration]', not an object.*/(&(member.name), name);
@@ -3023,7 +3032,7 @@ CFunction createConversionType_JObject(void* _ref, CType implementee, Environmen
 }
 JObjectType toType_JObject(void* _ref){
 	JObject* _this = (JObject*) _ref;
-	List memberDefinitions = toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(&(_this->children))), ??? access ???)), ??? access ???)));
+	List memberDefinitions = addAllLast_List(&(toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(&(_this->children))), ??? access ???)), ??? access ???)))), _this->recordFields);
 	return new_JObjectType(_this->name, _this->variants, memberDefinitions);
 }
 Option<JDeclaration> extractDefinition_JObject(void* _ref, JObjectMember child){
@@ -3192,10 +3201,10 @@ TupleMap<K, V> removeKey_TupleMap(void* _ref, K key){
 	TupleMap<K, V>* _this = (TupleMap<K, V>*) _ref;
 	return new_TupleMap(toList_Iter(&(filter_Iter(&(iter_List(&(_this->entries))), lambda24))));
 }
-/*Not a functional type: Placeholder[input=Cannot access member 'equals' in 'Placeholder[input=Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]*/ lambda25(void* _ref, Tuple<K, V> entry){
-	return equals_/*Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/(&(entry.left), key);
+/*Not a functional type: Placeholder[input=Cannot access member 'equals' in 'Identifier[value=A]', not an object.]*/ lambda25(void* _ref, Tuple<K, V> entry){
+	return equals_A(&(entry.left), key);
 }
-/*Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/ lambda26(void* _ref, Tuple<K, V> entry){
+B lambda26(void* _ref, Tuple<K, V> entry){
 	return entry.right;
 }
 template <typename K, typename V>
@@ -3203,8 +3212,8 @@ Option<V> get_TupleMap(void* _ref, K key){
 	TupleMap<K, V>* _this = (TupleMap<K, V>*) _ref;
 	return next_Iter(&(map_Iter(&(filter_Iter(&(iter_List(&(_this->entries))), lambda25)), lambda26)));
 }
-/*Not a functional type: Placeholder[input=Cannot access member 'equals' in 'Placeholder[input=Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]*/ lambda27(void* _ref, Tuple<K, V> entry){
-	return equals_/*Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/(&(entry.left), key);
+/*Not a functional type: Placeholder[input=Cannot access member 'equals' in 'Identifier[value=A]', not an object.]*/ lambda27(void* _ref, Tuple<K, V> entry){
+	return equals_A(&(entry.left), key);
 }
 template <typename K, typename V>
 int containsKey_TupleMap(void* _ref, K key){
@@ -3499,7 +3508,7 @@ CExpression transformInvocation_Main(void* _ref, JInvokable jInvokable){
 		JType jType = resolveExpression_Main(&((*_this)), instance);
 		/*Not a functional type: Placeholder[input=Cannot access member 'stringify' in 'Identifier[value=JType]', not an object.]*/ baseName = stringify_JType(&(jType));
 		Tuple tuple = transformCaller_Main(&((*_this)), instance);
-		/*Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/ left = tuple.left;
+		A left = tuple.left;
 		CExpression element;
 		if (??? instanceof ???) 
 			element = expression;
@@ -3536,12 +3545,12 @@ char* compile_Main(void* _ref, char* input){
 	return new_Tuple(findName_CStructureOrUnion(&(value)), withoutDuplicates);
 }
 /*???*/ lambda32(void* _ref, Tuple<char*, List<char*>> entry){
-	/*Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/ oldKey = entry.left;
+	A oldKey = entry.left;
 	List newValues = trimDependencies_Main(&((*_this)), entry, dependencyMap, oldKey);
 	return new_Tuple(oldKey, newValues);
 }
-/*Not a functional type: Placeholder[input=Cannot access member 'isEmpty' in 'Placeholder[input=Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]*/ lambda33(void* _ref, Tuple<char*, List<char*>> entry){
-	return isEmpty_/*Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/(&(entry.right));
+/*Not a functional type: Placeholder[input=Cannot access member 'isEmpty' in 'Identifier[value=B]', not an object.]*/ lambda33(void* _ref, Tuple<char*, List<char*>> entry){
+	return isEmpty_B(&(entry.right));
 }
 Tuple lambda34(void* _ref, CStructureOrUnion rootSegment){
 	return new_Tuple(findName_CStructureOrUnion(&(rootSegment)), rootSegment);
@@ -3568,15 +3577,15 @@ List lambda35(void* _ref, List<char*> values){
 }
 Tuple<List<char*>, Map<char*, List<char*>>> getListMapTuple_Main(void* _ref, Tuple<List<char*>, Map<char*, List<char*>>> listMapTuple, char* cleanedDependencyMapKeyToRemove){
 	Main* _this = (Main*) _ref;
-	/*Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/ left = listMapTuple.left;
-	/*Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/ right = listMapTuple.right;
-	/*Not a functional type: Placeholder[input=Cannot access member 'addLast' in 'Placeholder[input=Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]*/ stringList = addLast_/*Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/(&(left), cleanedDependencyMapKeyToRemove);
-	/*Not a functional type: Placeholder[input=Cannot access member 'mapValues' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'removeKey' in 'Placeholder[input=Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]]', not an object.]*/ stringListMap = mapValues_/*Not a functional type: Placeholder[input=Cannot access member 'removeKey' in 'Placeholder[input=Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]*/(&(removeKey_/*Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/(&(right), cleanedDependencyMapKeyToRemove)), lambda35);
+	A left = listMapTuple.left;
+	B right = listMapTuple.right;
+	/*Not a functional type: Placeholder[input=Cannot access member 'addLast' in 'Identifier[value=A]', not an object.]*/ stringList = addLast_A(&(left), cleanedDependencyMapKeyToRemove);
+	/*Not a functional type: Placeholder[input=Cannot access member 'mapValues' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'removeKey' in 'Identifier[value=B]', not an object.]]', not an object.]*/ stringListMap = mapValues_/*Not a functional type: Placeholder[input=Cannot access member 'removeKey' in 'Identifier[value=B]', not an object.]*/(&(removeKey_B(&(right), cleanedDependencyMapKeyToRemove)), lambda35);
 	return new_Tuple(stringList, stringListMap);
 }
 List<char*> trimDependencies_Main(void* _ref, Tuple<char*, List<char*>> entry, Map<char*, List<char*>> dependencyMap, char* oldKey){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]]', not an object.]]', not an object.]*/ newValues = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]*/(&(iter_/*Member 'right' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/(&(entry.right))), ??? access ???)));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Identifier[value=B]', not an object.]]', not an object.]]', not an object.]*/ newValues = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Identifier[value=B]', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Identifier[value=B]', not an object.]*/(&(iter_B(&(entry.right))), ??? access ???)));
 	/*start
 			This is to prevent circular dependencies with VTables.
 
@@ -3976,7 +3985,7 @@ Option<CDefinable> retainDefinables_Main(void* _ref, CStructMember member){
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@762efe5d']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
+	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@5afa04c']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ list = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]*/(&(stream_/*Undefined identifier: Arrays*/(&(Arrays), segments)), ??? access ???)), lambda52)));
 	return new_JavaList(list);
 }

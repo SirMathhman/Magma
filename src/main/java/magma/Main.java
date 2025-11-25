@@ -1217,7 +1217,7 @@ public class Main {
 		}
 
 		public Option<JObjectType> resolveCurrent() {
-			return this.frames.iterReversed().map(Frame::toStructureType).flatMap(Option::iter).next();
+			return this.frames.iterReversed().map(Frame::toObjectType).flatMap(Option::iter).next();
 		}
 
 		public Environment withObject(JObject object) {
@@ -1260,7 +1260,7 @@ public class Main {
 			return new Frame(this.maybeObject, this.definedTypes, this.definedExpressions.addLast(declaration));
 		}
 
-		public Option<JObjectType> toStructureType() {
+		public Option<JObjectType> toObjectType() {
 			return this.maybeObject.map((JObject obj) -> new JObjectType(obj.name, obj.variants, this.definedExpressions));
 		}
 
@@ -1427,7 +1427,9 @@ public class Main {
 		}
 
 		public JObjectType toType() {
-			final var memberDefinitions = this.children.iter().map(this::extractDefinition).flatMap(Option::iter).toList();
+			final var memberDefinitions =
+					this.children.iter().map(this::extractDefinition).flatMap(Option::iter).toList().addAllLast(this.recordFields);
+
 			return new JObjectType(this.name, this.variants, memberDefinitions);
 		}
 
@@ -1901,7 +1903,7 @@ public class Main {
 	}
 
 	private Tuple<List<String>, Map<String, List<String>>> getListMapTuple(Tuple<List<String>,
-			Map<String, List<String>>> listMapTuple,
+	 Map<String, List<String>>> listMapTuple,
 																																				 String cleanedDependencyMapKeyToRemove) {
 		final var left = listMapTuple.left;
 		final var right = listMapTuple.right;
