@@ -1901,7 +1901,7 @@ public class Main {
 	}
 
 	private Tuple<List<String>, Map<String, List<String>>> getListMapTuple(Tuple<List<String>,
-			Map<String, List<String>>> listMapTuple,
+																																						 Map<String, List<String>>> listMapTuple,
 																																				 String cleanedDependencyMapKeyToRemove) {
 		final var left = listMapTuple.left;
 		final var right = listMapTuple.right;
@@ -2742,6 +2742,7 @@ public class Main {
 			case JOperator jOperator -> jOperator.operator.getType();
 			case StringNode _ -> this.StringType;
 			case JQuantity quantity -> this.resolveExpression(quantity.instance);
+			case JInstanceOf _ -> JPrimitiveType.Boolean;
 			default -> throw new IllegalStateException("Unexpected value: " + source);
 		};
 	}
@@ -2911,16 +2912,26 @@ public class Main {
 				.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
 		final String output;
+		JType returnType;
 		if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
 			final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 			output = this.compileMethodsSegments(content, 1);
-		} else output = Main.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces));
+			returnType = new Placeholder("???");
+		} else {
+			final var jExpressionOption = this.parseExpression(maybeWithBraces);
+
+			output = Main.generateStatement("return " + jExpressionOption
+					.map(this::transformExpression)
+					.map(CExpression::generate)
+					.orElseGet(() -> Placeholder.wrap(maybeWithBraces)));
+
+			returnType = jExpressionOption.map(this::resolveExpression).orElse(new Placeholder("???"));
+		}
 
 		final var generatedName = this.generateName();
-		final var cFunction =
-				new CFunction(new CFunctionHeader(new CDeclaration(new Placeholder("TODO: resolve lambda return type"),
-																													 generatedName), paramList), output);
-
+		final var definition = new CDeclaration(this.transformType(returnType), generatedName);
+		final var header = new CFunctionHeader(definition, paramList);
+		final var cFunction = new CFunction(header, output);
 		this.functions = this.functions.addLast(cFunction);
 		return new Some<JExpression>(new Identifier(generatedName));
 	}
