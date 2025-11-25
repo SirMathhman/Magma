@@ -1835,15 +1835,15 @@ public class Main {
 
 	private Tuple<CExpression, List<CType>> transformCaller(JCaller jCaller) {
 		return switch (jCaller) {
-			case JConstruction jConstruction -> this.destroyConstruction(jConstruction);
+			case JConstruction jConstruction -> this.convertTypeToConstructionIdentifier(jConstruction.jType);
 			case JExpression jExpression ->
 					new Tuple<CExpression, List<CType>>(this.transformExpression(jExpression), Lists.empty());
 			default -> throw new IllegalStateException("Unexpected value: " + jCaller);
 		};
 	}
 
-	private Tuple<CExpression, List<CType>> destroyConstruction(JConstruction jConstruction) {
-		final var cType = this.transformType(jConstruction.jType);
+	private Tuple<CExpression, List<CType>> convertTypeToConstructionIdentifier(JType type) {
+		final var cType = this.transformType(type);
 		if (cType instanceof Identifier(var value))
 			return new Tuple<CExpression, List<CType>>(new Identifier("new_" + value), Lists.empty());
 
@@ -1993,7 +1993,7 @@ public class Main {
 	}
 
 	private Tuple<List<String>, Map<String, List<String>>> getListMapTuple(Tuple<List<String>,
-																																						 Map<String, List<String>>> listMapTuple,
+			Map<String, List<String>>> listMapTuple,
 																																				 String cleanedDependencyMapKeyToRemove) {
 		final var left = listMapTuple.left;
 		final var right = listMapTuple.right;
@@ -2158,7 +2158,7 @@ public class Main {
 					.divide(implementeesString, new ValueFolder())
 					.map(String::strip)
 					.filter((String slice) -> !slice.isEmpty())
-					.map((String input) -> this.transformType(this.parseType(input)))
+					.map((String input) -> this.transformType(this.parseTypeOrPlaceholder(input)))
 					.toList();
 		}
 
@@ -2996,7 +2996,7 @@ public class Main {
 			if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
 				final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 				final var output1 = this.compileMethodsSegments(content, 1);
-				var returnType1 = new Placeholder("???");
+				var returnType1 = new Identifier("todoLambda");
 				jTypeStringTuple = new Tuple<JType, String>(returnType1, output1);
 			} else {
 				final var jExpressionOption = Main.this.parseExpression(maybeWithBraces);
@@ -3006,7 +3006,8 @@ public class Main {
 						.map(CExpression::generate)
 						.orElseGet(() -> Placeholder.wrap(maybeWithBraces)));
 
-				var returnType1 = jExpressionOption.map(Main.this::resolveExpression).orElse(new Placeholder("???"));
+				var returnType1 =
+						jExpressionOption.map(Main.this::resolveExpression).orElseGet(() -> new Identifier("todoLambda"));
 				jTypeStringTuple = new Tuple<JType, String>(returnType1, output1);
 			}
 
@@ -3134,8 +3135,10 @@ public class Main {
 		final var stripped = input.strip();
 		if (stripped.startsWith("new ")) {
 			final var type = stripped.substring("new ".length());
-			final var jType = this.parseType(type);
-			return new Some<JCaller>(new JConstruction(jType));
+			final var maybeParsedType = this.parseType(type);
+			if (maybeParsedType instanceof Some<JType>(var parsedType)) {
+				return new Some<JCaller>(new JConstruction(parsedType));
+			}
 		}
 
 		final var maybeExpression = this.parseExpression(stripped);
@@ -3156,7 +3159,7 @@ public class Main {
 			if (!Identifier.isIdentifier(name)) return new None<JDeclaration>();
 
 			if (typeSeparator < 0) {
-				final var type = this.parseType(beforeName);
+				final var type = this.parseTypeOrPlaceholder(beforeName);
 				return new Some<JDeclaration>(new JDeclaration(name, type));
 			}
 
@@ -3182,7 +3185,7 @@ public class Main {
 			}
 
 			if (Identifier.isIdentifier(name)) {
-				final var type = this.parseType(beforeName.substring(typeSeparator + 1));
+				final var type = this.parseTypeOrPlaceholder(beforeName.substring(typeSeparator + 1));
 				final var jDeclaration = new JDeclaration(annotations, copy, new Some<String>(beforeType), type, name);
 				return new Some<JDeclaration>(jDeclaration);
 			}
@@ -3214,33 +3217,37 @@ public class Main {
 		return typeSeparator;
 	}
 
-	private JType parseType(String input) {
+	private JType parseTypeOrPlaceholder(String input) {
+		return this.parseType(input).orElseGet(() -> new Placeholder(input));
+	}
+
+	private Option<JType> parseType(String input) {
 		final var stripped = input.strip();
 		switch (stripped) {
 			case "boolean", "Boolean" -> {
-				return JPrimitiveType.Boolean;
+				return new Some<JType>(JPrimitiveType.Boolean);
 			}
 			case "int", "Integer" -> {
-				return JPrimitiveType.Int;
+				return new Some<JType>(JPrimitiveType.Int);
 			}
 			case "void" -> {
-				return JPrimitiveType.Void;
+				return new Some<JType>(JPrimitiveType.Void);
 			}
 			case "String" -> {
-				return this.StringType;
+				return new Some<JType>(this.StringType);
 			}
 			case "Character" -> {
-				return JPrimitiveType.Char;
+				return new Some<JType>(JPrimitiveType.Char);
 			}
 			case "var" -> {
-				return JPrimitiveType.Var;
+				return new Some<JType>(JPrimitiveType.Var);
 			}
 		}
 
 		if (stripped.endsWith("[]")) {
 			final var slice = stripped.substring(0, stripped.length() - 2);
-			final var type = this.parseType(slice);
-			return new JArrayType(type);
+			final var type = this.parseTypeOrPlaceholder(slice);
+			return new Some<JType>(new JArrayType(type));
 		}
 
 		if (stripped.endsWith(">")) {
@@ -3250,16 +3257,16 @@ public class Main {
 				final var base = substring.substring(0, i);
 				final var parameters = substring.substring(i + 1);
 
-				final var list = this.divide(parameters, new ValueFolder()).map(this::parseType).toList();
+				final var list = this.divide(parameters, new ValueFolder()).map(this::parseTypeOrPlaceholder).toList();
 
-				return new JGenericType(base, list);
+				return new Some<JType>(new JGenericType(base, list));
 			}
 		}
 
-		if (Identifier.isIdentifier(stripped)) return new Identifier(stripped);
+		if (Identifier.isIdentifier(stripped)) return new Some<JType>(new Identifier(stripped));
 
 		// TODO: handle varargs through monomorphization
 
-		return new Placeholder(stripped);
+		return new None<JType>();
 	}
 }

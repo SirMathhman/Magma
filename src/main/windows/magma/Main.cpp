@@ -37,8 +37,6 @@ struct JCaller;
 struct CDefinable;
 struct CStructureOrUnion;
 struct JObjectMember;
-template <typename T>
-struct F1;
 struct StringBuilders;
 struct StringBuilder;
 template <typename T, typename R>
@@ -201,10 +199,6 @@ struct JCallerTable {
 };
 struct JObjectMemberTable {
 };
-template <typename T>
-struct F1Table {
-	void (*apply)(void*, T);
-};
 struct StringBuilders {
 };
 struct RangeHead {
@@ -344,11 +338,6 @@ struct JCaller {
 struct JObjectMember {
 	void* data;
 	JObjectMemberTable table;
-};
-template <typename T>
-struct F1 {
-	void* data;
-	F1Table<T> table;
 };
 template <typename T>
 struct Option {
@@ -806,8 +795,6 @@ CDefinable mapName_CDefinable(void* _ref, F1R<char*, char*> mapper);
 char* generate_CStructureOrUnion(void* _ref);
 List<char*> findDependencies_CStructureOrUnion(void* _ref);
 char* findName_CStructureOrUnion(void* _ref);
-template <typename T>
-void apply_F1(void* _ref, T element);
 StringBuilder empty_StringBuilders(void* _ref);
 StringBuilder appendChar_StringBuilder(void* _ref, char next);
 StringBuilder clear_StringBuilder(void* _ref);
@@ -1042,8 +1029,6 @@ char* generate_Char(void* _ref);
 char* generate_COperator(void* _ref);
 char* generate_StringNode(void* _ref);
 template <typename T>
-AllMatch<T> new_AllMatch(F1R<T, int> predicate);
-template <typename T>
 int createInitial_AllMatch(void* _ref);
 template <typename T>
 int fold_AllMatch(void* _ref, int aBoolean, T t);
@@ -1062,7 +1047,7 @@ int isDigit_Main(void* _ref, char c);
 CDeclaration transformDeclaration_Main(void* _ref, JDeclaration declaration);
 CType transformType_Main(void* _ref, JType jType);
 Tuple<CExpression, List<CType>> transformCaller_Main(void* _ref, JCaller jCaller);
-Tuple<CExpression, List<CType>> destroyConstruction_Main(void* _ref, JConstruction jConstruction);
+Tuple<CExpression, List<CType>> convertTypeToConstructionIdentifier_Main(void* _ref, JType type);
 CExpression transformExpression_Main(void* _ref, JExpression expression);
 CExpression transformInvocation_Main(void* _ref, JInvokable jInvokable);
 Option<IOError> run_Main(void* _ref);
@@ -1133,7 +1118,8 @@ Option<JCaller> parseCaller_Main(void* _ref, char* input);
 Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input);
 List<char*> collectAnnotations_Main(void* _ref, char* input);
 int findTypeSeparator_Main(void* _ref, char* beforeName);
-JType parseType_Main(void* _ref, char* input);
+JType parseTypeOrPlaceholder_Main(void* _ref, char* input);
+Option<JType> parseType_Main(void* _ref, char* input);
 CPrimitiveType CPrimitiveTypeVoid = new_CPrimitiveType("void");
 CPrimitiveType CPrimitiveTypeChar = new_CPrimitiveType("char");
 CPrimitiveType CPrimitiveTypeInt = new_CPrimitiveType("int");
@@ -1660,11 +1646,6 @@ char* findName_CStructureOrUnion(void* _ref){
 	}
 	return _ret;
 }
-template <typename T>
-void apply_F1(void* _ref, T element){
-	F1<T>* _this = (F1<T>*) _ref;
-	return _this->table.apply(_this->data, element);
-}
 StringBuilder empty_StringBuilders(void* _ref){
 	StringBuilders* _this = (StringBuilders*) _ref;
 	return new_StringBuilder(empty_Lists(&(Lists)));
@@ -1749,7 +1730,7 @@ List<T> toList_Iter(void* _ref){
 	Iter<T>* _this = (Iter<T>*) _ref;
 	return collect_Iter(&((*_this)), new_ListCollector());
 }
-/*???*/ lambda2(void* _ref, T element){
+todoLambda lambda2(void* _ref, T element){
 	if (apply_F1R(&(predicate), element)) 
 		return new_Iter(new_SingleHead(element));
 	return new_Iter(new_EmptyHead());
@@ -1901,7 +1882,7 @@ Iter<char*> stream_State(void* _ref){
 	State* _this = (State*) _ref;
 	return iter_List(&(_this->segments));
 }
-/*???*/ lambda3(void* _ref, char popped){
+todoLambda lambda3(void* _ref, char popped){
 	State appended = append_State(&((*_this)), popped);
 	return new_Tuple(appended, popped);
 }
@@ -2028,7 +2009,7 @@ CExpression toCExpression_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
 	return _impl;
 }
-/*???*/ lambda5(void* _ref, int i){
+todoLambda lambda5(void* _ref, int i){
 	char c = charAt_String(&(stripped), i);
 	return c == '_' || isLetter(c) || (i != 0 && isDigit(c));
 }
@@ -2037,7 +2018,7 @@ int isIdentifier_Identifier(void* _ref, char* input){
 	char* stripped = strip_String(&(input));
 	if (isEmpty_String(&(stripped)) || equals_String(&(stripped), "return")) 
 		return false;
-	return new_/*Iter<Integer>(new RangeHead(stripped.length())).collect*/(new_AllMatch(lambda5));
+	return collect_Iter(&(new_Iter(new_RangeHead(length_String(&(stripped))))), new_AllMatch(lambda5));
 }
 char* generate_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
@@ -2278,7 +2259,7 @@ Folder toFolder_EscapedFolder(void* _ref){
 	EscapedFolder* _this = (EscapedFolder*) _ref;
 	return _impl;
 }
-/*???*/ lambda6(void* _ref, Tuple<State, char> tuple){
+todoLambda lambda6(void* _ref, Tuple<State, char> tuple){
 	if (tuple.right == '\\') 
 		return orElse_/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Identifier[value=State]', not an object.]*/(&(popAndAppendToOption_State(&(tuple.left))), tuple.left);
 	return tuple.left;
@@ -2493,13 +2474,13 @@ CField new_CField(CDefinable declaration){
 	_this->declaration = declaration;
 	return _thisInstance;
 }
-/*???*/ lambda8(void* _ref, int index){
+todoLambda lambda8(void* _ref, int index){
 	return /*elements[index]*/;
 }
 template <typename T>
 Iter<T> fromObjArray_Streams(void* _ref, T* elements){
 	Streams* _this = (Streams*) _ref;
-	return new_/*Iter<Integer>(new RangeHead(elements.length)).map*/(lambda8);
+	return map_Iter(&(new_Iter(new_RangeHead(elements.length))), lambda8);
 }
 template <typename T, typename R>
 Head<R> toHead_MapHead(void* _ref){
@@ -3082,7 +3063,7 @@ int lambda30(void* _ref, char* variant){
 }
 char* generate_CEnum(void* _ref){
 	CEnum* _this = (CEnum*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, variants=[], members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Int], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=magma.Main$JRecursiveType@2d7d2574], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Int, Int], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[magma.Main$JRecursiveType@2d7d2574, magma.Main$JRecursiveType@2d7d2574]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='copy'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='removeElement'}], typeParameters=[]]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ enumFields = collect_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, variants=[], members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Int], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=magma.Main$JRecursiveType@2d7d2574], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Int, Int], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[magma.Main$JRecursiveType@2d7d2574, magma.Main$JRecursiveType@2d7d2574]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='copy'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='removeElement'}], typeParameters=[]]]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, variants=[], members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Int], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=magma.Main$JRecursiveType@2d7d2574], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Int, Int], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[magma.Main$JRecursiveType@2d7d2574, magma.Main$JRecursiveType@2d7d2574]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='copy'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='removeElement'}], typeParameters=[]]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, variants=[], members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Int], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=magma.Main$JRecursiveType@2d7d2574], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Int, Int], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[magma.Main$JRecursiveType@2d7d2574, magma.Main$JRecursiveType@2d7d2574]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='copy'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='removeElement'}], typeParameters=[]]]', not an object.]*/(&(iter_/*Not a functional type: JObjectType[name=List, variants=[], members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Int], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=magma.Main$JRecursiveType@2d7d2574], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Int, Int], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[magma.Main$JRecursiveType@2d7d2574, magma.Main$JRecursiveType@2d7d2574]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='copy'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@2d7d2574], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@2d7d2574]]], name='removeElement'}], typeParameters=[]]*/(&(variants_CEnum(&((*_this)))))), lambda29)), lambda30)), new_Joiner(","));
+	/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, variants=[], members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Int], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=magma.Main$JRecursiveType@79698539], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Int, Int], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[magma.Main$JRecursiveType@79698539, magma.Main$JRecursiveType@79698539]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='copy'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='removeElement'}], typeParameters=[]]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ enumFields = collect_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, variants=[], members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Int], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=magma.Main$JRecursiveType@79698539], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Int, Int], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[magma.Main$JRecursiveType@79698539, magma.Main$JRecursiveType@79698539]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='copy'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='removeElement'}], typeParameters=[]]]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, variants=[], members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Int], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=magma.Main$JRecursiveType@79698539], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Int, Int], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[magma.Main$JRecursiveType@79698539, magma.Main$JRecursiveType@79698539]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='copy'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='removeElement'}], typeParameters=[]]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: JObjectType[name=List, variants=[], members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Int], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=magma.Main$JRecursiveType@79698539], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Int, Int], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[magma.Main$JRecursiveType@79698539, magma.Main$JRecursiveType@79698539]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='copy'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='removeElement'}], typeParameters=[]]]', not an object.]*/(&(iter_/*Not a functional type: JObjectType[name=List, variants=[], members=[JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='iter'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Boolean], name='isEmpty'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=Boolean], name='contains'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='addAllLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=Int], name='size'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=magma.Main$JRecursiveType@79698539], name='getFirst'}, JDeclaration {type=JFunctionalType[parameterTypes=[Int, Int], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='subList'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='clear'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='removeLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[JGenericType[base=F1R, typeArguments=[magma.Main$JRecursiveType@79698539, magma.Main$JRecursiveType@79698539]]], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='mapLast'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=Iter, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='iterReversed'}, JDeclaration {type=JFunctionalType[parameterTypes=[], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='copy'}, JDeclaration {type=JFunctionalType[parameterTypes=[magma.Main$JRecursiveType@79698539], returnType=JGenericType[base=List, typeArguments=[magma.Main$JRecursiveType@79698539]]], name='removeElement'}], typeParameters=[]]*/(&(variants_CEnum(&((*_this)))))), lambda29)), lambda30)), new_Joiner(","));
 	return "enum class " + _this->name + " {" + enumFields + lineSeparator_/*Undefined identifier: System*/(&(System)) + "};" + lineSeparator_/*Undefined identifier: System*/(&(System));
 }
 CEnum new_CEnum(char* name, List<char*> variants){
@@ -3516,13 +3497,6 @@ Collector<T, int> toCollector_AllMatch(void* _ref){
 	return _impl;
 }
 template <typename T>
-AllMatch<T> new_AllMatch(F1R<T, int> predicate){
-	AllMatch _thisInstance;
-	AllMatch* _this = &_thisInstance;
-	_this->predicate = predicate;
-	return _thisInstance;
-}
-template <typename T>
 int createInitial_AllMatch(void* _ref){
 	AllMatch<T>* _this = (AllMatch<T>*) _ref;
 	return true;
@@ -3532,11 +3506,18 @@ int fold_AllMatch(void* _ref, int aBoolean, T t){
 	AllMatch<T>* _this = (AllMatch<T>*) _ref;
 	return aBoolean && apply_F1R(&(_this->predicate), t);
 }
+template <typename T>
+AllMatch<T> new_AllMatch(F1R<T, int> predicate){
+	AllMatch<T> _thisInstance;
+	AllMatch<T>* _this = &_thisInstance;
+	_this->predicate = predicate;
+	return _thisInstance;
+}
 new Environment_Main(void* _ref){
 	Main* _this = (Main*) _ref;
 	return _this->table.Environment(_this->data);
 }
-/*???*/ lambda37(void* _ref, JType StringType){
+todoLambda lambda37(void* _ref, JType StringType){
 	return /*{
 			// We don't need parameter types for now*/;
 }
@@ -3617,9 +3598,9 @@ Tuple<CExpression, List<CType>> transformCaller_Main(void* _ref, JCaller jCaller
 	Main* _this = (Main*) _ref;
 	return /*TODO: switch*/;
 }
-Tuple<CExpression, List<CType>> destroyConstruction_Main(void* _ref, JConstruction jConstruction){
+Tuple<CExpression, List<CType>> convertTypeToConstructionIdentifier_Main(void* _ref, JType type){
 	Main* _this = (Main*) _ref;
-	CType cType = transformType_Main(&((*_this)), jConstruction.jType);
+	CType cType = transformType_Main(&((*_this)), type);
 	if (??? instanceof ???) 
 		return new_Tuple(new_Identifier("new_" + value), empty_Lists(&(Lists)));
 	if (??? instanceof ???) 
@@ -3670,11 +3651,11 @@ char* compile_Main(void* _ref, char* input){
 	C joinedEnums = collect_Iter(&(map_Iter(&(iter_List(&(_this->enums))), ??? access ???)), new_Joiner());
 	return "#include \"intrinsics.h\"" + lineSeparator_/*Undefined identifier: System*/(&(System)) + joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedFunctionDeclarations + joinedGlobals + joinedFunctions + all;
 }
-/*???*/ lambda39(void* _ref, CStructureOrUnion value){
+todoLambda lambda39(void* _ref, CStructureOrUnion value){
 	List withoutDuplicates = removeDuplicates_Main(&((*_this)), findDependencies_CStructureOrUnion(&(value)));
 	return new_Tuple(findName_CStructureOrUnion(&(value)), withoutDuplicates);
 }
-/*???*/ lambda40(void* _ref, Tuple<char*, List<char*>> entry){
+todoLambda lambda40(void* _ref, Tuple<char*, List<char*>> entry){
 	char* oldKey = entry.left;
 	List newValues = trimDependencies_Main(&((*_this)), entry, dependencyMap, oldKey);
 	return new_Tuple(oldKey, newValues);
@@ -3730,7 +3711,7 @@ List<char*> trimDependencies_Main(void* _ref, Tuple<char*, List<char*>> entry, M
 		}*/
 	return newValues;
 }
-/*???*/ lambda44(void* _ref, List<char*> copy, char* element){
+todoLambda lambda44(void* _ref, List<char*> copy, char* element){
 	if (contains_List(&(copy), element)) 
 		return copy;
 	return addLast_List(&(copy), element);
@@ -3816,7 +3797,7 @@ char* compileRootSegment_Main(void* _ref, char* input){
 	return isEmpty_bool(&(!slice));
 }
 CType lambda47(void* _ref, char* input){
-	return transformType_Main(&((*_this)), parseType_Main(&((*_this)), input));
+	return transformType_Main(&((*_this)), parseTypeOrPlaceholder_Main(&((*_this)), input));
 }
 /*Not a functional type: Placeholder[input=Cannot access member 'isEmpty' in 'Boolean', not an object.]*/ lambda48(void* _ref, char* slice){
 	return isEmpty_bool(&(!slice));
@@ -3860,17 +3841,9 @@ Option<JObject> parseObject_Main(void* _ref, char* type, char* stripped){
 	// TODO: generate conversion methods
 	List<CType> extensions = empty_Lists(&(Lists));
 	int extendsIndex = indexOf_String(&(beforeContent), "extends ");
-	if (extendsIndex >= 0) {
-		char* extensionsString = substring_String(&(beforeContent), extendsIndex + length_String(&("extends ")));
+	char* extensionsString = substring_String(&(beforeContent), extendsIndex + length_String(&("extends ")));
+	if (extendsIndex >= 0) 
 		beforeContent = strip_String(&(substring_String(&(beforeContent), 0, extendsIndex)));
-	/*start
-			extensions = this
-					.divide(extensionsString, new ValueFolder())
-					.map(String::strip)
-					.filter(slice -> !slice.isEmpty())
-					.map(input -> transformType(this.parseType(input)))
-					.toList();end*/
-	}
 	List<CType> implementees = empty_Lists(&(Lists));
 	int i4 = indexOf_String(&(beforeContent), "implements ");
 	if (i4 >= 0) {
@@ -3910,7 +3883,7 @@ Option<JObject> parseObject_Main(void* _ref, char* type, char* stripped){
 Option lambda50(void* _ref, JObjectMember wrapper){
 	return transformObjectMemberPrototype_Main(&((*_this)), object, wrapper);
 }
-/*???*/ lambda51(void* _ref, Environment env){
+todoLambda lambda51(void* _ref, Environment env){
 	environment = withObject_Environment(&(env), object);
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ types = toList_/*Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(flatMap_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]*/(&(iter_/*Cannot access member 'children' in 'Identifier[value=JObject]', not an object.*/(&(object.children))), ??? access ???)), ??? access ???)));
 	/*Not a functional type: Placeholder[input=Cannot access member 'addAllLast' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ declarations = addAllLast_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(toList_/*Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(flatMap_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]*/(&(iter_/*Cannot access member 'children' in 'Identifier[value=JObject]', not an object.*/(&(object.children))), ??? access ???)), ??? access ???)))), object.recordFields);
@@ -4008,7 +3981,7 @@ int lambda54(void* _ref, char* name){
 Tuple lambda55(void* _ref, Environment value){
 	return new_Tuple(value, compileMethodsSegments_Main(&((*_this)), inputContent, 1));
 }
-/*???*/ lambda56(void* _ref, Environment env){
+todoLambda lambda56(void* _ref, Environment env){
 	/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Identifier[value=Environment]', not an object.]*/ self = defineAllExpressions_Environment(&(env), parameters_JMethod(&(jFunctionProto)));
 	return within_/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Identifier[value=Environment]', not an object.]*/(&(self), lambda55);
 }
@@ -4115,14 +4088,14 @@ Option<CDefinable> retainDefinables_Main(void* _ref, CStructMember member){
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@2d7d2574']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
+	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@79698539']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ list = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]*/(&(stream_/*Undefined identifier: Arrays*/(&(Arrays), segments)), ??? access ???)), lambda60)));
 	return new_JavaList(list);
 }
 /*Cannot access member 'name' in 'Identifier[value=CDeclaration]', not an object.*/ lambda61(void* _ref, CDeclaration parameter){
 	return parameter.name;
 }
-/*???*/ lambda62(void* _ref){
+todoLambda lambda62(void* _ref){
 	CType type = transformType_Main(&((*_this)), declaration.type);
 	List list = toList_Iter(&(map_Iter(&(iter_List(&(subList_List(&(cParameters), 1, size_List(&(cParameters)))))), lambda61)));
 	return createBodyForAbstractMethod_Main(&((*_this)), structureVariants, type, declaration.name, list, structName);
@@ -4226,8 +4199,8 @@ Option<JObjectMember> parseEnumValuesStatement_Main(void* _ref, char* input, cha
 		return parseEnumValues_Main(&((*_this)), structName, substring_String(&(stripped), 0, length_String(&(stripped)) - 1));
 	return parseEnumValues_Main(&((*_this)), structName, stripped);
 }
-/*ValueFolder().apply*/ lambda69(void* _ref, State state, char character){
-	return new_/*ValueFolder().apply*/(state, character);
+/*Not a functional type: Placeholder[input=Cannot access member 'apply' in 'Identifier[value=ValueFolder]', not an object.]*/ lambda69(void* _ref, State state, char character){
+	return apply_ValueFolder(&(new_ValueFolder()), state, character);
 }
 /*Not a functional type: Placeholder[input=Cannot access member 'isEmpty' in 'Boolean', not an object.]*/ lambda70(void* _ref, char* slice){
 	return isEmpty_bool(&(!slice));
@@ -4403,10 +4376,8 @@ JType cleanupType_Main(void* _ref, JType found){
 	Main* _this = (Main*) _ref;
 	if (??? instanceof ???) {
 		/*Not a functional type: Placeholder[input=Cannot access member 'resolveType' in 'Placeholder[input=Undefined identifier: environment]', not an object.]*/ resolved = resolveType_/*Undefined identifier: environment*/(&(environment), base);
-		if (??? instanceof ???) {
-			/*Not a functional type: Placeholder[input=Cannot access member 'specialize' in 'Placeholder[input=Undefined identifier: objType]', not an object.]*/ specialized = specialize_/*Undefined identifier: objType*/(&(objType), typeArguments);
-			return specialized;
-		}
+		if (??? instanceof ???) 
+			return specialize_/*Undefined identifier: objType*/(&(objType), typeArguments);
 		else 
 			return new_Placeholder("Generic type '" + base + "' has not been defined");
 	}
@@ -4502,12 +4473,9 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	int i3 = indexOf_String(&(stripped), "instanceof");
 	if (i3 >= 0) {
 		char* substring = substring_String(&(stripped), 0, i3);
-		char* substring1 = strip_String(&(substring_String(&(stripped), i3 + length_String(&("instanceof")))));
 		Option maybeInstance = map_Option(&(parseCExpression_Main(&((*_this)), substring)), ??? access ???);
-		if (??? instanceof ???) {
-			int i4 = indexOf_String(&(substring1), "<");
+		if (??? instanceof ???) 
 			return new_Some(new_JInstanceOf());
-		}
 	}
 	Option maybeOperator = or_Option(&(or_Option(&(or_Option(&(or_Option(&(or_Option(&(or_Option(&(or_Option(&(compileOperator_Main(&((*_this)), stripped, Operator.Equals)), lambda76)), lambda77)), lambda78)), lambda79)), lambda80)), lambda81)), lambda82);
 	if (??? instanceof ???) 
@@ -4542,19 +4510,22 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 char* lambda83(void* _ref){
 	return wrap_Placeholder(&(Placeholder), maybeWithBraces);
 }
-/*???*/ lambda84(void* _ref, Environment env){
+Identifier lambda84(void* _ref){
+	return new_Identifier("todoLambda");
+}
+todoLambda lambda85(void* _ref, Environment env){
 	/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Identifier[value=Environment]', not an object.]*/ defined = defineAllExpressions_Environment(&(env), params);
 	Tuple<JType, char*> jTypeStringTuple;
 	if (startsWith_String(&(maybeWithBraces), "{") && endsWith_String(&(maybeWithBraces), "}")) {
 		char* content = substring_String(&(maybeWithBraces), 1, length_String(&(maybeWithBraces)) - 1);
 		char* output1 = compileMethodsSegments_Main(&((*_this)), content, 1);
-		Placeholder returnType1 = new_Placeholder("???");
+		Identifier returnType1 = new_Identifier("todoLambda");
 		jTypeStringTuple = new_Tuple(returnType1, output1);
 	}
 	else {
 		/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/ jExpressionOption = parseExpression_/*Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.*/(&(Main.this), maybeWithBraces);
 		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ output1 = generateStatement_/*Undefined identifier: Main*/(&(Main), "return " + orElseGet_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/(&(jExpressionOption), ??? access ???)), ??? access ???)), lambda83));
-		/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]]', not an object.]*/ returnType1 = orElse_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/(&(jExpressionOption), ??? access ???)), new_Placeholder("???"));
+		/*Not a functional type: Placeholder[input=Cannot access member 'orElseGet' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]]', not an object.]*/ returnType1 = orElseGet_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/(&(jExpressionOption), ??? access ???)), lambda84);
 		jTypeStringTuple = new_Tuple(returnType1, output1);
 	}
 	return new_Tuple(defined, jTypeStringTuple);
@@ -4570,7 +4541,7 @@ Option<JExpression> compileLambda_Main(void* _ref, char* input){
 	if (!(??? instanceof ???)) 
 		return new_None();
 	/*Not a functional type: Placeholder[input=Cannot access member 'addFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ paramList = addFirst_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]*/(&(toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]*/(&(iter_/*Undefined identifier: params*/(&(params))), ??? access ???)))), new_CDeclaration(new_CPointerType(CPrimitiveType.Void), "_ref"));
-	/*Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]*/ within = within_/*Undefined identifier: environment*/(&(environment), lambda84);
+	/*Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]*/ within = within_/*Undefined identifier: environment*/(&(environment), lambda85);
 	environment = within.left;
 	/*Cannot access member 'right' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]]', not an object.*/ right = within.right;
 	/*Cannot access member 'left' in 'Placeholder[input=Cannot access member 'right' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]]', not an object.]', not an object.*/ returnType = right.left;
@@ -4582,7 +4553,7 @@ Option<JExpression> compileLambda_Main(void* _ref, char* input){
 	_this->functions = addLast_List(&(_this->functions), cFunction);
 	return new_Some(new_Identifier(generatedName));
 }
-/*Not a functional type: Placeholder[input=Cannot access member 'isEmpty' in 'Boolean', not an object.]*/ lambda85(void* _ref, char* slice){
+/*Not a functional type: Placeholder[input=Cannot access member 'isEmpty' in 'Boolean', not an object.]*/ lambda86(void* _ref, char* slice){
 	return isEmpty_bool(&(!slice));
 }
 Option<List<JDeclaration>> parseLambdaParams_Main(void* _ref, char* input){
@@ -4590,7 +4561,7 @@ Option<List<JDeclaration>> parseLambdaParams_Main(void* _ref, char* input){
 	if (startsWith_bool(&(!input), "(") || !input.endsWith(")")) 
 		return new_None();
 	char* substring = substring_String(&(input), 1, length_String(&(input)) - 1);
-	List paramList = toList_Iter(&(flatMap_Iter(&(map_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), substring, new_ValueFolder())), ??? access ???)), lambda85)), ??? access ???)), ??? access ???)));
+	List paramList = toList_Iter(&(flatMap_Iter(&(map_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), substring, new_ValueFolder())), ??? access ???)), lambda86)), ??? access ???)), ??? access ???)));
 	return new_Some(paramList);
 }
 char* generateName_Main(void* _ref){
@@ -4675,17 +4646,17 @@ int isNumber_Main(void* _ref, char* input){
 }
 int allDigits_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return new_/*Iter<Integer>(new RangeHead(input.length()))
-				.map(input::charAt)
-				.collect*/(new_AllMatch(??? access ???));
+	return collect_Iter(&(map_Iter(&(new_Iter(new_RangeHead(length_String(&(input))))), ??? access ???)), new_AllMatch(??? access ???));
 }
 Option<JCaller> parseCaller_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	char* stripped = strip_String(&(input));
 	if (startsWith_String(&(stripped), "new ")) {
 		char* type = substring_String(&(stripped), length_String(&("new ")));
-		JType jType = parseType_Main(&((*_this)), type);
-		return new_Some(new_JConstruction(jType));
+		Option maybeParsedType = parseType_Main(&((*_this)), type);
+		if (??? instanceof ???) {
+			return new_Some(new_JConstruction(parsedType));
+		}
 	}
 	Option maybeExpression = parseExpression_Main(&((*_this)), stripped);
 	if (??? instanceof ???) 
@@ -4703,7 +4674,7 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 		if (isIdentifier_bool(&(!Identifier), name)) 
 			return new_None();
 		if (typeSeparator < 0) {
-			JType type = parseType_Main(&((*_this)), beforeName);
+			JType type = parseTypeOrPlaceholder_Main(&((*_this)), beforeName);
 			return new_Some(new_JDeclaration(name, type));
 		}
 		char* beforeType = strip_String(&(substring_String(&(beforeName), 0, typeSeparator)));
@@ -4724,22 +4695,22 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 			beforeType = strip_String(&(substring_String(&(beforeType), i + 1)));
 		}
 		if (isIdentifier_Identifier(&(Identifier), name)) {
-			JType type = parseType_Main(&((*_this)), substring_String(&(beforeName), typeSeparator + 1));
+			JType type = parseTypeOrPlaceholder_Main(&((*_this)), substring_String(&(beforeName), typeSeparator + 1));
 			JDeclaration jDeclaration = new_JDeclaration(annotations, copy, new_Some(beforeType), type, name);
 			return new_Some(jDeclaration);
 		}
 	}
 	return new_None();
 }
-/*Not a functional type: Placeholder[input=Cannot access member 'isEmpty' in 'Boolean', not an object.]*/ lambda86(void* _ref, char* slice){
+/*Not a functional type: Placeholder[input=Cannot access member 'isEmpty' in 'Boolean', not an object.]*/ lambda87(void* _ref, char* slice){
 	return isEmpty_bool(&(!slice));
 }
-char* lambda87(void* _ref, char* slice){
+char* lambda88(void* _ref, char* slice){
 	return substring_String(&(slice), 1);
 }
 List<char*> collectAnnotations_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return toList_Iter(&(map_Iter(&(map_Iter(&(filter_Iter(&(fromObjArray_Streams(&(Streams), split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), "\n")))), lambda86)), lambda87)), ??? access ???)));
+	return toList_Iter(&(map_Iter(&(map_Iter(&(filter_Iter(&(fromObjArray_Streams(&(Streams), split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), "\n")))), lambda87)), lambda88)), ??? access ???)));
 }
 int findTypeSeparator_Main(void* _ref, char* beforeName){
 	Main* _this = (Main*) _ref;
@@ -4758,33 +4729,40 @@ int findTypeSeparator_Main(void* _ref, char* beforeName){
 	}
 	return typeSeparator;
 }
-JType parseType_Main(void* _ref, char* input){
+Placeholder lambda89(void* _ref){
+	return new_Placeholder(input);
+}
+JType parseTypeOrPlaceholder_Main(void* _ref, char* input){
+	Main* _this = (Main*) _ref;
+	return orElseGet_Option(&(parseType_Main(&((*_this)), input)), lambda89);
+}
+Option<JType> parseType_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	char* stripped = strip_String(&(input));
 	/*switch (stripped) {
 			case "boolean", "Boolean" -> {
-				return JPrimitiveType.Boolean;
+				return new Some<JType>(JPrimitiveType.Boolean);
 			}
 			case "int", "Integer" -> {
-				return JPrimitiveType.Int;
+				return new Some<JType>(JPrimitiveType.Int);
 			}
 			case "void" -> {
-				return JPrimitiveType.Void;
+				return new Some<JType>(JPrimitiveType.Void);
 			}
 			case "String" -> {
-				return this.StringType;
+				return new Some<JType>(this.StringType);
 			}
 			case "Character" -> {
-				return JPrimitiveType.Char;
+				return new Some<JType>(JPrimitiveType.Char);
 			}
 			case "var" -> {
-				return JPrimitiveType.Var;
+				return new Some<JType>(JPrimitiveType.Var);
 			}
 		}*/
 	if (endsWith_String(&(stripped), "[]")) {
 		char* slice = substring_String(&(stripped), 0, length_String(&(stripped)) - 2);
-		JType type = parseType_Main(&((*_this)), slice);
-		return new_JArrayType(type);
+		JType type = parseTypeOrPlaceholder_Main(&((*_this)), slice);
+		return new_Some(new_JArrayType(type));
 	}
 	if (endsWith_String(&(stripped), ">")) {
 		char* substring = substring_String(&(stripped), 0, length_String(&(stripped)) - 1);
@@ -4793,11 +4771,11 @@ JType parseType_Main(void* _ref, char* input){
 			char* base = substring_String(&(substring), 0, i);
 			char* parameters = substring_String(&(substring), i + 1);
 			List list = toList_Iter(&(map_Iter(&(divide_Main(&((*_this)), parameters, new_ValueFolder())), ??? access ???)));
-			return new_JGenericType(base, list);
+			return new_Some(new_JGenericType(base, list));
 		}
 	}
 	if (isIdentifier_Identifier(&(Identifier), stripped)) 
-		return new_Identifier(stripped);
+		return new_Some(new_Identifier(stripped));
 	// TODO: handle varargs through monomorphization
-	return new_Placeholder(stripped);
+	return new_None();
 }
