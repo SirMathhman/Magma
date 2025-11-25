@@ -1514,6 +1514,8 @@ public class Main {
 
 	private record JInstanceOf() implements JExpression {}
 
+	private record JQuantity(JExpression instance) implements JExpression {}
+
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
 		final var methods = Lists
@@ -1662,6 +1664,7 @@ public class Main {
 			case StringNode stringNode -> stringNode;
 			case JMethodAccess access -> new Identifier("???");
 			case JInstanceOf instance -> new Identifier("???");
+			case JQuantity quantity -> new CQuantity(this.transformExpression(quantity.instance));
 			default -> throw new IllegalStateException("Unexpected value: " + expression);
 		};
 	}
@@ -2519,6 +2522,8 @@ public class Main {
 		final var maybeDeclaration = this.parseDeclaration(input);
 		if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) return declaration.toCDeclaration().generate();
 
+		if (stripped.startsWith("assert ")) return "";
+
 		return Placeholder.wrap(stripped);
 	}
 
@@ -2587,6 +2592,7 @@ public class Main {
 			case Char _ -> JPrimitiveType.Char;
 			case JOperator jOperator -> jOperator.operator.getType();
 			case StringNode _ -> StringType;
+			case JQuantity quantity -> this.resolveExpression(quantity.instance);
 			default -> throw new IllegalStateException("Unexpected value: " + source);
 		};
 	}
@@ -2660,6 +2666,12 @@ public class Main {
 
 	private Option<JExpression> parseExpression(String input) {
 		final var stripped = input.strip();
+		if (stripped.startsWith("(") && stripped.endsWith(")")) {
+			final var content = stripped.substring(1, stripped.length() - 1);
+			final var maybeParsed = this.parseExpression(content);
+			if (maybeParsed instanceof Some<JExpression>(var parsed)) return new Some<JExpression>(new JQuantity(parsed));
+		}
+
 		if (stripped.startsWith("switch ")) return new Some<JExpression>(new Placeholder("TODO: switch"));
 
 		final var i2 = stripped.lastIndexOf("::");

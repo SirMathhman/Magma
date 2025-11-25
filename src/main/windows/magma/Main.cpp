@@ -118,6 +118,7 @@ struct COperator;
 struct StringNode;
 struct JMethodAccess;
 struct JInstanceOf;
+struct JQuantity;
 struct Main;
 enum class OptionTag {
 	NoneVariant,
@@ -402,6 +403,9 @@ struct CReference {
 struct JMemberAccess {
 	JExpression instance;
 	char* memberName;
+};
+struct JQuantity {
+	JExpression instance;
 };
 struct JRecursiveType {
 	Option<JType> maybeInternal;
@@ -1799,7 +1803,7 @@ CTemplateType new_CTemplateType(char* base, List<CType> typeArguments){
 	CTemplateType* _this = &_thisInstance;
 	_this->base = base;
 	_this->typeArguments = typeArguments;
-	/*assert !typeArguments.isEmpty()*/;
+	;
 	return _thisInstance;
 }
 char* generate_CTemplateType(void* _ref){
@@ -1874,7 +1878,7 @@ CExpression toCExpression_Identifier(void* _ref){
 }
 /*TODO:  resolve lambda return type*/ lambda5(void* _ref, /*TODO: resolve type of lambda param*/ i){
 	char c = charAt_String(&(stripped), i);
-	return /*c == '_' || Character.isLetter(c) || (i != 0 && Character.isDigit(c))*/;
+	return c == ''_'' || isLetter_/*Undefined identifier: Character*/(&(Character), c) || (i != 0 && isDigit_/*Undefined identifier: Character*/(&(Character), c));
 }
 int isIdentifier_Identifier(void* _ref, char* input){
 	Identifier* _this = (Identifier*) _ref;
@@ -2133,7 +2137,7 @@ State apply_EscapedFolder(void* _ref, State state, char next){
 		/*Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]*/ current = append_State(&(state), next);
 		while (true) {
 			/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToTuple' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]*/ maybeTuple = popAndAppendToTuple_/*Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]*/(&(current));
-			if (/*!(maybeTuple instanceof Some<Tuple<State, Character>>(var value))*/) 
+			if (!(???)) 
 				break;
 			current = value.left;
 			/*Cannot access member 'right' in 'Placeholder[input=Undefined identifier: value]', not an object.*/ right = value.right;
@@ -3033,7 +3037,7 @@ JNumber new_JNumber(char* value){
 	JNumber _thisInstance;
 	JNumber* _this = &_thisInstance;
 	_this->value = value;
-	/*assert !value.isEmpty()*/;
+	;
 	return _thisInstance;
 }
 JNumber new_JNumber(char* value){
@@ -3050,7 +3054,7 @@ CNumber new_CNumber(char* value){
 	CNumber _thisInstance;
 	CNumber* _this = &_thisInstance;
 	_this->value = value;
-	/*assert !value.isEmpty()*/;
+	;
 	return _thisInstance;
 }
 char* generate_CNumber(void* _ref){
@@ -3205,6 +3209,16 @@ JExpression toJExpression_JInstanceOf(void* _ref){
 JInstanceOf new_JInstanceOf(){
 	JInstanceOf _thisInstance;
 	JInstanceOf* _this = &_thisInstance;
+	return _thisInstance;
+}
+JExpression toJExpression_JQuantity(void* _ref){
+	JQuantity* _this = (JQuantity*) _ref;
+	return _impl;
+}
+JQuantity new_JQuantity(JExpression instance){
+	JQuantity _thisInstance;
+	JQuantity* _this = &_thisInstance;
+	_this->instance = instance;
 	return _thisInstance;
 }
 /*private static final JType StringType = JRecursiveType.create*/(/*-> {
@@ -3421,7 +3435,7 @@ Iter<char*> divide_Main(void* _ref, char* input, Folder folder){
 	State current = new_State(input);
 	while (true) {
 		/*Not a functional type: Placeholder[input=Cannot access member 'pop' in 'Identifier[value=State]', not an object.]*/ maybeNext = pop_State(&(current));
-		if (/*!(maybeNext instanceof Some<Character>(var value))*/) 
+		if (!(???)) 
 			break;
 		char next;
 		next = value;
@@ -3494,7 +3508,7 @@ Option<JObject> parseObject_Main(void* _ref, char* type, char* stripped){
 	}
 	else 
 		modifiers = beforeType;
-	char* afterKeyword = strip_String(&(substring_String(&(stripped))));
+	char* afterKeyword = strip_String(&(substring_String(&(stripped), i + length_int(&((type + " "))))));
 	int i1 = indexOf_String(&(afterKeyword), "{");
 	if (i1 < 0) 
 		return new_None();
@@ -3775,7 +3789,7 @@ Option<JObjectMember> parseMethod_Main(void* _ref, char* stripped, char* name, L
 	return /*TODO: switch*/;
 }
 /*TODO:  resolve lambda return type*/ lambda40(void* _ref, /*TODO: resolve type of lambda param*/ member){
-	return /*!(member instanceof CFunctionDeclaration)*/;
+	return !(???);
 }
 List<CDefinable> retainFields_Main(void* _ref, List<CStructMember> members){
 	Main* _this = (Main*) _ref;
@@ -3791,7 +3805,7 @@ Option<CDefinable> retainDefinables_Main(void* _ref, CStructMember member){
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@7c0e2abd']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
+	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@60addb54']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ list = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]*/(&(stream_/*Undefined identifier: Arrays*/(&(Arrays), segments)), ???)), lambda41)));
 	return new_JavaList(list);
 }
@@ -4022,6 +4036,8 @@ char* compileMethodStatement_Main(void* _ref, char* input){
 	Option maybeDeclaration = parseDeclaration_Main(&((*_this)), input);
 	if (???) 
 		return generate_/*Not a functional type: Placeholder[input=Cannot access member 'toCDeclaration' in 'Placeholder[input=Undefined identifier: declaration]', not an object.]*/(&(toCDeclaration_/*Undefined identifier: declaration*/(&(declaration))));
+	if (startsWith_String(&(stripped), "assert ")) 
+		return "";
 	return wrap_Placeholder(&(Placeholder), stripped);
 }
 Option<char*> compileAssignment_Main(void* _ref, char* stripped){
@@ -4144,6 +4160,12 @@ Option<CExpression> parseCExpression_Main(void* _ref, char* input){
 Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	char* stripped = strip_String(&(input));
+	if (startsWith_String(&(stripped), "(") && stripped.endsWith(")")) {
+		char* content = substring_String(&(stripped), 1, length_String(&(stripped)) - 1);
+		Option maybeParsed = parseExpression_Main(&((*_this)), content);
+		if (???) 
+			return new_Some(new_JQuantity(parsed));
+	}
 	if (startsWith_String(&(stripped), "switch ")) 
 		return new_Some(new_Placeholder("TODO: switch"));
 	int i2 = lastIndexOf_String(&(stripped), "::");
@@ -4212,7 +4234,7 @@ Option<JExpression> compileLambda_Main(void* _ref, char* input){
 	char* beforeContent = strip_String(&(substring_String(&(input), 0, index)));
 	char* maybeWithBraces = strip_String(&(substring_String(&(input), index + 2)));
 	Option maybeParams = parseLambdaParams_Main(&((*_this)), beforeContent);
-	if (/*!(maybeParams instanceof Some<List<String>>(var params))*/) 
+	if (!(???)) 
 		return new_None();
 	/*Not a functional type: Placeholder[input=Cannot access member 'addFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ paramList = addFirst_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]*/(&(toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]*/(&(iter_/*Undefined identifier: params*/(&(params))), lambda63)))), new_CDeclaration(new_CPointerType(CPrimitiveType.Void), "_ref"));
 	char* output;
@@ -4291,7 +4313,7 @@ Option<JExpression> parseInvokable_Main(void* _ref, char* stripped){
 	char* callerString = substring_String(&(withoutEnd), 0, callerStart);
 	char* argumentsString = substring_String(&(withoutEnd), callerStart + 1);
 	Option maybeCaller = parseCaller_Main(&((*_this)), callerString);
-	if (/*!(maybeCaller instanceof Some(var value))*/) 
+	if (!(???)) 
 		return new_None();
 	List arguments = toList_Iter(&(flatMap_Iter(&(map_Iter(&(divide_Main(&((*_this)), argumentsString, new_EscapedFolder(new_ValueFolder()))), ???)), ???)));
 	return new_Some(new_JInvokable(value, arguments));
