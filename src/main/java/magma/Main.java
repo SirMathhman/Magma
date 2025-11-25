@@ -291,7 +291,7 @@ public class Main {
 			while (true) {
 				var finalCurrent = current;
 				final var tuple =
-						this.head.next().map(element -> folder.apply(finalCurrent, element)).toTuple(() -> finalCurrent);
+						this.head.next().map((T element) -> folder.apply(finalCurrent, element)).toTuple(() -> finalCurrent);
 				if (tuple.left) current = tuple.right;
 				else return current;
 			}
@@ -306,7 +306,7 @@ public class Main {
 		}
 
 		public Iter<T> filter(F1R<T, Boolean> predicate) {
-			return this.flatMap(element -> {
+			return this.flatMap((T element) -> {
 				if (predicate.apply(element)) return new Iter<T>(new SingleHead<T>(element));
 				return new Iter<T>(new EmptyHead<T>());
 			});
@@ -444,7 +444,7 @@ public class Main {
 		@Override
 		public Iter<T> iterReversed() {
 			return new Iter<Integer>(new RangeHead(this.nativeList.size()))
-					.map(index -> this.nativeList.size() - index - 1)
+					.map((Integer index) -> this.nativeList.size() - index - 1)
 					.map(this.nativeList::get);
 		}
 
@@ -533,14 +533,14 @@ public class Main {
 		}
 
 		public Option<Tuple<State, Character>> popAndAppendToTuple() {
-			return this.pop().map(popped -> {
+			return this.pop().map((Character popped) -> {
 				final var appended = this.append(popped);
 				return new Tuple<State, Character>(appended, popped);
 			});
 		}
 
 		public Option<State> popAndAppendToOption() {
-			return this.popAndAppendToTuple().map(tuple -> tuple.left);
+			return this.popAndAppendToTuple().map((Tuple<State, Character> tuple) -> tuple.left);
 		}
 
 		public Option<Character> peek() {
@@ -616,7 +616,7 @@ public class Main {
 			final var stripped = input.strip();
 			if (stripped.isEmpty() || stripped.equals("return")) return false;
 
-			return new Iter<Integer>(new RangeHead(stripped.length())).collect(new AllMatch<Integer>(i -> {
+			return new Iter<Integer>(new RangeHead(stripped.length())).collect(new AllMatch<Integer>((Integer i) -> {
 				final var c = stripped.charAt(i);
 				return c == '_' || isLetter(c) || (i != 0 && isDigit(c));
 			}));
@@ -792,7 +792,7 @@ public class Main {
 
 			if (next == '\'') {
 				final var appended = state.append(next);
-				return appended.popAndAppendToTuple().map(tuple -> {
+				return appended.popAndAppendToTuple().map((Tuple<State, Character> tuple) -> {
 					if (tuple.right == '\\') return tuple.left.popAndAppendToOption().orElse(tuple.left);
 					return tuple.left;
 				}).flatMap(State::popAndAppendToOption).orElse(appended);
@@ -938,7 +938,7 @@ public class Main {
 
 	private static class Streams {
 		public static <T> Iter<T> fromObjArray(T[] elements) {
-			return new Iter<Integer>(new RangeHead(elements.length)).map(index -> elements[index]);
+			return new Iter<Integer>(new RangeHead(elements.length)).map((Integer index) -> elements[index]);
 		}
 	}
 
@@ -1132,7 +1132,7 @@ public class Main {
 		@Override
 		public String stringify() {
 			final var joined =
-					this.typeArguments.iter().map(JType::stringify).map(slice -> "_" + slice).collect(new Joiner());
+					this.typeArguments.iter().map(JType::stringify).map((String slice) -> "_" + slice).collect(new Joiner());
 			return this.base + joined;
 		}
 	}
@@ -1173,7 +1173,7 @@ public class Main {
 		@Override
 		public String stringify() {
 			final var joined =
-					this.parameterTypes.iter().map(JType::stringify).map(slice -> "_" + slice).collect(new Joiner());
+					this.parameterTypes.iter().map(JType::stringify).map((String slice) -> "_" + slice).collect(new Joiner());
 			return "func_" + this.returnType.stringify() + joined;
 		}
 	}
@@ -1190,7 +1190,7 @@ public class Main {
 		}
 
 		private Option<JDeclaration> resolveExpression(String identifier) {
-			return this.frames.iter().map(frame -> frame.resolveExpression(identifier)).flatMap(Option::iter).next();
+			return this.frames.iter().map((Frame frame) -> frame.resolveExpression(identifier)).flatMap(Option::iter).next();
 		}
 
 		public <T> Tuple<Environment, T> within(F1R<Environment, Tuple<Environment, T>> supplier) {
@@ -1209,11 +1209,11 @@ public class Main {
 		}
 
 		public Environment defineAllExpressions(List<JDeclaration> declarations) {
-			return new Environment(this.frames.mapLast(last -> last.defineAllExpressions(declarations)));
+			return new Environment(this.frames.mapLast((Frame last) -> last.defineAllExpressions(declarations)));
 		}
 
 		public Environment defineExpression(JDeclaration declaration) {
-			return new Environment(this.frames.mapLast(last -> last.defineExpression(declaration)));
+			return new Environment(this.frames.mapLast((Frame last) -> last.defineExpression(declaration)));
 		}
 
 		public Option<JObjectType> resolveCurrent() {
@@ -1221,15 +1221,15 @@ public class Main {
 		}
 
 		public Environment withObject(JObject object) {
-			return new Environment(this.frames.mapLast(last -> last.withObject(object)));
+			return new Environment(this.frames.mapLast((Frame last) -> last.withObject(object)));
 		}
 
 		public Option<JObjectType> resolveType(String name) {
-			return this.frames.iterReversed().map(frame -> frame.resolveType(name)).flatMap(Option::iter).next();
+			return this.frames.iterReversed().map((Frame frame) -> frame.resolveType(name)).flatMap(Option::iter).next();
 		}
 
 		public Environment defineAllTypes(List<JObjectType> types) {
-			return new Environment(this.frames.mapLast(last -> last.defineAllTypes(types)));
+			return new Environment(this.frames.mapLast((Frame last) -> last.defineAllTypes(types)));
 		}
 	}
 
@@ -1253,7 +1253,7 @@ public class Main {
 		}
 
 		public Option<JDeclaration> resolveExpression(String identifier) {
-			return this.definedExpressions.iter().filter(define -> define.name.equals(identifier)).next();
+			return this.definedExpressions.iter().filter((JDeclaration define) -> define.name.equals(identifier)).next();
 		}
 
 		public Frame defineExpression(JDeclaration declaration) {
@@ -1261,7 +1261,7 @@ public class Main {
 		}
 
 		public Option<JObjectType> toStructureType() {
-			return this.maybeObject.map(obj -> new JObjectType(obj.name, obj.variants, this.definedExpressions));
+			return this.maybeObject.map((JObject obj) -> new JObjectType(obj.name, obj.variants, this.definedExpressions));
 		}
 
 		public Frame withObject(JObject name) {
@@ -1269,7 +1269,7 @@ public class Main {
 		}
 
 		public Option<JObjectType> resolveType(String name) {
-			return this.definedTypes.iter().filter(type -> type.name.equals(name)).next();
+			return this.definedTypes.iter().filter((JObjectType type) -> type.name.equals(name)).next();
 		}
 
 		public Frame defineAllTypes(List<JObjectType> types) {
@@ -1279,7 +1279,11 @@ public class Main {
 
 	private record JObjectType(String name, List<String> variants, List<JDeclaration> members) implements JType {
 		private Option<JType> resolve(String name) {
-			return this.members.iter().filter(member -> member.name.equals(name)).next().map(JDeclaration::type);
+			return this.members
+					.iter()
+					.filter((JDeclaration member) -> member.name.equals(name))
+					.next()
+					.map(JDeclaration::type);
 		}
 
 		@Override
@@ -1333,7 +1337,7 @@ public class Main {
 					.iter()
 					.map(CDefinable::extractIdentifiers)
 					.flatMap(List::iter)
-					.filter(value -> !this.typeParameters.contains(value))
+					.filter((String value) -> !this.typeParameters.contains(value))
 					.collect(new ListCollector<String>());
 		}
 	}
@@ -1343,8 +1347,8 @@ public class Main {
 			final var enumFields = this
 					.variants()
 					.iter()
-					.map(variant -> variant + "Variant")
-					.map(variant -> generateIndent(1) + variant)
+					.map((String variant) -> variant + "Variant")
+					.map((String variant) -> generateIndent(1) + variant)
 					.collect(new Joiner(","));
 
 			return "enum class " + this.name + " {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
@@ -1381,7 +1385,7 @@ public class Main {
 			return this
 					.implementees()
 					.iter()
-					.map(implementee -> this.createConversionType(implementee, environment1))
+					.map((CType implementee) -> this.createConversionType(implementee, environment1))
 					.toList();
 		}
 
@@ -1512,17 +1516,21 @@ public class Main {
 
 		@Override
 		public TupleMap<K, V> removeKey(K key) {
-			return new TupleMap<K, V>(this.entries.iter().filter(entry -> !entry.left.equals(key)).toList());
+			return new TupleMap<K, V>(this.entries.iter().filter((Tuple<K, V> entry) -> !entry.left.equals(key)).toList());
 		}
 
 		@Override
 		public Option<V> get(K key) {
-			return this.entries.iter().filter(entry -> entry.left.equals(key)).map(entry -> entry.right).next();
+			return this.entries
+					.iter()
+					.filter((Tuple<K, V> entry) -> entry.left.equals(key))
+					.map((Tuple<K, V> entry) -> entry.right)
+					.next();
 		}
 
 		@Override
 		public boolean containsKey(K key) {
-			return this.entries.iter().collect(new AnyMatch<Tuple<K, V>>(entry -> entry.left.equals(key)));
+			return this.entries.iter().collect(new AnyMatch<Tuple<K, V>>((Tuple<K, V> entry) -> entry.left.equals(key)));
 		}
 
 		@Override
@@ -1542,8 +1550,10 @@ public class Main {
 
 		@Override
 		public Map<K, V> mapValues(F1R<V, V> mapper) {
-			final var collected =
-					this.entries.iter().map(entry -> new Tuple<K, V>(entry.left, mapper.apply(entry.right))).toList();
+			final var collected = this.entries
+					.iter()
+					.map((Tuple<K, V> entry) -> new Tuple<K, V>(entry.left, mapper.apply(entry.right)))
+					.toList();
 
 			return new TupleMap<K, V>(collected);
 		}
@@ -1635,7 +1645,7 @@ public class Main {
 		this.globals = Lists.empty();
 		this.counter = 0;
 
-		this.StringType = JRecursiveType.create(StringType -> {
+		this.StringType = JRecursiveType.create((JType StringType) -> {
 			// We don't need parameter types for now, we don't validate them yet
 			final var methods = Lists
 					.<JDeclaration>empty()
@@ -1657,7 +1667,8 @@ public class Main {
 
 	private static String generateTemplateString(List<String> typeParameters) {
 		if (typeParameters.isEmpty()) return "";
-		final var typeNames = typeParameters.iter().map(typeParam -> "typename " + typeParam).collect(new Joiner(", "));
+		final var typeNames =
+				typeParameters.iter().map((String typeParam) -> "typename " + typeParam).collect(new Joiner(", "));
 		return "template <" + typeNames + ">" + System.lineSeparator();
 	}
 
@@ -1706,7 +1717,7 @@ public class Main {
 		return c >= '0' && c <= '9';
 	}
 
-	private CDeclaration toCDeclaration(JDeclaration declaration) {
+	private CDeclaration transformDeclaration(JDeclaration declaration) {
 		return new CDeclaration(declaration.typeParameters, this.transformType(declaration.type), declaration.name);
 	}
 
@@ -1847,12 +1858,12 @@ public class Main {
 	}
 
 	private List<CStructureOrUnion> createTopologicallySortedList() {
-		var dependencyMap = this.structuresOrUnions.iter().map(value -> {
+		var dependencyMap = this.structuresOrUnions.iter().map((CStructureOrUnion value) -> {
 			final var withoutDuplicates = this.removeDuplicates(value.findDependencies());
 			return new Tuple<String, List<String>>(value.findName(), withoutDuplicates);
 		}).collect(new MapCollector<String, List<String>>());
 
-		var cleanedDependencyMap = dependencyMap.iterEntries().map(entry -> {
+		var cleanedDependencyMap = dependencyMap.iterEntries().map((Tuple<String, List<String>> entry) -> {
 			final var oldKey = entry.left;
 			final var newValues = this.trimDependencies(entry, dependencyMap, oldKey);
 			return new Tuple<String, List<String>>(oldKey, newValues);
@@ -1860,8 +1871,11 @@ public class Main {
 
 		var dependencyOrder = Lists.<String>empty();
 		while (!cleanedDependencyMap.isEmpty()) {
-			var cleanedDependencyMapKeysToRemove =
-					cleanedDependencyMap.iterEntries().filter(entry -> entry.right.isEmpty()).map(Tuple::left).toList();
+			var cleanedDependencyMapKeysToRemove = cleanedDependencyMap
+					.iterEntries()
+					.filter((Tuple<String, List<String>> entry) -> entry.right.isEmpty())
+					.map(Tuple::left)
+					.toList();
 
 			final var oldLength = cleanedDependencyMap.size();
 
@@ -1879,7 +1893,8 @@ public class Main {
 
 		final var mapping = this.structuresOrUnions
 				.iter()
-				.map(rootSegment -> new Tuple<String, CStructureOrUnion>(rootSegment.findName(), rootSegment))
+				.map((CStructureOrUnion rootSegment) -> new Tuple<String, CStructureOrUnion>(rootSegment.findName(),
+																																										 rootSegment))
 				.collect(new MapCollector<String, CStructureOrUnion>());
 
 		return dependencyOrder.iter().map(mapping::get).flatMap(Option::iter).toList();
@@ -1894,7 +1909,7 @@ public class Main {
 		final var stringList = left.addLast(cleanedDependencyMapKeyToRemove);
 		final var stringListMap = right
 				.removeKey(cleanedDependencyMapKeyToRemove)
-				.mapValues(values -> values.removeElement(cleanedDependencyMapKeyToRemove));
+				.mapValues((List<String> values) -> values.removeElement(cleanedDependencyMapKeyToRemove));
 
 		return new Tuple<List<String>, Map<String, List<String>>>(stringList, stringListMap);
 	}
@@ -1920,7 +1935,7 @@ public class Main {
 	}
 
 	private List<String> removeDuplicates(List<String> list) {
-		return list.iter().fold(Lists.empty(), (copy, element) -> {
+		return list.iter().fold(Lists.empty(), (List<String> copy, String element) -> {
 			if (copy.contains(element)) return copy;
 			return copy.addLast(element);
 		});
@@ -2058,8 +2073,8 @@ public class Main {
 			implementees = this
 					.divide(implementeesString, new ValueFolder())
 					.map(String::strip)
-					.filter(slice -> !slice.isEmpty())
-					.map(input -> this.transformType(this.parseType(input)))
+					.filter((String slice) -> !slice.isEmpty())
+					.map((String input) -> this.transformType(this.parseType(input)))
 					.toList();
 		}
 
@@ -2093,7 +2108,7 @@ public class Main {
 		var modifiersList = Streams
 				.fromObjArray(modifiers.split(Pattern.quote(" ")))
 				.map(String::strip)
-				.filter(slice -> !slice.isEmpty())
+				.filter((String slice) -> !slice.isEmpty())
 				.toList();
 
 		var name = beforeContent.strip();
@@ -2101,7 +2116,7 @@ public class Main {
 		final var divisions = this.divide(inputContent, new EscapedFolder(this::foldStatement)).toList();
 		final var children = divisions
 				.iter()
-				.map(slice -> this.parseObjectMember(slice, name, finalTypeParameters))
+				.map((String slice) -> this.parseObjectMember(slice, name, finalTypeParameters))
 				.flatMap(Option::iter)
 				.toList();
 
@@ -2122,7 +2137,7 @@ public class Main {
 		if (object.annotations.contains("Actual")) return new Some<CStructMember>(new EmptyStructMember());
 
 		this.functions = object.createConversionFunctions(environment).iter().fold(this.functions, List::addLast);
-		final var within = environment.within(env -> {
+		final var within = environment.within((Environment env) -> {
 			environment = env.withObject(object);
 
 			final var types = object.children.iter().map(Main::extractType).flatMap(Option::iter).toList();
@@ -2134,7 +2149,7 @@ public class Main {
 
 			final var members = object.children
 					.iter()
-					.map(wrapper -> this.transformObjectMemberPrototype(object, wrapper))
+					.map((JObjectMember wrapper) -> this.transformObjectMemberPrototype(object, wrapper))
 					.flatMap(Option::iter)
 					.toList();
 
@@ -2144,7 +2159,11 @@ public class Main {
 		environment = within.left;
 		var members = within.right;
 
-		var fields = object.recordFields.iter().map(this::toCDeclaration).<CDefinable>map(value -> value).toList();
+		var fields = object.recordFields
+				.iter()
+				.map(this::transformDeclaration)
+				.<CDefinable>map((CDeclaration value) -> value)
+				.toList();
 		if (object.type().equals("interface"))
 			if (object.modifiersList().contains("sealed")) fields = this.handleSealedInterface(object, fields);
 			else fields = this.handleUnsealedInterface(object, members, fields);
@@ -2154,14 +2173,14 @@ public class Main {
 		}
 
 		if (object.type.equals("record")) {
-			final var recordFields = object.recordFields.iter().map(this::toCDeclaration).toList();
+			final var recordFields = object.recordFields.iter().map(this::transformDeclaration).toList();
 
 			final var structureType = this.createStructureType(object.name, object.typeParameters);
 			final var definition = new CDeclaration(object.typeParameters, structureType, "new_" + structureType.getName());
 
 			final var joinedAssignments = recordFields
 					.iter()
-					.map(field -> "_this->" + field.name + " = " + field.name)
+					.map((CDeclaration field) -> "_this->" + field.name + " = " + field.name)
 					.map(Main::generateStatement)
 					.collect(new Joiner());
 
@@ -2209,7 +2228,8 @@ public class Main {
 		final var jEnum = new CEnum(name + "Tag", variants);
 
 		final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList();
-		final var unionMembers = variants.iter().map(variant -> this.createUnionField(variant, typeArguments)).toList();
+		final var unionMembers =
+				variants.iter().map((String variant) -> this.createUnionField(variant, typeArguments)).toList();
 		final var union = new CUnion(typeParameters, name, unionMembers);
 
 		fields = fields
@@ -2240,7 +2260,7 @@ public class Main {
 			case JMethod methodPrototype -> new Some<CStructMember>(this.completeMethodProto(methodPrototype, object));
 			case Placeholder placeholder -> new Some<CStructMember>(placeholder);
 			case EmptyStructMember _ -> new None<CStructMember>();
-			case JField jField -> new Some<CStructMember>(new CField(this.toCDeclaration(jField.declaration)));
+			case JField jField -> new Some<CStructMember>(new CField(this.transformDeclaration(jField.declaration)));
 			default -> throw new IllegalStateException("Unexpected value: " + wrapper);
 		};
 	}
@@ -2249,10 +2269,11 @@ public class Main {
 		Option<String> maybeCompiled = new None<String>();
 		if (jFunctionProto.methodDeclaration() instanceof JDeclaration declaration &&
 				declaration.annotations.contains("Actual")) {
-			var cParameters = jFunctionProto.parameters().iter().map(this::toCDeclaration).toList();
+			var cParameters = jFunctionProto.parameters().iter().map(this::transformDeclaration).toList();
 			final var compiledParameters = cParameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
 
-			final var modifiedMethodDeclaration = this.toCDeclaration(declaration.mapName(name -> name + "_" + object.name));
+			final var modifiedMethodDeclaration =
+					this.transformDeclaration(declaration.mapName((String name) -> name + "_" + object.name));
 
 			this.functionDeclarations = this.functionDeclarations.addLast(
 					modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
@@ -2263,17 +2284,19 @@ public class Main {
 		if (jFunctionProto.content.startsWith("{") && jFunctionProto.content.endsWith("}")) {
 			final var inputContent = jFunctionProto.content.substring(1, jFunctionProto.content().length() - 1);
 
-			final var within = environment.within((env) -> {
+			final var within = environment.within((Environment env) -> {
 				var self = env.defineAllExpressions(jFunctionProto.parameters());
-				return self.within(value -> new Tuple<Environment, String>(value,
-																																	 this.compileMethodsSegments(inputContent, 1)));
+				return self.within((Environment value) -> new Tuple<Environment, String>(value,
+																																								 this.compileMethodsSegments(
+																																										 inputContent,
+																																										 1)));
 			});
 
 			environment = within.left;
 			maybeCompiled = new Some<String>(within.right);
 		}
 
-		var cParameters = jFunctionProto.parameters().iter().map(this::toCDeclaration).toList();
+		var cParameters = jFunctionProto.parameters().iter().map(this::transformDeclaration).toList();
 		if (jFunctionProto.methodDeclaration() instanceof JDeclaration)
 			cParameters = cParameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
@@ -2297,7 +2320,7 @@ public class Main {
 		return switch (jFunctionProto.methodDeclaration) {
 			case JConstructor _ -> new EmptyStructMember();
 			case JDeclaration member -> {
-				final var cDeclaration = this.toCDeclaration(member);
+				final var cDeclaration = this.transformDeclaration(member);
 				final var f1RDeclaration = new CFunctionDeclaration(cDeclaration.type, cDeclaration.name, parameterTypes);
 				yield new CField(f1RDeclaration);
 			}
@@ -2353,7 +2376,7 @@ public class Main {
 		final var parameters = this
 				.divide(parametersString, new ValueFolder())
 				.map(String::strip)
-				.filter(slice -> !slice.isEmpty())
+				.filter((String slice) -> !slice.isEmpty())
 				.toList()
 				.iter()
 				.map(this::parseDeclaration)
@@ -2366,12 +2389,12 @@ public class Main {
 	}
 
 	private List<CDefinable> retainFields(List<CStructMember> members) {
-		final var list = members.iter().map(member1 -> switch (member1) {
+		final var list = members.iter().map((CStructMember member1) -> switch (member1) {
 			case CField(var declaration) -> new Some<CDefinable>(declaration);
 			case CFunctionDeclaration _, EmptyStructMember _, Placeholder _ -> new None<CDefinable>();
 		}).flatMap(Option::iter).toList();
 
-		return list.iter().filter(member -> !(member instanceof CFunctionDeclaration)).toList();
+		return list.iter().filter((CDefinable member) -> !(member instanceof CFunctionDeclaration)).toList();
 	}
 
 	private Option<CDefinable> retainDefinables(CStructMember member) {
@@ -2384,7 +2407,7 @@ public class Main {
 
 	private List<String> splitValues(String input) {
 		final var segments = input.split(Pattern.quote(","));
-		final var list = Arrays.stream(segments).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+		final var list = Arrays.stream(segments).map(String::strip).filter((String slice) -> !slice.isEmpty()).toList();
 		return new JavaList<String>(list);
 	}
 
@@ -2409,7 +2432,8 @@ public class Main {
 
 			final var body = maybeContent.orElseGet(() -> {
 				final var type = this.transformType(declaration.type);
-				final var list = cParameters.subList(1, cParameters.size()).iter().map(parameter -> parameter.name).toList();
+				final var list =
+						cParameters.subList(1, cParameters.size()).iter().map((CDeclaration parameter) -> parameter.name).toList();
 				return this.createBodyForAbstractMethod(structureVariants, type, declaration.name, list, structName);
 			});
 
@@ -2433,7 +2457,7 @@ public class Main {
 
 			final var cases = variants
 					.iter()
-					.map(variant -> this.generateCase(variant, name, parameterNames, structName))
+					.map((String variant) -> this.generateCase(variant, name, parameterNames, structName))
 					.collect(new Joiner());
 
 			return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
@@ -2446,8 +2470,8 @@ public class Main {
 																								JMethodDeclaration methodDeclaration) {
 		return this
 				.convertToFunctionDeclarations(typeParameters, methodDeclaration)
-				.mapTypeParameters(typeParameters0 -> typeParameters0.addAllLast(typeParameters))
-				.mapName(name -> name + "_" + structName);
+				.mapTypeParameters((List<String> typeParameters0) -> typeParameters0.addAllLast(typeParameters))
+				.mapName((String name) -> name + "_" + structName);
 	}
 
 	private CDefinable convertToFunctionDeclarations(List<String> typeParameters, JMethodDeclaration methodDeclaration) {
@@ -2456,7 +2480,7 @@ public class Main {
 				final var type = this.toConstructorReturnType(constructor.type, typeParameters);
 				yield new CDeclaration(type, "new");
 			}
-			case JDeclaration declaration -> this.toCDeclaration(declaration);
+			case JDeclaration declaration -> this.transformDeclaration(declaration);
 			case Placeholder placeholder -> placeholder;
 		};
 	}
@@ -2470,7 +2494,7 @@ public class Main {
 	}
 
 	private String compileMethodsSegments(String inputContent, int indent) {
-		return this.compileStatements(inputContent, input -> this.compileMethodSegment(input, indent));
+		return this.compileStatements(inputContent, (String input) -> this.compileMethodSegment(input, indent));
 	}
 
 	private String generateCase(String variant, String name, List<String> parameterNames, String baseName) {
@@ -2513,15 +2537,15 @@ public class Main {
 
 	private Option<JObjectMember> parseEnumValues(String structName, String input) {
 		final var enumValues = this
-				.divide(input, (state, character) -> new ValueFolder().apply(state, character))
+				.divide(input, (State state, Character character) -> new ValueFolder().apply(state, character))
 				.map(String::strip)
-				.filter(slice -> !slice.isEmpty())
+				.filter((String slice) -> !slice.isEmpty())
 				.toList();
 
 		if (!enumValues.isEmpty()) {
-			var optionStream = enumValues.iter().map(enumValue -> this.compileEnumValue(structName, enumValue));
+			var optionStream = enumValues.iter().map((String enumValue) -> this.compileEnumValue(structName, enumValue));
 			final var areAnyInvalid =
-					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>));
+					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>((Option<CStructMember> option) -> option instanceof None<CStructMember>));
 
 			if (areAnyInvalid) return new None<JObjectMember>();
 		}
@@ -2597,7 +2621,7 @@ public class Main {
 				final var divisions = this
 						.divide(afterConditionStart, new EscapedFolder(new ConditionEndLocator()))
 						.map(String::strip)
-						.filter(slice -> !slice.isEmpty())
+						.filter((String slice) -> !slice.isEmpty())
 						.toList();
 
 				if (divisions.size() < 2) return new None<String>();
@@ -2645,7 +2669,7 @@ public class Main {
 
 		final var maybeDeclaration = this.parseDeclaration(input);
 		if (maybeDeclaration instanceof Some<JDeclaration>(var declaration))
-			return this.toCDeclaration(declaration).generate();
+			return this.transformDeclaration(declaration).generate();
 
 		if (stripped.startsWith("assert ")) return "";
 
@@ -2675,7 +2699,7 @@ public class Main {
 				final var newType = this.resolveType(source, local.type);
 				final var jDeclaration = local.withType(newType);
 				environment = environment.defineExpression(jDeclaration);
-				yield this.toCDeclaration(jDeclaration);
+				yield this.transformDeclaration(jDeclaration);
 			}
 
 			case JExpression jExpression -> this.transformExpression(jExpression);
@@ -2725,7 +2749,7 @@ public class Main {
 	private JType resolveIdentifier(String value) {
 		if (value.equals("this")) return environment
 				.resolveCurrent()
-				.<JType>map(thisType -> thisType)
+				.<JType>map((JObjectType thisType) -> thisType)
 				.orElseGet(() -> new Placeholder("Not within a struct"));
 
 		final var maybeFound = environment.resolveExpression(value).map(JDeclaration::type);
@@ -2767,8 +2791,8 @@ public class Main {
 	private JAssignable parseAssignable(String input) {
 		return this
 				.parseExpression(input)
-				.<JAssignable>map(value -> value)
-				.or(() -> this.parseDeclaration(input).map(value -> value))
+				.<JAssignable>map((JExpression value) -> value)
+				.or(() -> this.parseDeclaration(input).map((JDeclaration value) -> value))
 				.orElseGet(() -> new Placeholder(input));
 	}
 
@@ -2878,10 +2902,11 @@ public class Main {
 		final var maybeWithBraces = input.substring(index + 2).strip();
 
 		final var maybeParams = this.parseLambdaParams(beforeContent);
-		if (!(maybeParams instanceof Some<List<String>>(var params))) return new None<JExpression>();
+		if (!(maybeParams instanceof Some<List<JDeclaration>>(var params))) return new None<JExpression>();
+
 		var paramList = params
 				.iter()
-				.map(param -> new CDeclaration(new Placeholder("TODO: resolve type of lambda param"), param))
+				.map(this::transformDeclaration)
 				.toList()
 				.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
@@ -2900,14 +2925,18 @@ public class Main {
 		return new Some<JExpression>(new Identifier(generatedName));
 	}
 
-	private Option<List<String>> parseLambdaParams(String input) {
-		if (Identifier.isIdentifier(input)) return new Some<List<String>>(Lists.<String>empty().addLast(input));
-		else if (input.startsWith("(") && input.endsWith(")")) {
-			final var substring = input.substring(1, input.length() - 1);
-			final var list =
-					this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
-			return new Some<List<String>>(list);
-		} else return new None<List<String>>();
+	private Option<List<JDeclaration>> parseLambdaParams(String input) {
+		if (!input.startsWith("(") || !input.endsWith(")")) return new None<List<JDeclaration>>();
+
+		final var substring = input.substring(1, input.length() - 1);
+		final var paramList = this
+				.divide(substring, new ValueFolder())
+				.map(String::strip)
+				.filter((String slice) -> !slice.isEmpty())
+				.map(this::parseDeclaration)
+				.flatMap(Option::iter)
+				.toList();
+		return new Some<List<JDeclaration>>(paramList);
 	}
 
 	private String generateName() {
@@ -3064,8 +3093,8 @@ public class Main {
 	private List<String> collectAnnotations(String input) {
 		return Streams
 				.fromObjArray(input.split(Pattern.quote("\n")))
-				.filter(slice -> !slice.isEmpty())
-				.map(slice -> slice.substring(1))
+				.filter((String slice) -> !slice.isEmpty())
+				.map((String slice) -> slice.substring(1))
 				.map(String::strip)
 				.toList();
 	}
