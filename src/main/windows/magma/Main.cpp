@@ -424,6 +424,7 @@ struct PathTable {
 	Result<char*, IOError> (*readString)(void*);
 	Option<Path> (*getParent)(void*);
 	Option<IOError> (*createDirectories)(void*);
+	Path (*resolve)(void*, char*);
 };
 struct COperator {
 	CExpression left;
@@ -706,6 +707,7 @@ Option<IOError> writeString_Path(void* _ref, char* output);
 Result<char*, IOError> readString_Path(void* _ref);
 Option<Path> getParent_Path(void* _ref);
 Option<IOError> createDirectories_Path(void* _ref);
+Path resolve_Path(void* _ref, char* child);
 template <typename T>
 T apply_FR(void* _ref);
 template <typename R, typename T>
@@ -885,7 +887,7 @@ template <typename T>
 List<T> createInitial_ListCollector(void* _ref);
 template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t);
-Path get_Paths(char* first, /*String...*/ more);
+Path get_Paths(char* first);
 CDeclaration new_CDeclaration(CType type, char* name);
 CDefinable mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper);
 CDefinable mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
@@ -1219,6 +1221,10 @@ Option<Path> getParent_Path(void* _ref){
 Option<IOError> createDirectories_Path(void* _ref){
 	Path* _this = (Path*) _ref;
 	return _this->table.createDirectories(_this->data);
+}
+Path resolve_Path(void* _ref, char* child){
+	Path* _this = (Path*) _ref;
+	return _this->table.resolve(_this->data, child);
 }
 template <typename T>
 T apply_FR(void* _ref){
@@ -2129,6 +2135,29 @@ Folder toFolder_EscapedFolder(void* _ref){
 }
 State apply_EscapedFolder(void* _ref, State state, char next){
 	EscapedFolder* _this = (EscapedFolder*) _ref;
+	if (next == ''/'') {
+		/*Not a functional type: Placeholder[input=Cannot access member 'peek' in 'Identifier[value=State]', not an object.]*/ peek = peek_State(&(state));
+		if (???) {
+			/*Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]*/ withNext = append_State(&(state), next);
+			/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]*/ current = orElse_/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]*/(&(popAndAppendToOption_/*Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]*/(&(withNext))), withNext);
+			while (true) {
+				/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToTuple' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ tupleOption = popAndAppendToTuple_/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]*/(&(current));
+				if (???) {
+					current = pair.left;
+					if (pair.right == ''*'') {
+						/*Not a functional type: Placeholder[input=Cannot access member 'peek' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ peekAgain = peek_/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]*/(&(current));
+						if (???) {
+							current = orElse_/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(popAndAppendToOption_/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]*/(&(current))), current);
+							break;
+						}
+					}
+				}
+				else 
+					break;
+			}
+			return current;
+		}
+	}
 	if (next == ''\''') {
 		/*Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]*/ appended = append_State(&(state), next);
 		return orElse_/*Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToTuple' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(flatMap_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToTuple' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToTuple' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]*/(&(popAndAppendToTuple_/*Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]*/(&(appended))), lambda6)), ???)), appended);
@@ -2136,13 +2165,13 @@ State apply_EscapedFolder(void* _ref, State state, char next){
 	if (next == ''\"'') {
 		/*Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]*/ current = append_State(&(state), next);
 		while (true) {
-			/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToTuple' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]*/ maybeTuple = popAndAppendToTuple_/*Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]*/(&(current));
+			/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToTuple' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ maybeTuple = popAndAppendToTuple_/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]*/(&(current));
 			if (!(???)) 
 				break;
 			current = value.left;
 			/*Cannot access member 'right' in 'Placeholder[input=Undefined identifier: value]', not an object.*/ right = value.right;
 			if (right == ''\\'') 
-				current = orElse_/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]*/(&(popAndAppendToOption_/*Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]*/(&(current))), current);
+				current = orElse_/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(popAndAppendToOption_/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]]', not an object.]]', not an object.]*/(&(current))), current);
 			if (right == ''\"'') 
 				break;
 		}
@@ -3329,9 +3358,9 @@ CExpression transformInvocation_Main(void* _ref, JInvokable jInvokable){
 }
 Option<IOError> run_Main(void* _ref){
 	Main* _this = (Main*) _ref;
-	Path source = get_Paths(&(Paths), ".", "src", "main", "java", "magma", "Main.java");
-	Path target = get_Paths(&(Paths), ".", "src", "main", "windows", "magma", "Main.cpp");
-	/*Not a functional type: Placeholder[input=Cannot access member 'mapValue' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'readString' in 'Identifier[value=Path]', not an object.]]', not an object.]*/ input = mapValue_/*Not a functional type: Placeholder[input=Cannot access member 'readString' in 'Identifier[value=Path]', not an object.]*/(&(readString_Path(&(source))), ???);
+	/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ source = resolve_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(resolve_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]]', not an object.]*/(&(resolve_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]*/(&(resolve_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]*/(&(resolve_Path(&(get_Paths(&(Paths), ".")), "src")), "main")), "java")), "magma")), "Main.java");
+	/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ target = resolve_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(resolve_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]]', not an object.]*/(&(resolve_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]*/(&(resolve_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]*/(&(resolve_Path(&(get_Paths(&(Paths), ".")), "src")), "main")), "windows")), "magma")), "Main.cpp");
+	/*Not a functional type: Placeholder[input=Cannot access member 'mapValue' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'readString' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ input = mapValue_/*Not a functional type: Placeholder[input=Cannot access member 'readString' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(readString_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=Path]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(source))), ???);
 	return /*TODO: switch*/;
 }
 char* compile_Main(void* _ref, char* input){
@@ -3805,7 +3834,7 @@ Option<CDefinable> retainDefinables_Main(void* _ref, CStructMember member){
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@60addb54']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
+	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@573f2bb1']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ list = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]*/(&(stream_/*Undefined identifier: Arrays*/(&(Arrays), segments)), ???)), lambda41)));
 	return new_JavaList(list);
 }

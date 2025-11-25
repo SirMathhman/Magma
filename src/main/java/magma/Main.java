@@ -758,6 +758,31 @@ public class Main {
 	private record EscapedFolder(Folder folder) implements Folder {
 		@Override
 		public State apply(State state, Character next) {
+			if (next == '/') {
+				final var peek = state.peek();
+				if (peek instanceof Some<Character>(var afterNext) && afterNext == '*') {
+					final var withNext = state.append(next);
+					var current = withNext.popAndAppendToOption().orElse(withNext);
+
+					while (true) {
+						final var tupleOption = current.popAndAppendToTuple();
+						if (tupleOption instanceof Some<Tuple<State, Character>>(var pair)) {
+							current = pair.left;
+
+							if (pair.right == '*') {
+								final var peekAgain = current.peek();
+								if (peekAgain instanceof Some<Character>(var maybeEnd) && maybeEnd == '/') {
+									current = current.popAndAppendToOption().orElse(current);
+									break;
+								}
+							}
+						} else break;
+					}
+
+					return current;
+				}
+			}
+
 			if (next == '\'') {
 				final var appended = state.append(next);
 				return appended.popAndAppendToTuple().map(tuple -> {
