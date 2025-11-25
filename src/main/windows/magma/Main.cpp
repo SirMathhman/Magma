@@ -809,6 +809,7 @@ char* toBaseName_Identifier(void* _ref);
 List<char*> extractIdentifiers_Identifier(void* _ref);
 char* stringify_Identifier(void* _ref);
 char* getName_Identifier(void* _ref);
+int isLetter_Main(void* _ref, char c);
 char* wrap_Placeholder(void* _ref, char* input);
 char* generate_Placeholder(void* _ref);
 char* toBaseName_Placeholder(void* _ref);
@@ -959,6 +960,7 @@ CType transformPrimitiveType_Main(void* _ref, JPrimitiveType type);
 char* generateStatement_Main(void* _ref, char* content);
 char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters);
 Option<JObjectType> extractType_Main(void* _ref, JObjectMember jObjectMember);
+int isDigit_Main(void* _ref, char c);
 CDeclaration toCDeclaration_Main(void* _ref, JDeclaration declaration);
 CType transformType_Main(void* _ref, JType jType);
 Tuple<CExpression, List<CType>> transformCaller_Main(void* _ref, JCaller jCaller);
@@ -1855,7 +1857,7 @@ CExpression toCExpression_Identifier(void* _ref){
 }
 /*TODO:  resolve lambda return type*/ lambda5(void* _ref, /*TODO: resolve type of lambda param*/ i){
 	char c = charAt_String(&(stripped), i);
-	return c == ''_'' || isLetter_/*Undefined identifier: Character*/(&(Character), c) || (i != 0 && isDigit_/*Undefined identifier: Character*/(&(Character), c));
+	return c == ''_'' || isLetter(c) || (i != 0 && isDigit(c));
 }
 int isIdentifier_Identifier(void* _ref, char* input){
 	Identifier* _this = (Identifier*) _ref;
@@ -1889,6 +1891,10 @@ Identifier new_Identifier(char* value){
 	Identifier* _this = &_thisInstance;
 	_this->value = value;
 	return _thisInstance;
+}
+int isLetter_Main(void* _ref, char c){
+	Main* _this = (Main*) _ref;
+	return (c >= ''a' && c <= 'z') || (c >= 'A' && c <= 'Z'');
 }
 CType toCType_Placeholder(void* _ref){
 	Placeholder* _this = (Placeholder*) _ref;
@@ -3243,6 +3249,10 @@ char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters){
 Option<JObjectType> extractType_Main(void* _ref, JObjectMember jObjectMember){
 	Main* _this = (Main*) _ref;
 	return /*TODO: switch*/;
+}
+int isDigit_Main(void* _ref, char c){
+	Main* _this = (Main*) _ref;
+	return c >= ''0' && c <= '9'';
 }
 CDeclaration toCDeclaration_Main(void* _ref, JDeclaration declaration){
 	Main* _this = (Main*) _ref;

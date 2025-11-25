@@ -603,7 +603,7 @@ public class Main {
 
 			return IntStream.range(0, stripped.length()).allMatch(i -> {
 				final var c = stripped.charAt(i);
-				return c == '_' || Character.isLetter(c) || (i != 0 && Character.isDigit(c));
+				return c == '_' || isLetter(c) || (i != 0 && isDigit(c));
 			});
 		}
 
@@ -1529,7 +1529,6 @@ public class Main {
 	private record JInstanceOf() implements JExpression {}
 
 	private record JQuantity(JExpression instance) implements JExpression {}
-
 	private static Environment environment = new Environment();
 	private final JType StringType;
 	private List<String> functionDeclarations;
@@ -1539,7 +1538,6 @@ public class Main {
 	private List<CFunction> functions;
 	private int counter;
 	private List<CEnum> enums;
-
 	public Main() {
 		this.structuresOrUnions = Lists.empty();
 
@@ -1566,6 +1564,10 @@ public class Main {
 
 			return new JObjectType("String", Lists.empty(), methods);
 		});
+	}
+
+	private static boolean isLetter(char c) {
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 	}
 
 	private static String generateTemplateString(List<String> typeParameters) {
@@ -1613,6 +1615,10 @@ public class Main {
 			case EmptyStructMember _, JField _, JMethod _, Placeholder _ -> new None<JObjectType>();
 			default -> throw new IllegalStateException("Unexpected value: " + jObjectMember);
 		};
+	}
+
+	private static boolean isDigit(char c) {
+		return c >= '0' && c <= '9';
 	}
 
 	public CDeclaration toCDeclaration(JDeclaration declaration) {
@@ -2793,7 +2799,7 @@ public class Main {
 
 		final var generatedName = this.generateName();
 		final var cFunction =
-				new CFunction(new CFunctionHeader(new CDeclaration(new Placeholder("TODO:  resolve lambda return type"),
+				new CFunction(new CFunctionHeader(new CDeclaration(new Placeholder("TODO: resolve lambda return type"),
 																													 generatedName), paramList), output);
 
 		this.functions = this.functions.addLast(cFunction);
