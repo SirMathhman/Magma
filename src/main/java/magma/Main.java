@@ -2918,14 +2918,24 @@ public class Main {
 			output = this.compileMethodsSegments(content, 1);
 			returnType = new Placeholder("???");
 		} else {
-			final var jExpressionOption = this.parseExpression(maybeWithBraces);
+			final var within = environment.within((Environment env) -> {
+				final var defined = env.defineAllExpressions(params);
+				final var jExpressionOption = Main.this.parseExpression(maybeWithBraces);
 
-			output = Main.generateStatement("return " + jExpressionOption
-					.map(this::transformExpression)
-					.map(CExpression::generate)
-					.orElseGet(() -> Placeholder.wrap(maybeWithBraces)));
+				var output1 = Main.generateStatement("return " + jExpressionOption
+						.map(Main.this::transformExpression)
+						.map(CExpression::generate)
+						.orElseGet(() -> Placeholder.wrap(maybeWithBraces)));
 
-			returnType = jExpressionOption.map(this::resolveExpression).orElse(new Placeholder("???"));
+				var returnType1 = jExpressionOption.map(Main.this::resolveExpression).orElse(new Placeholder("???"));
+				return new Tuple<Environment, Tuple<JType, String>>(defined, new Tuple<JType, String>(returnType1, output1));
+			});
+
+			environment = within.left;
+
+			final var right = within.right;
+			returnType = right.left;
+			output = right.right;
 		}
 
 		final var generatedName = this.generateName();
