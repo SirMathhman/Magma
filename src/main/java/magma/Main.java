@@ -707,14 +707,6 @@ public class Main {
 															mapper.apply(this.name));
 		}
 
-		public CDeclaration toCDeclaration() {
-			return new CDeclaration(this.typeParameters, transformType(this.type), this.name);
-		}
-
-		private CAssignable toCAssignable() {
-			return this.toCDeclaration();
-		}
-
 		public JDeclaration withType(JType type) {
 			return new JDeclaration(this.annotations, this.typeParameters, this.maybeBeforeType, type, this.name);
 		}
@@ -1113,9 +1105,6 @@ public class Main {
 	}
 
 	private record JArrayType(JType type) implements JType {
-		public CType toCType() {
-			return new CPointerType(transformType(this.type));
-		}
 
 		@Override
 		public String stringify() {
@@ -1124,10 +1113,6 @@ public class Main {
 	}
 
 	private record JGenericType(String base, List<JType> typeArguments) implements JType {
-		public CType toCType() {
-			final var newTypeArguments = this.typeArguments.iter().map(Main::transformType).toList();
-			return new CTemplateType(this.base, newTypeArguments);
-		}
 
 		@Override
 		public String stringify() {
@@ -1376,9 +1361,6 @@ public class Main {
 	private record JObject(String type, List<String> annotations, List<String> modifiersList, String name,
 												 List<String> typeParameters, List<JDeclaration> recordFields, List<CType> implementees,
 												 List<String> variants, List<JObjectMember> children) implements JObjectMember {
-		private List<CDefinable> collectCFields() {
-			return this.recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList();
-		}
 
 		private List<CFunction> createConversionFunctions(Environment environment1) {
 			return this
@@ -1548,22 +1530,8 @@ public class Main {
 
 	private record JQuantity(JExpression instance) implements JExpression {}
 
-	private static final JType StringType = JRecursiveType.create(StringType -> {
-		// We don't need parameter types for now, we don't validate them yet
-		final var methods = Lists
-				.<JDeclaration>empty()
-				.addLast(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)))
-				.addLast(new JDeclaration("indexOf", new JFunctionalType(JPrimitiveType.Int)))
-				.addLast(new JDeclaration("lastIndexOf", new JFunctionalType(JPrimitiveType.Int)))
-				.addLast(new JDeclaration("length", new JFunctionalType(JPrimitiveType.Int)))
-				.addLast(new JDeclaration("strip", new JFunctionalType(StringType)))
-				.addLast(new JDeclaration("substring", new JFunctionalType(StringType)))
-				.addLast(new JDeclaration("replace", new JFunctionalType(StringType)));
-
-		return new JObjectType("String", Lists.empty(), methods);
-	});
-
 	private static Environment environment = new Environment();
+	private final JType StringType;
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structureForwardDeclarations;
@@ -1583,6 +1551,21 @@ public class Main {
 
 		this.globals = Lists.empty();
 		this.counter = 0;
+
+		this.StringType = JRecursiveType.create(StringType -> {
+			// We don't need parameter types for now, we don't validate them yet
+			final var methods = Lists
+					.<JDeclaration>empty()
+					.addLast(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)))
+					.addLast(new JDeclaration("indexOf", new JFunctionalType(JPrimitiveType.Int)))
+					.addLast(new JDeclaration("lastIndexOf", new JFunctionalType(JPrimitiveType.Int)))
+					.addLast(new JDeclaration("length", new JFunctionalType(JPrimitiveType.Int)))
+					.addLast(new JDeclaration("strip", new JFunctionalType(StringType)))
+					.addLast(new JDeclaration("substring", new JFunctionalType(StringType)))
+					.addLast(new JDeclaration("replace", new JFunctionalType(StringType)));
+
+			return new JObjectType("String", Lists.empty(), methods);
+		});
 	}
 
 	private static String generateTemplateString(List<String> typeParameters) {
@@ -1601,23 +1584,6 @@ public class Main {
 
 	private static String generateIndent(int depth) {
 		return System.lineSeparator() + "\t".repeat(depth);
-	}
-
-	private static CType transformType(JType jType) {
-		return switch (jType) {
-			case Identifier identifier -> identifier;
-			case JArrayType jArrayType -> jArrayType.toCType();
-			case JGenericType jGenericType -> jGenericType.toCType();
-			case JPrimitiveType jPrimitiveType -> transformPrimitiveType(jPrimitiveType);
-			case Placeholder placeholder -> placeholder;
-			case JFunctionalType jFunctionalType -> new Placeholder(jFunctionalType.toString());
-			case JObjectType jStructureType -> new Identifier(jStructureType.name);
-			case JRecursiveType jRecursiveType -> {
-				if (jRecursiveType == StringType) yield new CPointerType(CPrimitiveType.Char);
-				else yield new Placeholder("Unknown built-in type");
-			}
-			default -> throw new IllegalStateException("Unexpected value: " + jType);
-		};
 	}
 
 	private static CType transformPrimitiveType(JPrimitiveType type) {
@@ -1649,6 +1615,30 @@ public class Main {
 		};
 	}
 
+	public CDeclaration toCDeclaration(JDeclaration declaration) {
+		return new CDeclaration(declaration.typeParameters, this.transformType(declaration.type), declaration.name);
+	}
+
+	private CType transformType(JType jType) {
+		return switch (jType) {
+			case Identifier identifier -> identifier;
+			case JArrayType jArrayType -> new CPointerType(this.transformType(jArrayType.type));
+			case JGenericType jGenericType -> {
+				final var newTypeArguments = jGenericType.typeArguments.iter().map(this::transformType).toList();
+				yield new CTemplateType(jGenericType.base, newTypeArguments);
+			}
+			case JPrimitiveType jPrimitiveType -> transformPrimitiveType(jPrimitiveType);
+			case Placeholder placeholder -> placeholder;
+			case JFunctionalType jFunctionalType -> new Placeholder(jFunctionalType.toString());
+			case JObjectType jStructureType -> new Identifier(jStructureType.name);
+			case JRecursiveType jRecursiveType -> {
+				if (jRecursiveType == this.StringType) yield new CPointerType(CPrimitiveType.Char);
+				else yield new Placeholder("Unknown built-in type");
+			}
+			default -> throw new IllegalStateException("Unexpected value: " + jType);
+		};
+	}
+
 	private Tuple<CExpression, List<CType>> transformCaller(JCaller jCaller) {
 		return switch (jCaller) {
 			case JConstruction jConstruction -> this.destroyConstruction(jConstruction);
@@ -1659,7 +1649,7 @@ public class Main {
 	}
 
 	private Tuple<CExpression, List<CType>> destroyConstruction(JConstruction jConstruction) {
-		final var cType = transformType(jConstruction.jType);
+		final var cType = this.transformType(jConstruction.jType);
 		if (cType instanceof Identifier(var value))
 			return new Tuple<CExpression, List<CType>>(new Identifier("new_" + value), Lists.empty());
 
@@ -1972,7 +1962,7 @@ public class Main {
 					.divide(implementeesString, new ValueFolder())
 					.map(String::strip)
 					.filter(slice -> !slice.isEmpty())
-					.map(input -> transformType(this.parseType(input)))
+					.map(input -> this.transformType(this.parseType(input)))
 					.toList();
 		}
 
@@ -2057,7 +2047,7 @@ public class Main {
 		environment = within.left;
 		var members = within.right;
 
-		var fields = object.collectCFields();
+		var fields = object.recordFields.iter().map(this::toCDeclaration).<CDefinable>map(value -> value).toList();
 		if (object.type().equals("interface"))
 			if (object.modifiersList().contains("sealed")) fields = this.handleSealedInterface(object, fields);
 			else fields = this.handleUnsealedInterface(object, members, fields);
@@ -2067,7 +2057,7 @@ public class Main {
 		}
 
 		if (object.type.equals("record")) {
-			final var recordFields = object.recordFields.iter().map(JDeclaration::toCDeclaration).toList();
+			final var recordFields = object.recordFields.iter().map(this::toCDeclaration).toList();
 
 			final var structureType = this.createStructureType(object.name, object.typeParameters);
 			final var definition = new CDeclaration(object.typeParameters, structureType, "new_" + structureType.getName());
@@ -2153,7 +2143,7 @@ public class Main {
 			case JMethod methodPrototype -> new Some<CStructMember>(this.completeMethodProto(methodPrototype, object));
 			case Placeholder placeholder -> new Some<CStructMember>(placeholder);
 			case EmptyStructMember _ -> new None<CStructMember>();
-			case JField jField -> new Some<CStructMember>(new CField(jField.declaration.toCDeclaration()));
+			case JField jField -> new Some<CStructMember>(new CField(this.toCDeclaration(jField.declaration)));
 			default -> throw new IllegalStateException("Unexpected value: " + wrapper);
 		};
 	}
@@ -2162,10 +2152,10 @@ public class Main {
 		Option<String> maybeCompiled = new None<String>();
 		if (jFunctionProto.methodDeclaration() instanceof JDeclaration declaration &&
 				declaration.annotations.contains("Actual")) {
-			var cParameters = jFunctionProto.parameters().iter().map(JDeclaration::toCDeclaration).toList();
+			var cParameters = jFunctionProto.parameters().iter().map(this::toCDeclaration).toList();
 			final var compiledParameters = cParameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
 
-			final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + object.name).toCDeclaration();
+			final var modifiedMethodDeclaration = this.toCDeclaration(declaration.mapName(name -> name + "_" + object.name));
 
 			this.functionDeclarations = this.functionDeclarations.addLast(
 					modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
@@ -2186,7 +2176,7 @@ public class Main {
 			maybeCompiled = new Some<String>(within.right);
 		}
 
-		var cParameters = jFunctionProto.parameters().iter().map(JDeclaration::toCDeclaration).toList();
+		var cParameters = jFunctionProto.parameters().iter().map(this::toCDeclaration).toList();
 		if (jFunctionProto.methodDeclaration() instanceof JDeclaration)
 			cParameters = cParameters.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
@@ -2210,7 +2200,7 @@ public class Main {
 		return switch (jFunctionProto.methodDeclaration) {
 			case JConstructor _ -> new EmptyStructMember();
 			case JDeclaration member -> {
-				final var cDeclaration = member.toCDeclaration();
+				final var cDeclaration = this.toCDeclaration(member);
 				final var f1RDeclaration = new CFunctionDeclaration(cDeclaration.type, cDeclaration.name, parameterTypes);
 				yield new CField(f1RDeclaration);
 			}
@@ -2321,7 +2311,7 @@ public class Main {
 					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 
 			final var body = maybeContent.orElseGet(() -> {
-				final var type = transformType(declaration.type);
+				final var type = this.transformType(declaration.type);
 				final var list = cParameters.subList(1, cParameters.size()).iter().map(parameter -> parameter.name).toList();
 				return this.createBodyForAbstractMethod(structureVariants, type, declaration.name, list, structName);
 			});
@@ -2369,7 +2359,7 @@ public class Main {
 				final var type = this.toConstructorReturnType(constructor.type, typeParameters);
 				yield new CDeclaration(type, "new");
 			}
-			case JDeclaration declaration -> declaration.toCDeclaration();
+			case JDeclaration declaration -> this.toCDeclaration(declaration);
 			case Placeholder placeholder -> placeholder;
 		};
 	}
@@ -2557,7 +2547,8 @@ public class Main {
 		if (instance0 instanceof Some<String>(var x)) return x;
 
 		final var maybeDeclaration = this.parseDeclaration(input);
-		if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) return declaration.toCDeclaration().generate();
+		if (maybeDeclaration instanceof Some<JDeclaration>(var declaration))
+			return this.toCDeclaration(declaration).generate();
 
 		if (stripped.startsWith("assert ")) return "";
 
@@ -2587,7 +2578,7 @@ public class Main {
 				final var newType = this.resolveType(source, local.type);
 				final var jDeclaration = local.withType(newType);
 				environment = environment.defineExpression(jDeclaration);
-				yield jDeclaration.toCAssignable();
+				yield this.toCDeclaration(jDeclaration);
 			}
 
 			case JExpression jExpression -> this.transformExpression(jExpression);
@@ -2628,7 +2619,7 @@ public class Main {
 			case Placeholder placeholder -> placeholder;
 			case Char _ -> JPrimitiveType.Char;
 			case JOperator jOperator -> jOperator.operator.getType();
-			case StringNode _ -> StringType;
+			case StringNode _ -> this.StringType;
 			case JQuantity quantity -> this.resolveExpression(quantity.instance);
 			default -> throw new IllegalStateException("Unexpected value: " + source);
 		};
@@ -3004,7 +2995,7 @@ public class Main {
 				return JPrimitiveType.Void;
 			}
 			case "String" -> {
-				return StringType;
+				return this.StringType;
 			}
 			case "Character" -> {
 				return JPrimitiveType.Char;

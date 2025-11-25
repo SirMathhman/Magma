@@ -650,6 +650,7 @@ struct CStructMember {
 	CStructMemberData data;
 };
 struct Main {
+	JType StringType;
 	List<char*> functionDeclarations;
 	List<char*> globals;
 	List<char*> structureForwardDeclarations;
@@ -818,8 +819,6 @@ char* stringify_Placeholder(void* _ref);
 JDeclaration new_JDeclaration(char* name, JType type);
 char* toString_JDeclaration(void* _ref);
 JDeclaration mapName_JDeclaration(void* _ref, F1R<char*, char*> mapper);
-CDeclaration toCDeclaration_JDeclaration(void* _ref);
-CAssignable toCAssignable_JDeclaration(void* _ref);
 JDeclaration withType_JDeclaration(void* _ref, JType type);
 char* generate_CFunctionDeclaration(void* _ref);
 List<char*> extractIdentifiers_CFunctionDeclaration(void* _ref);
@@ -889,9 +888,7 @@ CDefinable mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper);
 CDefinable mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
 char* generate_CDeclaration(void* _ref);
 List<char*> extractIdentifiers_CDeclaration(void* _ref);
-CType toCType_JArrayType(void* _ref);
 char* stringify_JArrayType(void* _ref);
-CType toCType_JGenericType(void* _ref);
 char* stringify_JGenericType(void* _ref);
 char* generate_CPointerAccess(void* _ref);
 char* generate_CFieldAccess(void* _ref);
@@ -933,7 +930,6 @@ char* generate_CEnum(void* _ref);
 char* findName_CUnion(void* _ref);
 char* generate_CUnion(void* _ref);
 List<char*> findDependencies_CUnion(void* _ref);
-List<CDefinable> collectCFields_JObject(void* _ref);
 List<CFunction> createConversionFunctions_JObject(void* _ref, Environment environment1);
 CFunction createConversionType_JObject(void* _ref, CType implementee, Environment environment);
 JObjectType toType_JObject(void* _ref);
@@ -953,19 +949,18 @@ char* generate_CReference(void* _ref);
 char* generate_Char(void* _ref);
 char* generate_COperator(void* _ref);
 char* generate_StringNode(void* _ref);
-/*private static final JType StringType = JRecursiveType.create*/(/*-> {
-		// We don't need parameter types for*/ now);
 new Environment_Main(void* _ref);
 Main new_Main();
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);
 void main_Main(void* _ref, char** args);
 char* generateStatement_Main(void* _ref, int depth, char* content);
 char* generateIndent_Main(void* _ref, int depth);
-CType transformType_Main(void* _ref, JType jType);
 CType transformPrimitiveType_Main(void* _ref, JPrimitiveType type);
 char* generateStatement_Main(void* _ref, char* content);
 char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters);
 Option<JObjectType> extractType_Main(void* _ref, JObjectMember jObjectMember);
+CDeclaration toCDeclaration_Main(void* _ref, JDeclaration declaration);
+CType transformType_Main(void* _ref, JType jType);
 Tuple<CExpression, List<CType>> transformCaller_Main(void* _ref, JCaller jCaller);
 Tuple<CExpression, List<CType>> destroyConstruction_Main(void* _ref, JConstruction jConstruction);
 CExpression transformExpression_Main(void* _ref, JExpression expression);
@@ -2027,14 +2022,6 @@ JDeclaration mapName_JDeclaration(void* _ref, F1R<char*, char*> mapper){
 	JDeclaration* _this = (JDeclaration*) _ref;
 	return new_JDeclaration(_this->annotations, _this->typeParameters, _this->maybeBeforeType, _this->type, apply_F1R(&(mapper), _this->name));
 }
-CDeclaration toCDeclaration_JDeclaration(void* _ref){
-	JDeclaration* _this = (JDeclaration*) _ref;
-	return new_CDeclaration(_this->typeParameters, transformType(_this->type), _this->name);
-}
-CAssignable toCAssignable_JDeclaration(void* _ref){
-	JDeclaration* _this = (JDeclaration*) _ref;
-	return toCDeclaration_JDeclaration(&((*_this)));
-}
 JDeclaration withType_JDeclaration(void* _ref, JType type){
 	JDeclaration* _this = (JDeclaration*) _ref;
 	return new_JDeclaration(_this->annotations, _this->typeParameters, _this->maybeBeforeType, type, _this->name);
@@ -2500,10 +2487,6 @@ JType toJType_JArrayType(void* _ref){
 	JArrayType* _this = (JArrayType*) _ref;
 	return _impl;
 }
-CType toCType_JArrayType(void* _ref){
-	JArrayType* _this = (JArrayType*) _ref;
-	return new_CPointerType(transformType(_this->type));
-}
 char* stringify_JArrayType(void* _ref){
 	JArrayType* _this = (JArrayType*) _ref;
 	return stringify_JType(&(_this->type)) + "_array";
@@ -2517,11 +2500,6 @@ JArrayType new_JArrayType(JType type){
 JType toJType_JGenericType(void* _ref){
 	JGenericType* _this = (JGenericType*) _ref;
 	return _impl;
-}
-CType toCType_JGenericType(void* _ref){
-	JGenericType* _this = (JGenericType*) _ref;
-	List newTypeArguments = toList_Iter(&(map_Iter(&(iter_List(&(_this->typeArguments))), ???)));
-	return new_CTemplateType(_this->base, newTypeArguments);
 }
 /*TODO:  resolve lambda return type*/ lambda8(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return "_" + slice;
@@ -2893,10 +2871,6 @@ JObjectMember toJObjectMember_JObject(void* _ref){
 	JObject* _this = (JObject*) _ref;
 	return _impl;
 }
-List<CDefinable> collectCFields_JObject(void* _ref){
-	JObject* _this = (JObject*) _ref;
-	return /*this.recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList()*/;
-}
 /*TODO:  resolve lambda return type*/ lambda23(void* _ref, /*TODO: resolve type of lambda param*/ implementee){
 	return createConversionType_JObject(&((*_this)), implementee, environment1);
 }
@@ -3205,12 +3179,13 @@ JQuantity new_JQuantity(JExpression instance){
 	_this->instance = instance;
 	return _thisInstance;
 }
-/*private static final JType StringType = JRecursiveType.create*/(/*-> {
-		// We don't need parameter types for*/ now){?
-}
 new Environment_Main(void* _ref){
 	Main* _this = (Main*) _ref;
 	return _this->table.Environment(_this->data);
+}
+/*TODO:  resolve lambda return type*/ lambda24(void* _ref, /*TODO: resolve type of lambda param*/ StringType){
+	return /*{
+			// We don't need parameter types for now*/;
 }
 Main new_Main(){
 	Main _thisInstance;
@@ -3222,16 +3197,17 @@ Main new_Main(){
 	_this->functions = empty_Lists(&(Lists));
 	_this->globals = empty_Lists(&(Lists));
 	_this->counter = 0;
+	_this->StringType = create_JRecursiveType(&(JRecursiveType), lambda24);
 	return _thisInstance;
 }
-/*TODO:  resolve lambda return type*/ lambda24(void* _ref, /*TODO: resolve type of lambda param*/ typeParam){
+/*TODO:  resolve lambda return type*/ lambda25(void* _ref, /*TODO: resolve type of lambda param*/ typeParam){
 	return "typename " + typeParam;
 }
 char* generateTemplateString_Main(void* _ref, List<char*> typeParameters){
 	Main* _this = (Main*) _ref;
 	if (isEmpty_List(&(typeParameters))) 
 		return "";
-	C typeNames = collect_Iter(&(map_Iter(&(iter_List(&(typeParameters))), lambda24)), new_Joiner(", "));
+	C typeNames = collect_Iter(&(map_Iter(&(iter_List(&(typeParameters))), lambda25)), new_Joiner(", "));
 	return "template <" + typeNames + ">" + lineSeparator_/*Undefined identifier: System*/(&(System));
 }
 void main_Main(void* _ref, char** args){
@@ -3246,10 +3222,6 @@ char* generateStatement_Main(void* _ref, int depth, char* content){
 char* generateIndent_Main(void* _ref, int depth){
 	Main* _this = (Main*) _ref;
 	return lineSeparator_/*Undefined identifier: System*/(&(System)) + repeat_String(&("\t"), depth);
-}
-CType transformType_Main(void* _ref, JType jType){
-	Main* _this = (Main*) _ref;
-	return /*TODO: switch*/;
 }
 CType transformPrimitiveType_Main(void* _ref, JPrimitiveType type){
 	Main* _this = (Main*) _ref;
@@ -3272,13 +3244,21 @@ Option<JObjectType> extractType_Main(void* _ref, JObjectMember jObjectMember){
 	Main* _this = (Main*) _ref;
 	return /*TODO: switch*/;
 }
+CDeclaration toCDeclaration_Main(void* _ref, JDeclaration declaration){
+	Main* _this = (Main*) _ref;
+	return new_CDeclaration(declaration.typeParameters, transformType_Main(&((*_this)), declaration.type), declaration.name);
+}
+CType transformType_Main(void* _ref, JType jType){
+	Main* _this = (Main*) _ref;
+	return /*TODO: switch*/;
+}
 Tuple<CExpression, List<CType>> transformCaller_Main(void* _ref, JCaller jCaller){
 	Main* _this = (Main*) _ref;
 	return /*TODO: switch*/;
 }
 Tuple<CExpression, List<CType>> destroyConstruction_Main(void* _ref, JConstruction jConstruction){
 	Main* _this = (Main*) _ref;
-	CType cType = transformType(jConstruction.jType);
+	CType cType = transformType_Main(&((*_this)), jConstruction.jType);
 	if (???) 
 		return new_Tuple(new_Identifier("new_" + value), empty_Lists(&(Lists)));
 	if (???) 
@@ -3329,23 +3309,23 @@ char* compile_Main(void* _ref, char* input){
 	C joinedEnums = collect_Iter(&(map_Iter(&(iter_List(&(_this->enums))), ???)), new_Joiner());
 	return "#include \"intrinsics.h\"" + lineSeparator_/*Undefined identifier: System*/(&(System)) + joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedFunctionDeclarations + joinedGlobals + joinedFunctions + all;
 }
-/*TODO:  resolve lambda return type*/ lambda25(void* _ref, /*TODO: resolve type of lambda param*/ value){
+/*TODO:  resolve lambda return type*/ lambda26(void* _ref, /*TODO: resolve type of lambda param*/ value){
 	List withoutDuplicates = removeDuplicates_Main(&((*_this)), findDependencies_/*Undefined identifier: value*/(&(value)));
 	return new_Tuple(findName_/*Undefined identifier: value*/(&(value)), withoutDuplicates);
 }
-/*TODO:  resolve lambda return type*/ lambda26(void* _ref, /*TODO: resolve type of lambda param*/ entry){
+/*TODO:  resolve lambda return type*/ lambda27(void* _ref, /*TODO: resolve type of lambda param*/ entry){
 	return isEmpty_/*Not a functional type: Placeholder[input=Cannot access member 'getValue' in 'Placeholder[input=Undefined identifier: entry]', not an object.]*/(&(getValue_/*Undefined identifier: entry*/(&(entry))));
 }
-/*TODO:  resolve lambda return type*/ lambda27(void* _ref, /*TODO: resolve type of lambda param*/ rootSegment){
+/*TODO:  resolve lambda return type*/ lambda28(void* _ref, /*TODO: resolve type of lambda param*/ rootSegment){
 	return new_Tuple(findName_/*Undefined identifier: rootSegment*/(&(rootSegment)), rootSegment);
 }
-/*TODO:  resolve lambda return type*/ lambda28(void* _ref, /*TODO: resolve type of lambda param*/ element){
+/*TODO:  resolve lambda return type*/ lambda29(void* _ref, /*TODO: resolve type of lambda param*/ element){
 	/*Not a functional type: Placeholder[input=Cannot access member 'get' in 'Identifier[value=C]', not an object.]*/ cStructureOrUnion = get_C(&(mapping), element);
 	/*toReturn[0] = toReturn[0].addLast(cStructureOrUnion)*/;
 }
 List<CStructureOrUnion> createTopologicallySortedList_Main(void* _ref){
 	Main* _this = (Main*) _ref;
-	C dependencyMap = collect_Iter(&(map_Iter(&(iter_List(&(_this->structuresOrUnions))), lambda25)), new_MapCollector());
+	C dependencyMap = collect_Iter(&(map_Iter(&(iter_List(&(_this->structuresOrUnions))), lambda26)), new_MapCollector());
 	/*for (var entry : dependencyMap.entrySet()) {
 			var newValues = entry.getValue().iter().filter(dependencyMap::containsKey).toList();
 			final var oldKey = entry.getKey();
@@ -3367,7 +3347,7 @@ List<CStructureOrUnion> createTopologicallySortedList_Main(void* _ref){
 		}*/
 	/*var dependencyOrder = Lists.<String>empty()*/;
 	while (isEmpty_bool(&(!dependencyMap))) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'entrySet' in 'Identifier[value=C]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ dependencyMapKeysToRemove = toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'entrySet' in 'Identifier[value=C]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'entrySet' in 'Identifier[value=C]', not an object.]]', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'entrySet' in 'Identifier[value=C]', not an object.]]', not an object.]*/(&(stream_/*Not a functional type: Placeholder[input=Cannot access member 'entrySet' in 'Identifier[value=C]', not an object.]*/(&(entrySet_C(&(dependencyMap))))), lambda26)), ???)));
+		/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'entrySet' in 'Identifier[value=C]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ dependencyMapKeysToRemove = toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'entrySet' in 'Identifier[value=C]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'entrySet' in 'Identifier[value=C]', not an object.]]', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'entrySet' in 'Identifier[value=C]', not an object.]]', not an object.]*/(&(stream_/*Not a functional type: Placeholder[input=Cannot access member 'entrySet' in 'Identifier[value=C]', not an object.]*/(&(entrySet_C(&(dependencyMap))))), lambda27)), ???)));
 		/*Not a functional type: Placeholder[input=Cannot access member 'size' in 'Identifier[value=C]', not an object.]*/ oldLength = size_C(&(dependencyMap));
 	/*for (var dependencyMapKeyToRemove : dependencyMapKeysToRemove) {
 				dependencyMap.remove(dependencyMapKeyToRemove);
@@ -3378,9 +3358,9 @@ List<CStructureOrUnion> createTopologicallySortedList_Main(void* _ref){
 		/*Not a functional type: Placeholder[input=Cannot access member 'size' in 'Identifier[value=C]', not an object.]*/ newLength = size_C(&(dependencyMap));
 		/*assert oldLength !*/ = newLength;
 	}
-	C mapping = collect_Iter(&(map_Iter(&(iter_List(&(_this->structuresOrUnions))), lambda27)), new_MapCollector());
+	C mapping = collect_Iter(&(map_Iter(&(iter_List(&(_this->structuresOrUnions))), lambda28)), new_MapCollector());
 	/*final List<CStructureOrUnion>[] toReturn = new List[]{Lists.<CStructureOrUnion>empty()}*/;
-	forEach_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: dependencyOrder]', not an object.]*/(&(iter_/*Undefined identifier: dependencyOrder*/(&(dependencyOrder))), lambda28);
+	forEach_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: dependencyOrder]', not an object.]*/(&(iter_/*Undefined identifier: dependencyOrder*/(&(dependencyOrder))), lambda29);
 	return /*toReturn[0]*/;
 }
 void removeKeyFromValues_Main(void* _ref, Map<char*, List<char*>> dependencyMap, char* dependencyMapKeyToRemove){
@@ -3393,14 +3373,14 @@ void removeKeyFromValues_Main(void* _ref, Map<char*, List<char*>> dependencyMap,
 			}
 		}*/
 }
-/*TODO:  resolve lambda return type*/ lambda29(void* _ref, /*TODO: resolve type of lambda param*/ copy, /*TODO: resolve type of lambda param*/ element){
+/*TODO:  resolve lambda return type*/ lambda30(void* _ref, /*TODO: resolve type of lambda param*/ copy, /*TODO: resolve type of lambda param*/ element){
 	if (contains_/*Undefined identifier: copy*/(&(copy), element)) 
 		return copy;
 	return addLast_/*Undefined identifier: copy*/(&(copy), element);
 }
 List<char*> removeDuplicates_Main(void* _ref, List<char*> list){
 	Main* _this = (Main*) _ref;
-	return fold_Iter(&(iter_List(&(list))), empty_Lists(&(Lists)), lambda29);
+	return fold_Iter(&(iter_List(&(list))), empty_Lists(&(Lists)), lambda30);
 }
 char* joinStrings_Main(void* _ref, List<char*> structures){
 	Main* _this = (Main*) _ref;
@@ -3463,7 +3443,7 @@ State foldStatement_Main(void* _ref, State current, char next){
 		return exit_/*Not a functional type: Placeholder[input=Cannot access member 'append' in 'Identifier[value=State]', not an object.]*/(&(appended));
 	return appended;
 }
-/*TODO:  resolve lambda return type*/ lambda30(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda31(void* _ref){
 	return wrap_Placeholder(&(Placeholder), stripped);
 }
 char* compileRootSegment_Main(void* _ref, char* input){
@@ -3473,18 +3453,18 @@ char* compileRootSegment_Main(void* _ref, char* input){
 		return "";
 	if (startsWith_String(&(stripped), "package ") || startsWith_String(&(stripped), "import ")) 
 		return "";
-	return orElseGet_Option(&(map_Option(&(flatMap_Option(&(parseObject_Main(&((*_this)), "class", stripped)), ???)), ???)), lambda30);
+	return orElseGet_Option(&(map_Option(&(flatMap_Option(&(parseObject_Main(&((*_this)), "class", stripped)), ???)), ???)), lambda31);
 }
-/*TODO:  resolve lambda return type*/ lambda31(void* _ref, /*TODO: resolve type of lambda param*/ slice){
+/*TODO:  resolve lambda return type*/ lambda32(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return isEmpty_bool(&(!slice));
 }
-/*TODO:  resolve lambda return type*/ lambda32(void* _ref, /*TODO: resolve type of lambda param*/ input){
-	return transformType(parseType_Main(&((*_this)), input));
-}
-/*TODO:  resolve lambda return type*/ lambda33(void* _ref, /*TODO: resolve type of lambda param*/ slice){
-	return isEmpty_bool(&(!slice));
+/*TODO:  resolve lambda return type*/ lambda33(void* _ref, /*TODO: resolve type of lambda param*/ input){
+	return transformType_Main(&((*_this)), parseType_Main(&((*_this)), input));
 }
 /*TODO:  resolve lambda return type*/ lambda34(void* _ref, /*TODO: resolve type of lambda param*/ slice){
+	return isEmpty_bool(&(!slice));
+}
+/*TODO:  resolve lambda return type*/ lambda35(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return parseObjectMember_Main(&((*_this)), slice, name, finalTypeParameters);
 }
 Option<JObject> parseObject_Main(void* _ref, char* type, char* stripped){
@@ -3539,7 +3519,7 @@ Option<JObject> parseObject_Main(void* _ref, char* type, char* stripped){
 	if (i4 >= 0) {
 		char* implementeesString = substring_String(&(beforeContent), i4 + length_String(&("implements ")));
 		beforeContent = strip_String(&(substring_String(&(beforeContent), 0, i4)));
-		implementees = toList_Iter(&(map_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), implementeesString, new_ValueFolder())), ???)), lambda31)), lambda32)));
+		implementees = toList_Iter(&(map_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), implementeesString, new_ValueFolder())), ???)), lambda32)), lambda33)));
 	}
 	List<JDeclaration> recordFields = empty_Lists(&(Lists));
 	if (endsWith_String(&(beforeContent), ")")) {
@@ -3562,27 +3542,27 @@ Option<JObject> parseObject_Main(void* _ref, char* type, char* stripped){
 	}
 	if (isIdentifier_bool(&(!Identifier), beforeContent)) 
 		return new_None();
-	List modifiersList = toList_Iter(&(filter_Iter(&(map_Iter(&(fromObjArray_Streams(&(Streams), split_/*Undefined identifier: modifiers*/(&(modifiers), quote_/*Undefined identifier: Pattern*/(&(Pattern), " ")))), ???)), lambda33)));
+	List modifiersList = toList_Iter(&(filter_Iter(&(map_Iter(&(fromObjArray_Streams(&(Streams), split_/*Undefined identifier: modifiers*/(&(modifiers), quote_/*Undefined identifier: Pattern*/(&(Pattern), " ")))), ???)), lambda34)));
 	char* name = strip_String(&(beforeContent));
 	List finalTypeParameters = typeParameters;
 	List divisions = toList_Iter(&(divide_Main(&((*_this)), inputContent, new_EscapedFolder(???))));
-	List children = toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(&(divisions))), lambda34)), ???)));
+	List children = toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(&(divisions))), lambda35)), ???)));
 	JObject prototype = new_JObject(type, annotations, modifiersList, name, typeParameters, recordFields, implementees, variants, children);
 	return new_Some(prototype);
 }
-/*TODO:  resolve lambda return type*/ lambda35(void* _ref, /*TODO: resolve type of lambda param*/ wrapper){
+/*TODO:  resolve lambda return type*/ lambda36(void* _ref, /*TODO: resolve type of lambda param*/ wrapper){
 	return transformObjectMemberPrototype_Main(&((*_this)), object, wrapper);
 }
-/*TODO:  resolve lambda return type*/ lambda36(void* _ref, /*TODO: resolve type of lambda param*/ env){
+/*TODO:  resolve lambda return type*/ lambda37(void* _ref, /*TODO: resolve type of lambda param*/ env){
 	environment = withObject_/*Undefined identifier: env*/(&(env), object);
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ types = toList_/*Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(flatMap_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]*/(&(iter_/*Cannot access member 'children' in 'Identifier[value=JObject]', not an object.*/(&(object.children))), ???)), ???)));
 	/*Not a functional type: Placeholder[input=Cannot access member 'addAllLast' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ declarations = addAllLast_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(toList_/*Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(flatMap_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]*/(&(iter_/*Cannot access member 'children' in 'Identifier[value=JObject]', not an object.*/(&(object.children))), ???)), ???)))), object.recordFields);
 	environment = defineAllTypes_/*Undefined identifier: environment*/(&(environment), types);
 	environment = defineAllExpressions_/*Undefined identifier: environment*/(&(environment), declarations);
-	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ members = toList_/*Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(flatMap_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]*/(&(iter_/*Cannot access member 'children' in 'Identifier[value=JObject]', not an object.*/(&(object.children))), lambda35)), ???)));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ members = toList_/*Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(flatMap_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]*/(&(iter_/*Cannot access member 'children' in 'Identifier[value=JObject]', not an object.*/(&(object.children))), lambda36)), ???)));
 	return new_Tuple(environment, members);
 }
-/*TODO:  resolve lambda return type*/ lambda37(void* _ref, /*TODO: resolve type of lambda param*/ field){
+/*TODO:  resolve lambda return type*/ lambda38(void* _ref, /*TODO: resolve type of lambda param*/ field){
 	return "_this->" + field.name + " = " + field.name;
 }
 Option<CStructMember> transformObject_Main(void* _ref, JObject object){
@@ -3590,10 +3570,10 @@ Option<CStructMember> transformObject_Main(void* _ref, JObject object){
 	if (contains_/*Cannot access member 'annotations' in 'Identifier[value=JObject]', not an object.*/(&(object.annotations), "Actual")) 
 		return new_Some(new_EmptyStructMember());
 	_this->functions = fold_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'createConversionFunctions' in 'Identifier[value=JObject]', not an object.]]', not an object.]*/(&(iter_/*Not a functional type: Placeholder[input=Cannot access member 'createConversionFunctions' in 'Identifier[value=JObject]', not an object.]*/(&(createConversionFunctions_JObject(&(object), environment)))), _this->functions, ???);
-	/*Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]*/ within = within_/*Undefined identifier: environment*/(&(environment), lambda36);
+	/*Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]*/ within = within_/*Undefined identifier: environment*/(&(environment), lambda37);
 	environment = within.left;
 	/*Cannot access member 'right' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]]', not an object.*/ members = within.right;
-	/*Not a functional type: Placeholder[input=Cannot access member 'collectCFields' in 'Identifier[value=JObject]', not an object.]*/ fields = collectCFields_JObject(&(object));
+	/*var fields = object.recordFields.iter().map(this::toCDeclaration).<CDefinable>map(value -> value).toList()*/;
 	if (equals_/*Not a functional type: Placeholder[input=Cannot access member 'type' in 'Identifier[value=JObject]', not an object.]*/(&(type_JObject(&(object))), "interface")) 
 		if (contains_/*Not a functional type: Placeholder[input=Cannot access member 'modifiersList' in 'Identifier[value=JObject]', not an object.]*/(&(modifiersList_JObject(&(object))), "sealed")) 
 			fields = handleSealedInterface_Main(&((*_this)), object, fields);
@@ -3601,13 +3581,13 @@ Option<CStructMember> transformObject_Main(void* _ref, JObject object){
 		fields = handleUnsealedInterface_Main(&((*_this)), object, members, fields);
 	else {
 		List retained = retainFields_Main(&((*_this)), members);
-		fields = addAllLast_/*Not a functional type: Placeholder[input=Cannot access member 'collectCFields' in 'Identifier[value=JObject]', not an object.]*/(&(fields), retained);
+		fields = addAllLast_/*Undefined identifier: fields*/(&(fields), retained);
 	}
 	if (equals_/*Cannot access member 'type' in 'Identifier[value=JObject]', not an object.*/(&(object.type), "record")) {
 		/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/ recordFields = toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]*/(&(iter_/*Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.*/(&(object.recordFields))), ???)));
 		CNamedType structureType = createStructureType_Main(&((*_this)), object.name, object.typeParameters);
 		CDeclaration definition = new_CDeclaration(object.typeParameters, structureType, "new_" + getName_CNamedType(&(structureType)));
-		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ joinedAssignments = collect_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(iter_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(recordFields))), lambda37)), ???)), new_Joiner());
+		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ joinedAssignments = collect_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(iter_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'recordFields' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(recordFields))), lambda38)), ???)), new_Joiner());
 		int content = generateStatement(generate_CNamedType(&(structureType)) + " _thisInstance") + generateStatement(generate_CNamedType(&(structureType)) + "* _this = &_thisInstance") + joinedAssignments + generateStatement("return _thisInstance");
 		_this->functions = addLast_List(&(_this->functions), new_CFunction(new_CFunctionHeader(definition, recordFields), content));
 	}
@@ -3631,7 +3611,7 @@ CNamedType createStructureType_Main(void* _ref, char* name, List<char*> typeArgu
 	else 
 		return new_CTemplateType(name);
 }
-/*TODO:  resolve lambda return type*/ lambda38(void* _ref, /*TODO: resolve type of lambda param*/ variant){
+/*TODO:  resolve lambda return type*/ lambda39(void* _ref, /*TODO: resolve type of lambda param*/ variant){
 	return createUnionField_Main(&((*_this)), variant, typeArguments);
 }
 List<CDefinable> handleSealedInterface_Main(void* _ref, JObject object, List<CDefinable> fields){
@@ -3641,7 +3621,7 @@ List<CDefinable> handleSealedInterface_Main(void* _ref, JObject object, List<CDe
 	/*Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]*/ variants = variants_JObject(&(object));
 	CEnum jEnum = new_CEnum(name + "Tag", variants);
 	/*final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList()*/;
-	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ unionMembers = toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]]', not an object.]*/(&(iter_/*Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]*/(&(variants))), lambda38)));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ unionMembers = toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]]', not an object.]*/(&(iter_/*Not a functional type: Placeholder[input=Cannot access member 'variants' in 'Identifier[value=JObject]', not an object.]*/(&(variants))), lambda39)));
 	CUnion union = new_CUnion(typeParameters, name, unionMembers);
 	fields = addLast_List(&(addLast_List(&(fields), new_CDeclaration(new_Identifier(object.name + "Tag"), "variant"))), new_CDeclaration(createStructureType_Main(&((*_this)), name + "Data", object.typeParameters), "data"));
 	_this->enums = addLast_List(&(_this->enums), jEnum);
@@ -3661,15 +3641,15 @@ Option<CStructMember> transformObjectMemberPrototype_Main(void* _ref, JObject ob
 	Main* _this = (Main*) _ref;
 	return /*TODO: switch*/;
 }
-/*TODO:  resolve lambda return type*/ lambda39(void* _ref, /*TODO: resolve type of lambda param*/ name){
+/*TODO:  resolve lambda return type*/ lambda40(void* _ref, /*TODO: resolve type of lambda param*/ name){
 	return name + "_" + object.name;
 }
-/*TODO:  resolve lambda return type*/ lambda40(void* _ref, /*TODO: resolve type of lambda param*/ value){
+/*TODO:  resolve lambda return type*/ lambda41(void* _ref, /*TODO: resolve type of lambda param*/ value){
 	return new_Tuple(value, compileMethodsSegments_Main(&((*_this)), inputContent, 1));
 }
-/*TODO:  resolve lambda return type*/ lambda41(void* _ref, /*TODO: resolve type of lambda param*/ env){
+/*TODO:  resolve lambda return type*/ lambda42(void* _ref, /*TODO: resolve type of lambda param*/ env){
 	/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Placeholder[input=Undefined identifier: env]', not an object.]*/ self = defineAllExpressions_/*Undefined identifier: env*/(&(env), parameters_JMethod(&(jFunctionProto)));
-	return within_/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Placeholder[input=Undefined identifier: env]', not an object.]*/(&(self), lambda40);
+	return within_/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Placeholder[input=Undefined identifier: env]', not an object.]*/(&(self), lambda41);
 }
 CStructMember completeMethodProto_Main(void* _ref, JMethod jFunctionProto, JObject object){
 	Main* _this = (Main*) _ref;
@@ -3677,13 +3657,13 @@ CStructMember completeMethodProto_Main(void* _ref, JMethod jFunctionProto, JObje
 	if (???) {
 		/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parameters' in 'Identifier[value=JMethod]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ cParameters = toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parameters' in 'Identifier[value=JMethod]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parameters' in 'Identifier[value=JMethod]', not an object.]]', not an object.]*/(&(iter_/*Not a functional type: Placeholder[input=Cannot access member 'parameters' in 'Identifier[value=JMethod]', not an object.]*/(&(parameters_JMethod(&(jFunctionProto))))), ???)));
 		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parameters' in 'Identifier[value=JMethod]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ compiledParameters = collect_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parameters' in 'Identifier[value=JMethod]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parameters' in 'Identifier[value=JMethod]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(iter_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parameters' in 'Identifier[value=JMethod]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(cParameters))), ???)), new_Joiner(", "));
-		/*Not a functional type: Placeholder[input=Cannot access member 'toCDeclaration' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'mapName' in 'Placeholder[input=Undefined identifier: declaration]', not an object.]]', not an object.]*/ modifiedMethodDeclaration = toCDeclaration_/*Not a functional type: Placeholder[input=Cannot access member 'mapName' in 'Placeholder[input=Undefined identifier: declaration]', not an object.]*/(&(mapName_/*Undefined identifier: declaration*/(&(declaration), lambda39)));
-		_this->functionDeclarations = addLast_List(&(_this->functionDeclarations), generate_/*Not a functional type: Placeholder[input=Cannot access member 'toCDeclaration' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'mapName' in 'Placeholder[input=Undefined identifier: declaration]', not an object.]]', not an object.]*/(&(modifiedMethodDeclaration)) + "(" + compiledParameters + ");" + lineSeparator_/*Undefined identifier: System*/(&(System)));
+		CDeclaration modifiedMethodDeclaration = toCDeclaration_Main(&((*_this)), mapName_/*Undefined identifier: declaration*/(&(declaration), lambda40));
+		_this->functionDeclarations = addLast_List(&(_this->functionDeclarations), generate_CDeclaration(&(modifiedMethodDeclaration)) + "(" + compiledParameters + ");" + lineSeparator_/*Undefined identifier: System*/(&(System)));
 		return new_EmptyStructMember();
 	}
 	if (startsWith_/*Cannot access member 'content' in 'Identifier[value=JMethod]', not an object.*/(&(jFunctionProto.content), "{") && endsWith_/*Cannot access member 'content' in 'Identifier[value=JMethod]', not an object.*/(&(jFunctionProto.content), "}")) {
 		/*Not a functional type: Placeholder[input=Cannot access member 'substring' in 'Placeholder[input=Cannot access member 'content' in 'Identifier[value=JMethod]', not an object.]', not an object.]*/ inputContent = substring_/*Cannot access member 'content' in 'Identifier[value=JMethod]', not an object.*/(&(jFunctionProto.content), 1, length_/*Not a functional type: Placeholder[input=Cannot access member 'content' in 'Identifier[value=JMethod]', not an object.]*/(&(content_JMethod(&(jFunctionProto)))) - 1);
-		/*Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]*/ within = within_/*Undefined identifier: environment*/(&(environment), lambda41);
+		/*Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]*/ within = within_/*Undefined identifier: environment*/(&(environment), lambda42);
 		environment = within.left;
 		maybeCompiled = new_Some(within.right);
 	}
@@ -3734,7 +3714,7 @@ Option<JObjectMember> parseObjectMember_Main(void* _ref, char* input, char* name
 		return new_Some(temp);
 	return new_Some(new_Placeholder(stripped));
 }
-/*TODO:  resolve lambda return type*/ lambda42(void* _ref, /*TODO: resolve type of lambda param*/ slice){
+/*TODO:  resolve lambda return type*/ lambda43(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return isEmpty_bool(&(!slice));
 }
 Option<JObjectMember> parseMethod_Main(void* _ref, char* stripped, char* name, List<char*> typeParameters){
@@ -3749,41 +3729,41 @@ Option<JObjectMember> parseMethod_Main(void* _ref, char* stripped, char* name, L
 		return new_None();
 	char* parametersString = substring_String(&(substring1), 0, i1);
 	char* withBraces = strip_String(&(substring_String(&(substring1), i1 + 1)));
-	List parameters = toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(&(toList_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), parametersString, new_ValueFolder())), ???)), lambda42)))))), ???)), ???)));
+	List parameters = toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(&(toList_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), parametersString, new_ValueFolder())), ???)), lambda43)))))), ???)), ???)));
 	JMethodDeclaration declaration = parseMethodDeclaration_Main(&((*_this)), declarationString, name);
 	JMethod proto = new_JMethod(typeParameters, parameters, declaration, withBraces);
 	return new_Some(proto);
 }
-/*TODO:  resolve lambda return type*/ lambda43(void* _ref, /*TODO: resolve type of lambda param*/ member1){
+/*TODO:  resolve lambda return type*/ lambda44(void* _ref, /*TODO: resolve type of lambda param*/ member1){
 	return /*TODO: switch*/;
 }
-/*TODO:  resolve lambda return type*/ lambda44(void* _ref, /*TODO: resolve type of lambda param*/ member){
+/*TODO:  resolve lambda return type*/ lambda45(void* _ref, /*TODO: resolve type of lambda param*/ member){
 	return !(???);
 }
 List<CDefinable> retainFields_Main(void* _ref, List<CStructMember> members){
 	Main* _this = (Main*) _ref;
-	List list = toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(&(members))), lambda43)), ???)));
-	return toList_Iter(&(filter_Iter(&(iter_List(&(list))), lambda44)));
+	List list = toList_Iter(&(flatMap_Iter(&(map_Iter(&(iter_List(&(members))), lambda44)), ???)));
+	return toList_Iter(&(filter_Iter(&(iter_List(&(list))), lambda45)));
 }
 Option<CDefinable> retainDefinables_Main(void* _ref, CStructMember member){
 	Main* _this = (Main*) _ref;
 	return /*TODO: switch*/;
 }
-/*TODO:  resolve lambda return type*/ lambda45(void* _ref, /*TODO: resolve type of lambda param*/ slice){
+/*TODO:  resolve lambda return type*/ lambda46(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return isEmpty_bool(&(!slice));
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@5ae9a829']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
-	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ list = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]*/(&(stream_/*Undefined identifier: Arrays*/(&(Arrays), segments)), ???)), lambda45)));
+	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@4cb2c100']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ list = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]*/(&(stream_/*Undefined identifier: Arrays*/(&(Arrays), segments)), ???)), lambda46)));
 	return new_JavaList(list);
 }
-/*TODO:  resolve lambda return type*/ lambda46(void* _ref, /*TODO: resolve type of lambda param*/ parameter){
+/*TODO:  resolve lambda return type*/ lambda47(void* _ref, /*TODO: resolve type of lambda param*/ parameter){
 	return parameter.name;
 }
-/*TODO:  resolve lambda return type*/ lambda47(void* _ref){
-	CType type = transformType(declaration.type);
-	List list = toList_Iter(&(map_Iter(&(iter_List(&(subList_List(&(cParameters), 1, size_List(&(cParameters)))))), lambda46)));
+/*TODO:  resolve lambda return type*/ lambda48(void* _ref){
+	CType type = transformType_Main(&((*_this)), declaration.type);
+	List list = toList_Iter(&(map_Iter(&(iter_List(&(subList_List(&(cParameters), 1, size_List(&(cParameters)))))), lambda47)));
 	return createBodyForAbstractMethod_Main(&((*_this)), structureVariants, type, declaration.name, list, structName);
 }
 char* computeMethodBody_Main(void* _ref, List<char*> typeParameters, JMethodDeclaration methodDeclaration, List<CDeclaration> cParameters, Option<char*> maybeContent, char* structName, List<char*> structureVariants){
@@ -3795,12 +3775,12 @@ char* computeMethodBody_Main(void* _ref, List<char*> typeParameters, JMethodDecl
 	if (???) {
 		/*Not a functional type: Placeholder[input=Cannot access member 'joinTypeParameters' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ joinedTypeParameters = joinTypeParameters_/*Undefined identifier: Main*/(&(Main), typeParameters);
 		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ thisInitialization = generateStatement_/*Undefined identifier: Main*/(&(Main), structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
-		T body = orElseGet_Option(&(maybeContent), lambda47);
+		T body = orElseGet_Option(&(maybeContent), lambda48);
 		return thisInitialization + body;
 	}
 	return "?";
 }
-/*TODO:  resolve lambda return type*/ lambda48(void* _ref, /*TODO: resolve type of lambda param*/ variant){
+/*TODO:  resolve lambda return type*/ lambda49(void* _ref, /*TODO: resolve type of lambda param*/ variant){
 	return generateCase_Main(&((*_this)), variant, name, parameterNames, structName);
 }
 char* createBodyForAbstractMethod_Main(void* _ref, List<char*> variants, CType type, char* name, List<char*> parameterNames, char* structName){
@@ -3811,19 +3791,19 @@ char* createBodyForAbstractMethod_Main(void* _ref, List<char*> variants, CType t
 	}
 	else {
 		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ returnValueDefinition = generateStatement_/*Undefined identifier: Main*/(&(Main), generate_CType(&(type)) + " _ret");
-		C cases = collect_Iter(&(map_Iter(&(iter_List(&(variants))), lambda48)), new_Joiner());
+		C cases = collect_Iter(&(map_Iter(&(iter_List(&(variants))), lambda49)), new_Joiner());
 		return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases + generateIndent(1) + "}" + generateStatement_/*Undefined identifier: Main*/(&(Main), "return _ret");
 	}
 }
-/*TODO:  resolve lambda return type*/ lambda49(void* _ref, /*TODO: resolve type of lambda param*/ typeParameters0){
+/*TODO:  resolve lambda return type*/ lambda50(void* _ref, /*TODO: resolve type of lambda param*/ typeParameters0){
 	return addAllLast_/*Undefined identifier: typeParameters0*/(&(typeParameters0), typeParameters);
 }
-/*TODO:  resolve lambda return type*/ lambda50(void* _ref, /*TODO: resolve type of lambda param*/ name){
+/*TODO:  resolve lambda return type*/ lambda51(void* _ref, /*TODO: resolve type of lambda param*/ name){
 	return name + "_" + structName;
 }
 CDefinable transformMethodDeclaration_Main(void* _ref, char* structName, List<char*> typeParameters, JMethodDeclaration methodDeclaration){
 	Main* _this = (Main*) _ref;
-	return mapName_/*Not a functional type: Placeholder[input=Cannot access member 'mapTypeParameters' in 'Identifier[value=CDefinable]', not an object.]*/(&(mapTypeParameters_CDefinable(&(convertToFunctionDeclarations_Main(&((*_this)), typeParameters, methodDeclaration)), lambda49)), lambda50);
+	return mapName_/*Not a functional type: Placeholder[input=Cannot access member 'mapTypeParameters' in 'Identifier[value=CDefinable]', not an object.]*/(&(mapTypeParameters_CDefinable(&(convertToFunctionDeclarations_Main(&((*_this)), typeParameters, methodDeclaration)), lambda50)), lambda51);
 }
 CDefinable convertToFunctionDeclarations_Main(void* _ref, List<char*> typeParameters, JMethodDeclaration methodDeclaration){
 	Main* _this = (Main*) _ref;
@@ -3838,12 +3818,12 @@ CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParam
 		return new_Identifier(base);
 	return new_CTemplateType(base, typeArguments);
 }
-/*TODO:  resolve lambda return type*/ lambda51(void* _ref, /*TODO: resolve type of lambda param*/ input){
+/*TODO:  resolve lambda return type*/ lambda52(void* _ref, /*TODO: resolve type of lambda param*/ input){
 	return compileMethodSegment_Main(&((*_this)), input, indent);
 }
 char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent){
 	Main* _this = (Main*) _ref;
-	return compileStatements_Main(&((*_this)), inputContent, lambda51);
+	return compileStatements_Main(&((*_this)), inputContent, lambda52);
 }
 char* generateCase_Main(void* _ref, char* variant, char* name, List<char*> parameterNames, char* baseName){
 	Main* _this = (Main*) _ref;
@@ -3851,15 +3831,15 @@ char* generateCase_Main(void* _ref, char* variant, char* name, List<char*> param
 	C joined = collect_Iter(&(iter_List(&(addFirst_List(&(copy_List(&(parameterNames))), s)))), new_Joiner(", "));
 	return generateIndent(2) + "case " + baseName + "Tag::" + variant + "Variant:" + generateStatement(3, "_ret = " + name + "_" + variant + "(" + joined + ")") + generateStatement(3, "break");
 }
-/*TODO:  resolve lambda return type*/ lambda52(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda53(void* _ref){
 	return map_Option(&(parseDeclaration_Main(&((*_this)), declaration)), ???);
 }
-/*TODO:  resolve lambda return type*/ lambda53(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda54(void* _ref){
 	return new_Placeholder(declaration);
 }
 JMethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	return orElseGet_Option(&(or_Option(&(parseConstructor_Main(&((*_this)), declaration, structName)), lambda52)), lambda53);
+	return orElseGet_Option(&(or_Option(&(parseConstructor_Main(&((*_this)), declaration, structName)), lambda53)), lambda54);
 }
 JMethodDeclaration toInterface_Main(void* _ref, JDeclaration value){
 	Main* _this = (Main*) _ref;
@@ -3885,20 +3865,20 @@ Option<JObjectMember> parseEnumValuesStatement_Main(void* _ref, char* input, cha
 		return parseEnumValues_Main(&((*_this)), structName, substring_String(&(stripped), 0, length_String(&(stripped)) - 1));
 	return parseEnumValues_Main(&((*_this)), structName, stripped);
 }
-/*TODO:  resolve lambda return type*/ lambda54(void* _ref, /*TODO: resolve type of lambda param*/ state, /*TODO: resolve type of lambda param*/ character){
+/*TODO:  resolve lambda return type*/ lambda55(void* _ref, /*TODO: resolve type of lambda param*/ state, /*TODO: resolve type of lambda param*/ character){
 	return new_/*ValueFolder().apply*/(state, character);
 }
-/*TODO:  resolve lambda return type*/ lambda55(void* _ref, /*TODO: resolve type of lambda param*/ slice){
+/*TODO:  resolve lambda return type*/ lambda56(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return isEmpty_bool(&(!slice));
 }
-/*TODO:  resolve lambda return type*/ lambda56(void* _ref, /*TODO: resolve type of lambda param*/ enumValue){
+/*TODO:  resolve lambda return type*/ lambda57(void* _ref, /*TODO: resolve type of lambda param*/ enumValue){
 	return compileEnumValue_Main(&((*_this)), structName, enumValue);
 }
 Option<JObjectMember> parseEnumValues_Main(void* _ref, char* structName, char* input){
 	Main* _this = (Main*) _ref;
-	List enumValues = toList_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), input, lambda54)), ???)), lambda55)));
+	List enumValues = toList_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), input, lambda55)), ???)), lambda56)));
 	if (isEmpty_bool(&(!enumValues))) {
-		Iter optionStream = map_Iter(&(iter_List(&(enumValues))), lambda56);
+		Iter optionStream = map_Iter(&(iter_List(&(enumValues))), lambda57);
 		/*final var areAnyInvalid =
 					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>))*/;
 		if (areAnyInvalid) 
@@ -3957,7 +3937,7 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 		return generateIndent(indent) + stripped;
 	return lineSeparator_/*Undefined identifier: System*/(&(System)) + "\t" + wrap_Placeholder(&(Placeholder), stripped);
 }
-/*TODO:  resolve lambda return type*/ lambda57(void* _ref, /*TODO: resolve type of lambda param*/ slice){
+/*TODO:  resolve lambda return type*/ lambda58(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return isEmpty_bool(&(!slice));
 }
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input){
@@ -3966,7 +3946,7 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 		char* substring = strip_String(&(substring_String(&(input), length_String(&(type)))));
 		if (startsWith_String(&(substring), "(")) {
 			char* afterConditionStart = strip_String(&(substring_String(&(substring), 1)));
-			List divisions = toList_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), afterConditionStart, new_EscapedFolder(new_ConditionEndLocator()))), ???)), lambda57)));
+			List divisions = toList_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), afterConditionStart, new_EscapedFolder(new_ConditionEndLocator()))), ???)), lambda58)));
 			if (size_List(&(divisions)) < 2) 
 				return new_None();
 			T first = getFirst_List(&(divisions));
@@ -4004,7 +3984,7 @@ char* compileMethodStatement_Main(void* _ref, char* input){
 		return x;
 	Option maybeDeclaration = parseDeclaration_Main(&((*_this)), input);
 	if (???) 
-		return generate_/*Not a functional type: Placeholder[input=Cannot access member 'toCDeclaration' in 'Placeholder[input=Undefined identifier: declaration]', not an object.]*/(&(toCDeclaration_/*Undefined identifier: declaration*/(&(declaration))));
+		return generate_CDeclaration(&(toCDeclaration_Main(&((*_this)), declaration)));
 	if (startsWith_String(&(stripped), "assert ")) 
 		return "";
 	return wrap_Placeholder(&(Placeholder), stripped);
@@ -4067,12 +4047,12 @@ JType cleanupType_Main(void* _ref, JType found){
 	}
 	return found;
 }
-/*TODO:  resolve lambda return type*/ lambda58(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda59(void* _ref){
 	return new_Placeholder("Member '" + name + "' not defined in '" + instanceType + "'");
 }
 JType resolveMember_Main(void* _ref, JObjectType type, JType instanceType, char* name){
 	Main* _this = (Main*) _ref;
-	return orElseGet_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=JObjectType]', not an object.]*/(&(resolve_JObjectType(&(type), name)), lambda58);
+	return orElseGet_/*Not a functional type: Placeholder[input=Cannot access member 'resolve' in 'Identifier[value=JObjectType]', not an object.]*/(&(resolve_JObjectType(&(type), name)), lambda59);
 }
 JType resolveCaller_Main(void* _ref, JCaller caller){
 	Main* _this = (Main*) _ref;
@@ -4094,36 +4074,36 @@ Option<char*> post_Main(void* _ref, char* stripped, char* slice){
 	}
 	return new_None();
 }
-/*TODO:  resolve lambda return type*/ lambda59(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda60(void* _ref){
 	return wrap_Placeholder(&(Placeholder), input);
 }
 char* compileExpressionOrPlaceholder_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return orElseGet_Option(&(map_Option(&(parseCExpression_Main(&((*_this)), input)), ???)), lambda59);
+	return orElseGet_Option(&(map_Option(&(parseCExpression_Main(&((*_this)), input)), ???)), lambda60);
 }
 Option<CExpression> parseCExpression_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	return map_Option(&(parseExpression_Main(&((*_this)), input)), ???);
 }
-/*TODO:  resolve lambda return type*/ lambda60(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda61(void* _ref){
 	return compileOperator_Main(&((*_this)), stripped, Operator.NotEquals);
 }
-/*TODO:  resolve lambda return type*/ lambda61(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda62(void* _ref){
 	return compileOperator_Main(&((*_this)), stripped, Operator.LessThan);
 }
-/*TODO:  resolve lambda return type*/ lambda62(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda63(void* _ref){
 	return compileOperator_Main(&((*_this)), stripped, Operator.Add);
 }
-/*TODO:  resolve lambda return type*/ lambda63(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda64(void* _ref){
 	return compileOperator_Main(&((*_this)), stripped, Operator.Subtract);
 }
-/*TODO:  resolve lambda return type*/ lambda64(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda65(void* _ref){
 	return compileOperator_Main(&((*_this)), stripped, Operator.And);
 }
-/*TODO:  resolve lambda return type*/ lambda65(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda66(void* _ref){
 	return compileOperator_Main(&((*_this)), stripped, Operator.Or);
 }
-/*TODO:  resolve lambda return type*/ lambda66(void* _ref){
+/*TODO:  resolve lambda return type*/ lambda67(void* _ref){
 	return compileOperator_Main(&((*_this)), stripped, Operator.GreaterThanOrEquals);
 }
 Option<JExpression> parseExpression_Main(void* _ref, char* input){
@@ -4162,7 +4142,7 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 			return new_Some(new_JInstanceOf());
 		}
 	}
-	Option maybeOperator = or_Option(&(or_Option(&(or_Option(&(or_Option(&(or_Option(&(or_Option(&(or_Option(&(compileOperator_Main(&((*_this)), stripped, Operator.Equals)), lambda60)), lambda61)), lambda62)), lambda63)), lambda64)), lambda65)), lambda66);
+	Option maybeOperator = or_Option(&(or_Option(&(or_Option(&(or_Option(&(or_Option(&(or_Option(&(or_Option(&(compileOperator_Main(&((*_this)), stripped, Operator.Equals)), lambda61)), lambda62)), lambda63)), lambda64)), lambda65)), lambda66)), lambda67);
 	if (???) 
 		return maybeOperator;
 	Option maybeInvokable = parseInvokable_Main(&((*_this)), stripped);
@@ -4192,7 +4172,7 @@ Option<JExpression> parseExpression_Main(void* _ref, char* input){
 		return new_Some(new_StringNode(substring_String(&(stripped), 1, length_String(&(stripped)) - 1)));
 	return new_None();
 }
-/*TODO:  resolve lambda return type*/ lambda67(void* _ref, /*TODO: resolve type of lambda param*/ param){
+/*TODO:  resolve lambda return type*/ lambda68(void* _ref, /*TODO: resolve type of lambda param*/ param){
 	return new_CDeclaration(new_Placeholder("TODO: resolve type of lambda param"), param);
 }
 Option<JExpression> compileLambda_Main(void* _ref, char* input){
@@ -4205,7 +4185,7 @@ Option<JExpression> compileLambda_Main(void* _ref, char* input){
 	Option maybeParams = parseLambdaParams_Main(&((*_this)), beforeContent);
 	if (!(???)) 
 		return new_None();
-	/*Not a functional type: Placeholder[input=Cannot access member 'addFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ paramList = addFirst_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]*/(&(toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]*/(&(iter_/*Undefined identifier: params*/(&(params))), lambda67)))), new_CDeclaration(new_CPointerType(CPrimitiveType.Void), "_ref"));
+	/*Not a functional type: Placeholder[input=Cannot access member 'addFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ paramList = addFirst_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]*/(&(toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]*/(&(iter_/*Undefined identifier: params*/(&(params))), lambda68)))), new_CDeclaration(new_CPointerType(CPrimitiveType.Void), "_ref"));
 	char* output;
 	if (startsWith_String(&(maybeWithBraces), "{") && endsWith_String(&(maybeWithBraces), "}")) {
 		char* content = substring_String(&(maybeWithBraces), 1, length_String(&(maybeWithBraces)) - 1);
@@ -4218,7 +4198,7 @@ Option<JExpression> compileLambda_Main(void* _ref, char* input){
 	_this->functions = addLast_List(&(_this->functions), cFunction);
 	return new_Some(new_Identifier(generatedName));
 }
-/*TODO:  resolve lambda return type*/ lambda68(void* _ref, /*TODO: resolve type of lambda param*/ slice){
+/*TODO:  resolve lambda return type*/ lambda69(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return isEmpty_bool(&(!slice));
 }
 Option<List<char*>> parseLambdaParams_Main(void* _ref, char* input){
@@ -4228,7 +4208,7 @@ Option<List<char*>> parseLambdaParams_Main(void* _ref, char* input){
 	else 
 		if (startsWith_String(&(input), "(") && input.endsWith(")")) {
 			char* substring = substring_String(&(input), 1, length_String(&(input)) - 1);
-			List list = toList_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), substring, new_ValueFolder())), ???)), lambda68)));
+			List list = toList_Iter(&(filter_Iter(&(map_Iter(&(divide_Main(&((*_this)), substring, new_ValueFolder())), ???)), lambda69)));
 			return new_Some(list);
 		}
 	else 
@@ -4370,15 +4350,15 @@ Option<JDeclaration> parseDeclaration_Main(void* _ref, char* input){
 	}
 	return new_None();
 }
-/*TODO:  resolve lambda return type*/ lambda69(void* _ref, /*TODO: resolve type of lambda param*/ slice){
+/*TODO:  resolve lambda return type*/ lambda70(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return isEmpty_bool(&(!slice));
 }
-/*TODO:  resolve lambda return type*/ lambda70(void* _ref, /*TODO: resolve type of lambda param*/ slice){
+/*TODO:  resolve lambda return type*/ lambda71(void* _ref, /*TODO: resolve type of lambda param*/ slice){
 	return substring_/*Undefined identifier: slice*/(&(slice), 1);
 }
 List<char*> collectAnnotations_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return toList_Iter(&(map_Iter(&(map_Iter(&(filter_Iter(&(fromObjArray_Streams(&(Streams), split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), "\n")))), lambda69)), lambda70)), ???)));
+	return toList_Iter(&(map_Iter(&(map_Iter(&(filter_Iter(&(fromObjArray_Streams(&(Streams), split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), "\n")))), lambda70)), lambda71)), ???)));
 }
 int findTypeSeparator_Main(void* _ref, char* beforeName){
 	Main* _this = (Main*) _ref;
@@ -4411,7 +4391,7 @@ JType parseType_Main(void* _ref, char* input){
 				return JPrimitiveType.Void;
 			}
 			case "String" -> {
-				return StringType;
+				return this.StringType;
 			}
 			case "Character" -> {
 				return JPrimitiveType.Char;
