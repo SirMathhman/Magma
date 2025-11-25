@@ -12,3 +12,7 @@ T *moveToHeap(T value)
 int length_String(char** this) {
  return strlen(*this);
 }
+
+char charAt_String(char** this, int index) {
+ return (*this)[index];
+}
