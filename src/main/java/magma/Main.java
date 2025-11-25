@@ -337,11 +337,6 @@ public class Main {
 		public static <T> List<T> empty() {
 			return new JavaList<T>();
 		}
-
-		@SafeVarargs
-		public static <T> List<T> of(T... elements) {
-			return Streams.fromObjArray(elements).collect(new ListCollector<T>());
-		}
 	}
 
 	@Actual
@@ -622,7 +617,7 @@ public class Main {
 
 		@Override
 		public List<String> extractIdentifiers() {
-			return Lists.of(this.value);
+			return Lists.<String>empty().addLast(this.value);
 		}
 
 		@Override
@@ -1391,7 +1386,8 @@ public class Main {
 			}
 
 			final var conversionFunctionName = "to" + implementeeName + "_" + this.name;
-			final var parameters = Lists.of(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
+			final var parameters =
+					Lists.<CDeclaration>empty().addLast(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 			final var header =
 					new CFunctionHeader(new CDeclaration(this.typeParameters, implementee, conversionFunctionName), parameters);
 
@@ -1517,13 +1513,15 @@ public class Main {
 
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
-		final var methods = Lists.of(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)),
-																 new JDeclaration("indexOf", new JFunctionalType(JPrimitiveType.Int)),
-																 new JDeclaration("lastIndexOf", new JFunctionalType(JPrimitiveType.Int)),
-																 new JDeclaration("length", new JFunctionalType(JPrimitiveType.Int)),
-																 new JDeclaration("strip", new JFunctionalType(StringType)),
-																 new JDeclaration("substring", new JFunctionalType(StringType)),
-																 new JDeclaration("replace", new JFunctionalType(StringType)));
+		final var methods = Lists
+				.<JDeclaration>empty()
+				.addLast(new JDeclaration("charAt", new JFunctionalType(JPrimitiveType.Char)))
+				.addLast(new JDeclaration("indexOf", new JFunctionalType(JPrimitiveType.Int)))
+				.addLast(new JDeclaration("lastIndexOf", new JFunctionalType(JPrimitiveType.Int)))
+				.addLast(new JDeclaration("length", new JFunctionalType(JPrimitiveType.Int)))
+				.addLast(new JDeclaration("strip", new JFunctionalType(StringType)))
+				.addLast(new JDeclaration("substring", new JFunctionalType(StringType)))
+				.addLast(new JDeclaration("replace", new JFunctionalType(StringType)));
 
 		return new JObjectType("String", Lists.empty(), methods);
 	});
@@ -2759,7 +2757,7 @@ public class Main {
 	}
 
 	private Option<List<String>> parseLambdaParams(String input) {
-		if (Identifier.isIdentifier(input)) return new Some<List<String>>(Lists.of(input));
+		if (Identifier.isIdentifier(input)) return new Some<List<String>>(Lists.<String>empty().addLast(input));
 		else if (input.startsWith("(") && input.endsWith(")")) {
 			final var substring = input.substring(1, input.length() - 1);
 			final var list =

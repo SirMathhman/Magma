@@ -766,8 +766,6 @@ RangeHead new_RangeHead(int length);
 Option<int> next_RangeHead(void* _ref);
 template <typename T>
 List<T> empty_Lists();
-template <typename T>
-List<T> of_Lists(void* _ref, /*T...*/ elements);
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper);
 template <typename R, typename T, typename X>
@@ -932,13 +930,11 @@ CFunction createConversionType_JObject(void* _ref, CType implementee, Environmen
 /*final String implementeeName = implementee.toBaseName*/();
 /*final var thisPtr = Main.generateStatement*/();
 /*final var jObjectType = environment.resolveType*/();
-/*if */();
 /*=*/ moveToHeap_JObject(void* _ref);
-/*content = Main.generateStatement*/();
 /*final var s1 = Main.generateStatement*/();
 /*final var s2 = Main.generateStatement*/();
 /*final var s3 = Main.generateStatement*/();
-/*final var parameters = Lists.of*/();
+/*Lists.<CDeclaration>empty*/();
 new CFunctionHeader_JObject(void* _ref, /*implementee,*/ conversionFunctionName);
 new CFunction_JObject(void* _ref, /*+*/ content);
 JObjectType toType_JObject(void* _ref);
@@ -1064,6 +1060,7 @@ Operator OperatorLessThan = new_Operator("<", JPrimitiveType.Boolean), Add("+", 
 		And("&&", JPrimitiveType.Boolean), Or("||", JPrimitiveType.Boolean),
 		GreaterThanOrEquals(">=", JPrimitiveType.Boolean);
 JObject JObjectnext_RangeHead = new_JObject();
+JObject JObjectif  = new_JObject(jObjectType.variants.isEmpty()) content = Main.generateStatement("return _impl");
 CType toCType_CPrimitiveType(void* _ref){
 	CPrimitiveType* _this = (CPrimitiveType*) _ref;
 	return _impl;
@@ -1641,11 +1638,6 @@ Option<int> next_RangeHead(void* _ref){
 	else 
 		return new_None();
 }
-template <typename T>
-List<T> of_Lists(void* _ref, /*T...*/ elements){
-	Lists* _this = (Lists*) _ref;
-	return collect_Iter(&(fromObjArray_Streams(&(Streams), elements)), new_ListCollector());
-}
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
 	Err<T, X>* _this = (Err<T, X>*) _ref;
@@ -1893,7 +1885,7 @@ char* toBaseName_Identifier(void* _ref){
 }
 List<char*> extractIdentifiers_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
-	return of_Lists(&(Lists), _this->value);
+	return /*Lists.<String>empty().addLast(this.value)*/;
 }
 char* stringify_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
@@ -2907,13 +2899,9 @@ CFunction createConversionType_JObject(void* _ref, CType implementee, Environmen
 }
 /*final var jObjectType = environment.resolveType*/(){?
 }
-/*if */(){?
-}
 /*=*/ moveToHeap_JObject(void* _ref){
 	JObject* _this = (JObject*) _ref;
 	return _this->table.moveToHeap(_this->data);
-}
-/*content = Main.generateStatement*/(){?
 }
 /*final var s1 = Main.generateStatement*/(){?
 }
@@ -2921,7 +2909,7 @@ CFunction createConversionType_JObject(void* _ref, CType implementee, Environmen
 }
 /*final var s3 = Main.generateStatement*/(){?
 }
-/*final var parameters = Lists.of*/(){?
+/*Lists.<CDeclaration>empty*/(){?
 }
 new CFunctionHeader_JObject(void* _ref, /*implementee,*/ conversionFunctionName){
 	JObject* _this = (JObject*) _ref;
@@ -4217,7 +4205,7 @@ Option<JExpression> compileLambda_Main(void* _ref, char* input){
 Option<List<char*>> parseLambdaParams_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	if (isIdentifier_Identifier(&(Identifier), input)) 
-		return new_Some(of_Lists(&(Lists), input));
+		return new_Some();
 	else 
 		if (startsWith_String(&(input), "(") && input.endsWith(")")) {
 			char* substring = substring_String(&(input), 1, length_String(&(input)) - 1);
