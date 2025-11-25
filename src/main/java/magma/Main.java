@@ -1876,7 +1876,7 @@ public class Main {
 						withoutLineCommentPrefix = tuple.left;
 
 						final var right = tuple.right;
-						if (right == '\r' || right == '\n') withoutLineCommentPrefix = withoutLineCommentPrefix.advance();
+						if (right == '\n') return withoutLineCommentPrefix.advance();
 					} else return withoutLineCommentPrefix;
 				}
 			}
@@ -2011,8 +2011,9 @@ public class Main {
 
 		var name = beforeContent.strip();
 		var finalTypeParameters = typeParameters;
-		final var children = this
-				.divide(inputContent, new EscapedFolder(this::foldStatement))
+		final var divisions = this.divide(inputContent, new EscapedFolder(this::foldStatement)).toList();
+		final var children = divisions
+				.iter()
 				.map(slice -> this.parseObjectMember(slice, name, finalTypeParameters))
 				.flatMap(Option::iter)
 				.toList();
@@ -2219,6 +2220,7 @@ public class Main {
 
 	private Option<JObjectMember> parseObjectMember(String input, String name, List<String> typeParameters) {
 		final var stripped = input.strip();
+		if (stripped.startsWith("//")) return new Some<JObjectMember>(new EmptyStructMember());
 		if (stripped.isEmpty()) return new None<JObjectMember>();
 
 		final var maybeEnum = this.parseObject("enum", input);
