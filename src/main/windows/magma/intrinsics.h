@@ -6,4 +6,6 @@
 template <typename T>
 T *moveToHeap(T value);
 
+int length_String(char** this);
+
 #endif // INTRINSICS_H
