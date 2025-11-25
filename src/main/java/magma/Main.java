@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 public class Main {
@@ -44,6 +45,11 @@ public class Main {
 		@Override
 		public String stringify() {
 			return this.name;
+		}
+
+		@Override
+		public JType replace(Map<String, JType> mappings) {
+			return this;
 		}
 	}
 
@@ -154,6 +160,8 @@ public class Main {
 		Option<T> or(FR<Option<T>> other);
 
 		Tuple<Boolean, T> toTuple(FR<T> other);
+
+		<R> Option<Tuple<T, R>> and(Supplier<Option<R>> other);
 	}
 
 	private interface F1R<T0, R> {
@@ -208,6 +216,8 @@ public class Main {
 
 	private interface JType {
 		String stringify();
+
+		JType replace(Map<String, JType> mappings);
 	}
 
 	private interface JAssignable {}
@@ -238,10 +248,6 @@ public class Main {
 
 	private interface JObjectMember {}
 
-	private interface F1<T> {
-		void apply(T element);
-	}
-
 	@Actual
 	private record JavaIOError(IOException e) implements IOError {
 		@Override
@@ -270,6 +276,13 @@ public class Main {
 		@Override
 		public String toString() {
 			return this.list.iter().map(String::valueOf).collect(new Joiner());
+		}
+	}
+
+	private record ZipHead<T, R>(Head<T> leftHead, Head<R> rightHead) implements Head<Tuple<T, R>> {
+		@Override
+		public Option<Tuple<T, R>> next() {
+			return this.leftHead.next().and(this.rightHead::next);
 		}
 	}
 
@@ -320,14 +333,9 @@ public class Main {
 			return this.head.next();
 		}
 
-		public void forEach(F1<T> consumer) {
-			while (true) {
-				final var next = this.head.next();
-				if (next instanceof Some<T>(var next0)) consumer.apply(next0);
-				else break;
-			}
+		public <R> Iter<Tuple<T, R>> zip(Iter<R> other) {
+			return new Iter<Tuple<T, R>>(new ZipHead<T, R>(this.head, other.head));
 		}
-
 	}
 
 	private static final class RangeHead implements Head<Integer> {
@@ -643,6 +651,11 @@ public class Main {
 		}
 
 		@Override
+		public JType replace(Map<String, JType> mappings) {
+			return mappings.get(this.value).orElse(this);
+		}
+
+		@Override
 		public String getName() {
 			return this.value;
 		}
@@ -685,6 +698,11 @@ public class Main {
 		public String stringify() {
 			return wrap(this.input);
 		}
+
+		@Override
+		public JType replace(Map<String, JType> mappings) {
+			return this;
+		}
 	}
 
 	private record JConstructor(String type) implements JMethodDeclaration {}
@@ -724,6 +742,14 @@ public class Main {
 
 		public JDeclaration withType(JType type) {
 			return new JDeclaration(this.annotations, this.typeParameters, this.maybeBeforeType, type, this.name);
+		}
+
+		public JDeclaration mapType(F1R<JType, JType> mapper) {
+			return new JDeclaration(this.annotations,
+															this.typeParameters,
+															this.maybeBeforeType,
+															mapper.apply(this.type),
+															this.name);
 		}
 	}
 
@@ -874,6 +900,11 @@ public class Main {
 		public Tuple<Boolean, T> toTuple(FR<T> other) {
 			return new Tuple<Boolean, T>(true, this.value);
 		}
+
+		@Override
+		public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
+			return other.get().map((R otherValue) -> new Tuple<T, R>(this.value, otherValue));
+		}
 	}
 
 	private static final class None<T> implements Option<T> {
@@ -910,6 +941,11 @@ public class Main {
 		@Override
 		public Tuple<Boolean, T> toTuple(FR<T> other) {
 			return new Tuple<Boolean, T>(false, other.apply());
+		}
+
+		@Override
+		public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
+			return new None<Tuple<T, R>>();
 		}
 	}
 
@@ -1125,6 +1161,11 @@ public class Main {
 		public String stringify() {
 			return this.type.stringify() + "_array";
 		}
+
+		@Override
+		public JType replace(Map<String, JType> mappings) {
+			return new JFunctionalType(this.type.replace(mappings));
+		}
 	}
 
 	private record JGenericType(String base, List<JType> typeArguments) implements JType {
@@ -1134,6 +1175,13 @@ public class Main {
 			final var joined =
 					this.typeArguments.iter().map(JType::stringify).map((String slice) -> "_" + slice).collect(new Joiner());
 			return this.base + joined;
+		}
+
+		@Override
+		public JType replace(Map<String, JType> mappings) {
+			final var newTypeArguments =
+					this.typeArguments.iter().map((JType typeArgument) -> typeArgument.replace(mappings)).toList();
+			return new JGenericType(this.base, newTypeArguments);
 		}
 	}
 
@@ -1175,6 +1223,14 @@ public class Main {
 			final var joined =
 					this.parameterTypes.iter().map(JType::stringify).map((String slice) -> "_" + slice).collect(new Joiner());
 			return "func_" + this.returnType.stringify() + joined;
+		}
+
+		@Override
+		public JType replace(Map<String, JType> mappings) {
+			return new JFunctionalType(this.parameterTypes
+																		 .iter()
+																		 .map((JType parameterType) -> parameterType.replace(mappings))
+																		 .toList(), this.returnType.replace(mappings));
 		}
 	}
 
@@ -1261,7 +1317,10 @@ public class Main {
 		}
 
 		public Option<JObjectType> toObjectType() {
-			return this.maybeObject.map((JObject obj) -> new JObjectType(obj.name, obj.variants, this.definedExpressions));
+			return this.maybeObject.map((JObject obj) -> new JObjectType(obj.name,
+																																	 obj.variants,
+																																	 this.definedExpressions,
+																																	 obj.typeParameters));
 		}
 
 		public Frame withObject(JObject name) {
@@ -1277,7 +1336,8 @@ public class Main {
 		}
 	}
 
-	private record JObjectType(String name, List<String> variants, List<JDeclaration> members) implements JType {
+	private record JObjectType(String name, List<String> variants, List<JDeclaration> members,
+														 List<String> typeParameters) implements JType {
 		private Option<JType> resolve(String name) {
 			return this.members
 					.iter()
@@ -1289,6 +1349,28 @@ public class Main {
 		@Override
 		public String stringify() {
 			return this.name;
+		}
+
+		@Override
+		public JType replace(Map<String, JType> mappings) {
+			final var newMembers = this.members
+					.iter()
+					.map((JDeclaration member) -> member.mapType((JType type) -> type.replace(mappings)))
+					.toList();
+
+			return new JObjectType(this.name, this.variants, newMembers, this.typeParameters);
+		}
+
+		public JObjectType specialize(List<JType> typeArguments) {
+			final var mappings =
+					this.typeParameters.iter().zip(typeArguments.iter()).collect(new MapCollector<String, JType>());
+
+			final var newMembers = this.members
+					.iter()
+					.map((JDeclaration declaration) -> declaration.mapType((JType type) -> type.replace(mappings)))
+					.toList();
+
+			return new JObjectType(this.name, this.variants, newMembers, Lists.empty());
 		}
 	}
 
@@ -1313,6 +1395,13 @@ public class Main {
 		@Override
 		public String stringify() {
 			return this.maybeInternal.map(JType::stringify).orElse("?");
+		}
+
+		@Override
+		public JType replace(Map<String, JType> mappings) {
+			final var jRecursiveType = new JRecursiveType();
+			jRecursiveType.maybeInternal = this.maybeInternal.map((JType type) -> type.replace(mappings));
+			return jRecursiveType;
 		}
 	}
 
@@ -1427,10 +1516,14 @@ public class Main {
 		}
 
 		public JObjectType toType() {
-			final var memberDefinitions =
-					this.children.iter().map(this::extractDefinition).flatMap(Option::iter).toList().addAllLast(this.recordFields);
+			final var memberDefinitions = this.children
+					.iter()
+					.map(this::extractDefinition)
+					.flatMap(Option::iter)
+					.toList()
+					.addAllLast(this.recordFields);
 
-			return new JObjectType(this.name, this.variants, memberDefinitions);
+			return new JObjectType(this.name, this.variants, memberDefinitions, this.typeParameters);
 		}
 
 		private Option<JDeclaration> extractDefinition(JObjectMember child) {
@@ -1609,10 +1702,7 @@ public class Main {
 
 	private record JQuantity(JExpression instance) implements JExpression {}
 
-	private static class AllMatch<T> implements Collector<T, Boolean> {
-		private final F1R<T, Boolean> predicate;
-
-		public AllMatch(F1R<T, Boolean> predicate) {this.predicate = predicate;}
+	private record AllMatch<T>(F1R<T, Boolean> predicate) implements Collector<T, Boolean> {
 
 		@Override
 		public Boolean createInitial() {
@@ -1659,7 +1749,7 @@ public class Main {
 					.addLast(new JDeclaration("substring", new JFunctionalType(StringType)))
 					.addLast(new JDeclaration("replace", new JFunctionalType(StringType)));
 
-			return new JObjectType("String", Lists.empty(), methods);
+			return new JObjectType("String", Lists.empty(), methods, Lists.empty());
 		});
 	}
 
@@ -1788,8 +1878,8 @@ public class Main {
 																								jOperator.operator,
 																								this.transformExpression(jOperator.rightCompiled));
 			case StringNode stringNode -> stringNode;
-			case JMethodAccess access -> new Identifier("??? access ???");
-			case JInstanceOf instance -> new Identifier("??? instanceof ???");
+			case JMethodAccess _ -> new Identifier("??? access ???");
+			case JInstanceOf _ -> new Identifier("??? instanceof ???");
 			case JQuantity quantity -> new CQuantity(this.transformExpression(quantity.instance));
 			default -> throw new IllegalStateException("Unexpected value: " + expression);
 		};
@@ -1903,7 +1993,7 @@ public class Main {
 	}
 
 	private Tuple<List<String>, Map<String, List<String>>> getListMapTuple(Tuple<List<String>,
-	 Map<String, List<String>>> listMapTuple,
+																																						 Map<String, List<String>>> listMapTuple,
 																																				 String cleanedDependencyMapKeyToRemove) {
 		final var left = listMapTuple.left;
 		final var right = listMapTuple.right;
@@ -2054,18 +2144,10 @@ public class Main {
 		}
 
 		// TODO: generate conversion methods
-		List<CType> extensions = Lists.empty();
+		// List<CType> extensions = Lists.empty();
 		final var extendsIndex = beforeContent.indexOf("extends ");
-		if (extendsIndex >= 0) {
-			final var extensionsString = beforeContent.substring(extendsIndex + "extends ".length());
-			beforeContent = beforeContent.substring(0, extendsIndex).strip();/*
-			extensions = this
-					.divide(extensionsString, new ValueFolder())
-					.map(String::strip)
-					.filter(slice -> !slice.isEmpty())
-					.map(input -> transformType(this.parseType(input)))
-					.toList();*/
-		}
+		// final var extensionsString = beforeContent.substring(extendsIndex + "extends ".length());
+		if (extendsIndex >= 0) beforeContent = beforeContent.substring(0, extendsIndex).strip();
 
 		List<CType> implementees = Lists.empty();
 		final var i4 = beforeContent.indexOf("implements ");
@@ -2757,17 +2839,15 @@ public class Main {
 
 		final var maybeFound = environment.resolveExpression(value).map(JDeclaration::type);
 		if (maybeFound instanceof Some<JType>(var found)) return found;
-
 		if (environment.resolveType(value) instanceof Some<JObjectType>(var resolved)) return resolved;
-
 		return new Placeholder("Undefined identifier: " + value);
 	}
 
 	private JType cleanupType(JType found) {
-		if (found instanceof JGenericType genericType) {
-			final var resolved = environment.resolveType(genericType.base);
-			if (resolved instanceof Some<JObjectType>(var objType)) return objType;
-			else return new Placeholder("Generic type '" + genericType.base + "' has not been defined");
+		if (found instanceof JGenericType(var base, var typeArguments)) {
+			final var resolved = environment.resolveType(base);
+			if (resolved instanceof Some<JObjectType>(var objType)) return objType.specialize(typeArguments);
+			else return new Placeholder("Generic type '" + base + "' has not been defined");
 		}
 
 		return found;
@@ -2848,12 +2928,8 @@ public class Main {
 		final var i3 = stripped.indexOf("instanceof");
 		if (i3 >= 0) {
 			final var substring = stripped.substring(0, i3);
-			final var substring1 = stripped.substring(i3 + "instanceof".length()).strip();
 			final var maybeInstance = this.parseCExpression(substring).map(CExpression::generate);
-			if (maybeInstance instanceof Some<String>) {
-				final var i4 = substring1.indexOf("<");
-				return new Some<JExpression>(new JInstanceOf());
-			}
+			if (maybeInstance instanceof Some<String>) return new Some<JExpression>(new JInstanceOf());
 		}
 
 		final var maybeOperator = this
