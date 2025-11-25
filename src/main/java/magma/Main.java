@@ -52,7 +52,7 @@ public class Main {
 	}
 
 	private enum Operator {
-		Equals("!=", JPrimitiveType.Boolean), NotEquals("!=", JPrimitiveType.Boolean),
+		Equals("==", JPrimitiveType.Boolean), NotEquals("!=", JPrimitiveType.Boolean),
 		LessThan("<", JPrimitiveType.Boolean), Add("+", JPrimitiveType.Int), Subtract("-", JPrimitiveType.Int),
 		And("&&", JPrimitiveType.Boolean), Or("||", JPrimitiveType.Boolean),
 		GreaterThanOrEquals(">=", JPrimitiveType.Boolean);
@@ -1015,7 +1015,6 @@ public class Main {
 
 	@Actual
 	private record JavaPath(java.nio.file.Path path) implements Path {
-
 		@Override
 		public Option<Path> getParent() {
 			final var parent = this.path.getParent();
@@ -1511,6 +1510,10 @@ public class Main {
 		}
 	}
 
+	private record JMethodAccess(JExpression instance, String methodName) implements JExpression {}
+
+	private record JInstanceOf() implements JExpression {}
+
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
 		final var methods = Lists
@@ -1657,6 +1660,8 @@ public class Main {
 																								jOperator.operator,
 																								this.transformExpression(jOperator.rightCompiled));
 			case StringNode stringNode -> stringNode;
+			case JMethodAccess access -> new Identifier("???");
+			case JInstanceOf instance -> new Identifier("???");
 			default -> throw new IllegalStateException("Unexpected value: " + expression);
 		};
 	}
@@ -1911,13 +1916,13 @@ public class Main {
 		final var extendsIndex = beforeContent.indexOf("extends ");
 		if (extendsIndex >= 0) {
 			final var extensionsString = beforeContent.substring(extendsIndex + "extends ".length());
-			beforeContent = beforeContent.substring(0, extendsIndex).strip();
+			beforeContent = beforeContent.substring(0, extendsIndex).strip();/*
 			extensions = this
 					.divide(extensionsString, new ValueFolder())
 					.map(String::strip)
 					.filter(slice -> !slice.isEmpty())
 					.map(input -> transformType(this.parseType(input)))
-					.toList();
+					.toList();*/
 		}
 
 		List<CType> implementees = Lists.empty();
@@ -2246,8 +2251,7 @@ public class Main {
 		return switch (member) {
 			case CField(var declaration) -> new Some<CDefinable>(declaration);
 			case CFunctionDeclaration functionDeclaration -> new Some<CDefinable>(functionDeclaration);
-			case EmptyStructMember emptyStructMember -> new None<CDefinable>();
-			case Placeholder placeholder -> new None<CDefinable>();
+			case EmptyStructMember _, Placeholder _ -> new None<CDefinable>();
 		};
 	}
 
@@ -2580,9 +2584,9 @@ public class Main {
 			case JNumber _ -> JPrimitiveType.Int;
 			case JNot _ -> JPrimitiveType.Boolean;
 			case Placeholder placeholder -> placeholder;
-			case Char aChar -> JPrimitiveType.Char;
+			case Char _ -> JPrimitiveType.Char;
 			case JOperator jOperator -> jOperator.operator.getType();
-			case StringNode stringNode -> StringType;
+			case StringNode _ -> StringType;
 			default -> throw new IllegalStateException("Unexpected value: " + source);
 		};
 	}
@@ -2661,11 +2665,11 @@ public class Main {
 		final var i2 = stripped.lastIndexOf("::");
 		if (i2 >= 0) {
 			final var substring = stripped.substring(0, i2);
-			final var name = stripped.substring(i2 + 2).strip();
-			if (Identifier.isIdentifier(name)) {
-				final var compiled = this.compileExpressionOrPlaceholder(substring);
-
-				return new Some<JExpression>(new Placeholder("Convert method references to a closure"));
+			final var methodName = stripped.substring(i2 + 2).strip();
+			if (Identifier.isIdentifier(methodName)) {
+				final var maybeInstance = this.parseExpression(substring);
+				if (maybeInstance instanceof Some<JExpression>(var instance))
+					return new Some<JExpression>(new JMethodAccess(instance, methodName));
 			}
 		}
 
@@ -2679,20 +2683,9 @@ public class Main {
 			final var substring = stripped.substring(0, i3);
 			final var substring1 = stripped.substring(i3 + "instanceof".length()).strip();
 			final var maybeInstance = this.parseCExpression(substring).map(CExpression::generate);
-			if (maybeInstance instanceof Some<String>(var instance)) {
+			if (maybeInstance instanceof Some<String>) {
 				final var i4 = substring1.indexOf("<");
-				return new Some<JExpression>(new Placeholder(input));
-			}
-		}
-
-		final var i = stripped.lastIndexOf(".");
-		if (i >= 0) {
-			final var instanceString = stripped.substring(0, i);
-			final var memberName = stripped.substring(i + 1).strip();
-			if (Identifier.isIdentifier(memberName)) {
-				final var maybeInstance = this.parseExpression(instanceString);
-				if (maybeInstance instanceof Some(var value))
-					return new Some<JExpression>(new JMemberAccess(value, memberName));
+				return new Some<JExpression>(new JInstanceOf());
 			}
 		}
 
@@ -2708,6 +2701,17 @@ public class Main {
 				.or(() -> this.compileOperator(stripped, Operator.And))
 				.or(() -> this.compileOperator(stripped, Operator.Or))
 				.or(() -> this.compileOperator(stripped, Operator.GreaterThanOrEquals));
+
+		final var i = stripped.lastIndexOf(".");
+		if (i >= 0) {
+			final var instanceString = stripped.substring(0, i);
+			final var memberName = stripped.substring(i + 1).strip();
+			if (Identifier.isIdentifier(memberName)) {
+				final var maybeInstance = this.parseExpression(instanceString);
+				if (maybeInstance instanceof Some(var value))
+					return new Some<JExpression>(new JMemberAccess(value, memberName));
+			}
+		}
 
 		if (maybeOperator instanceof Some<JExpression>) return maybeOperator;
 		if (Identifier.isIdentifier(stripped)) return new Some<JExpression>(new Identifier(stripped));
@@ -2773,8 +2777,6 @@ public class Main {
 	}
 
 	private Option<JExpression> compileOperator(String input, Operator operator) {
-		if (input.length() < 3) return new None<JExpression>();
-
 		final var operatorValue = operator.value;
 		if (!input.contains(operatorValue)) return new None<JExpression>();
 
@@ -2858,14 +2860,14 @@ public class Main {
 
 	private Option<JCaller> parseCaller(String input) {
 		final var stripped = input.strip();
-		final var maybeExpression = this.parseExpression(stripped);
-		if (maybeExpression instanceof Some<JExpression>(var expression)) return new Some<JCaller>(expression);
-
 		if (stripped.startsWith("new ")) {
 			final var type = stripped.substring("new ".length());
 			final var jType = this.parseType(type);
 			return new Some<JCaller>(new JConstruction(jType));
 		}
+
+		final var maybeExpression = this.parseExpression(stripped);
+		if (maybeExpression instanceof Some<JExpression>(var expression)) return new Some<JCaller>(expression);
 
 		return new None<JCaller>();
 	}
