@@ -1912,9 +1912,9 @@ public class Main {
 	}
 
 	private Option<IOError> run() {
-		final var source = Paths.get(".").resolve("src").resolve("main").resolve("java").resolve("magma").resolve("java");
+		final var source = Paths.get(".").resolve("src").resolve("main").resolve("java").resolve("magma").resolve("Main.java");
 		final var target = Paths.get(".").resolve("src").resolve("main").resolve("windows").resolve("magma").resolve(
-				"cpp");
+				"Main.cpp");
 
 		final var input = source.readString().mapValue(this::compile);
 

@@ -2466,7 +2466,7 @@ CStructMember toCStructMember_CField(void* _ref){
 }
 char* generate_CField(void* _ref){
 	CField* _this = (CField*) _ref;
-	return generateStatement_/*Undefined identifier: Main*/(&(Main), 1, generate_CDefinable(&(_this->declaration)));
+	return generateStatement(1, generate_CDefinable(&(_this->declaration)));
 }
 CField new_CField(CDefinable declaration){
 	CField _thisInstance;
@@ -3113,11 +3113,11 @@ List<CFunction> createConversionFunctions_JObject(void* _ref, Environment enviro
 }
 CFunction createConversionType_JObject(void* _ref, CType implementee, Environment environment){
 	JObject* _this = (JObject*) _ref;
-	/*Not a functional type: Placeholder[input=Cannot access member 'joinTypeParameters' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ joinedTypeParameters = joinTypeParameters_/*Undefined identifier: Main*/(&(Main), _this->typeParameters);
+	char* joinedTypeParameters = joinTypeParameters(_this->typeParameters);
 	// TODO: turn this into proper AST generation
 	char* implementeeName = toBaseName_CType(&(implementee));
 	int thisType = _this->name + joinedTypeParameters;
-	/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ thisPtr = generateStatement_/*Undefined identifier: Main*/(&(Main), thisType + "* _this = (" + thisType + "*) _ref");
+	char* thisPtr = generateStatement(thisType + "* _this = (" + thisType + "*) _ref");
 	JObjectType jObjectType = orElse_Option(&(resolveType_Environment(&(environment), implementeeName)), null);
 	/*assert jObjectType !*/ = null;
 	char* content;
@@ -3128,11 +3128,11 @@ CFunction createConversionType_JObject(void* _ref, CType implementee, Environmen
 				void *data = moveToHeap(*_this);
 				return Head<int>{ data, table };
 				 end
-			if (jObjectType.variants.isEmpty()) content = Main.generateStatement("return _impl")*/;
+			if (jObjectType.variants.isEmpty()) content = generateStatement("return _impl")*/;
 	else {
-		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ s1 = generateStatement_/*Undefined identifier: Main*/(&(Main), implementeeName + "Data" + joinedTypeParameters + " data");
-		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ s2 = generateStatement_/*Undefined identifier: Main*/(&(Main), "data." + _this->name + " = *_this");
-		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ s3 = generateStatement_/*Undefined identifier: Main*/(&(Main), "return { " + implementeeName + "Tag::" + _this->name + "Variant, data }");
+		char* s1 = generateStatement(implementeeName + "Data" + joinedTypeParameters + " data");
+		char* s2 = generateStatement("data." + _this->name + " = *_this");
+		char* s3 = generateStatement("return { " + implementeeName + "Tag::" + _this->name + "Variant, data }");
 		content = s1 + s2 + s3;
 	}
 	int conversionFunctionName = "to" + implementeeName + "_" + _this->name;
@@ -4104,11 +4104,11 @@ char* computeMethodBody_Main(void* _ref, List<char*> typeParameters, JMethodDecl
 	Main* _this = (Main*) _ref;
 	if (??? instanceof ???) {
 		char* compiled = orElse_Option(&(maybeContent), "?");
-		return generateStatement_/*Undefined identifier: Main*/(&(Main), structName + " _thisInstance") + generateStatement(structName + "* _this = &_thisInstance") + compiled + generateStatement_/*Undefined identifier: Main*/(&(Main), "return " + "_thisInstance");
+		return generateStatement(structName + " _thisInstance") + generateStatement(structName + "* _this = &_thisInstance") + compiled + generateStatement("return " + "_thisInstance");
 	}
 	if (??? instanceof ???) {
-		/*Not a functional type: Placeholder[input=Cannot access member 'joinTypeParameters' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ joinedTypeParameters = joinTypeParameters_/*Undefined identifier: Main*/(&(Main), typeParameters);
-		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ thisInitialization = generateStatement_/*Undefined identifier: Main*/(&(Main), structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
+		char* joinedTypeParameters = joinTypeParameters(typeParameters);
+		char* thisInitialization = generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 		char* body = orElseGet_Option(&(maybeContent), lambda62);
 		return thisInitialization + body;
 	}
@@ -4121,12 +4121,12 @@ char* createBodyForAbstractMethod_Main(void* _ref, List<char*> variants, CType t
 	Main* _this = (Main*) _ref;
 	if (isEmpty_List(&(variants))) {
 		/*Identifier 'C' has not been defined*/ joinedParameters = collect_Iter(&(iter_List(&(addFirst_List(&(parameterNames), "_this->data")))), new_Joiner(", "));
-		return generateStatement_/*Undefined identifier: Main*/(&(Main), "return _this->table." + name + "(" + joinedParameters + ")");
+		return generateStatement("return _this->table." + name + "(" + joinedParameters + ")");
 	}
 	else {
-		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ returnValueDefinition = generateStatement_/*Undefined identifier: Main*/(&(Main), generate_CType(&(type)) + " _ret");
+		char* returnValueDefinition = generateStatement(generate_CType(&(type)) + " _ret");
 		/*Identifier 'C' has not been defined*/ cases = collect_Iter(&(map_Iter(&(iter_List(&(variants))), lambda63)), new_Joiner());
-		return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases + generateIndent(1) + "}" + generateStatement_/*Undefined identifier: Main*/(&(Main), "return _ret");
+		return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases + generateIndent(1) + "}" + generateStatement("return _ret");
 	}
 }
 List lambda64(void* _ref, List<char*> typeParameters0){
@@ -4530,9 +4530,9 @@ todoLambda lambda85(void* _ref, Environment env){
 		jTypeStringTuple = new_Tuple(returnType1, output1);
 	}
 	else {
-		/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/ jExpressionOption = parseExpression_/*Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.*/(&(Main.this), maybeWithBraces);
-		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ output1 = generateStatement_/*Undefined identifier: Main*/(&(Main), "return " + orElseGet_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/(&(jExpressionOption), ??? access ???)), ??? access ???)), lambda83));
-		/*Not a functional type: Placeholder[input=Cannot access member 'orElseGet' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]]', not an object.]*/ returnType1 = orElseGet_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/(&(jExpressionOption), ??? access ???)), lambda84);
+		Option jExpressionOption = parseExpression_Main(&((*_this)), maybeWithBraces);
+		char* output1 = generateStatement("return " + orElseGet_Option(&(map_Option(&(map_Option(&(jExpressionOption), ??? access ???)), ??? access ???)), lambda83));
+		/*Identifier 'R' has not been defined*/ returnType1 = orElseGet_Option(&(map_Option(&(jExpressionOption), ??? access ???)), lambda84);
 		jTypeStringTuple = new_Tuple(returnType1, output1);
 	}
 	return new_Tuple(defined, jTypeStringTuple);
