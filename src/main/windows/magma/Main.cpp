@@ -2206,7 +2206,7 @@ Folder toFolder_EscapedFolder(void* _ref){
 }
 /*???*/ lambda6(void* _ref, Tuple<State, char> tuple){
 	if (tuple.right == '\\') 
-		return orElse_/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Cannot access member 'left' in 'Placeholder[input=Undefined identifier: tuple]', not an object.]', not an object.]*/(&(popAndAppendToOption_/*Cannot access member 'left' in 'Placeholder[input=Undefined identifier: tuple]', not an object.*/(&(tuple.left))), tuple.left);
+		return orElse_/*Not a functional type: Placeholder[input=Cannot access member 'popAndAppendToOption' in 'Placeholder[input=Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]']', not an object.]*/(&(popAndAppendToOption_/*Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/(&(tuple.left))), tuple.left);
 	return tuple.left;
 }
 State apply_EscapedFolder(void* _ref, State state, char next){
@@ -3532,11 +3532,11 @@ char* compile_Main(void* _ref, char* input){
 	return "#include \"intrinsics.h\"" + lineSeparator_/*Undefined identifier: System*/(&(System)) + joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedFunctionDeclarations + joinedGlobals + joinedFunctions + all;
 }
 /*???*/ lambda31(void* _ref, CStructureOrUnion value){
-	List withoutDuplicates = removeDuplicates_Main(&((*_this)), findDependencies_/*Undefined identifier: value*/(&(value)));
-	return new_Tuple(findName_/*Undefined identifier: value*/(&(value)), withoutDuplicates);
+	List withoutDuplicates = removeDuplicates_Main(&((*_this)), findDependencies_CStructureOrUnion(&(value)));
+	return new_Tuple(findName_CStructureOrUnion(&(value)), withoutDuplicates);
 }
 /*???*/ lambda32(void* _ref, Tuple<char*, List<char*>> entry){
-	/*Cannot access member 'left' in 'Placeholder[input=Undefined identifier: entry]', not an object.*/ oldKey = entry.left;
+	/*Member 'left' not defined in 'JObjectType[name=Tuple, variants=[], members=[]]'*/ oldKey = entry.left;
 	List newValues = trimDependencies_Main(&((*_this)), entry, dependencyMap, oldKey);
 	return new_Tuple(oldKey, newValues);
 }
@@ -3592,9 +3592,9 @@ List<char*> trimDependencies_Main(void* _ref, Tuple<char*, List<char*>> entry, M
 	return newValues;
 }
 /*???*/ lambda36(void* _ref, List<char*> copy, char* element){
-	if (contains_/*Undefined identifier: copy*/(&(copy), element)) 
+	if (contains_List(&(copy), element)) 
 		return copy;
-	return addLast_/*Undefined identifier: copy*/(&(copy), element);
+	return addLast_List(&(copy), element);
 }
 List<char*> removeDuplicates_Main(void* _ref, List<char*> list){
 	Main* _this = (Main*) _ref;
@@ -3772,7 +3772,7 @@ Option lambda42(void* _ref, JObjectMember wrapper){
 	return transformObjectMemberPrototype_Main(&((*_this)), object, wrapper);
 }
 /*???*/ lambda43(void* _ref, Environment env){
-	environment = withObject_/*Undefined identifier: env*/(&(env), object);
+	environment = withObject_Environment(&(env), object);
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ types = toList_/*Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(flatMap_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]*/(&(iter_/*Cannot access member 'children' in 'Identifier[value=JObject]', not an object.*/(&(object.children))), ??? access ???)), ??? access ???)));
 	/*Not a functional type: Placeholder[input=Cannot access member 'addAllLast' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ declarations = addAllLast_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/(&(toList_/*Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(flatMap_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Cannot access member 'children' in 'Identifier[value=JObject]', not an object.]', not an object.]*/(&(iter_/*Cannot access member 'children' in 'Identifier[value=JObject]', not an object.*/(&(object.children))), ??? access ???)), ??? access ???)))), object.recordFields);
 	environment = defineAllTypes_/*Undefined identifier: environment*/(&(environment), types);
@@ -3870,8 +3870,8 @@ Tuple lambda47(void* _ref, Environment value){
 	return new_Tuple(value, compileMethodsSegments_Main(&((*_this)), inputContent, 1));
 }
 /*???*/ lambda48(void* _ref, Environment env){
-	/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Placeholder[input=Undefined identifier: env]', not an object.]*/ self = defineAllExpressions_/*Undefined identifier: env*/(&(env), parameters_JMethod(&(jFunctionProto)));
-	return within_/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Placeholder[input=Undefined identifier: env]', not an object.]*/(&(self), lambda47);
+	/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Identifier[value=Environment]', not an object.]*/ self = defineAllExpressions_Environment(&(env), parameters_JMethod(&(jFunctionProto)));
+	return within_/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Identifier[value=Environment]', not an object.]*/(&(self), lambda47);
 }
 CStructMember completeMethodProto_Main(void* _ref, JMethod jFunctionProto, JObject object){
 	Main* _this = (Main*) _ref;
@@ -4402,11 +4402,21 @@ char* lambda75(void* _ref){
 	return wrap_Placeholder(&(Placeholder), maybeWithBraces);
 }
 /*???*/ lambda76(void* _ref, Environment env){
-	/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Placeholder[input=Undefined identifier: env]', not an object.]*/ defined = defineAllExpressions_/*Undefined identifier: env*/(&(env), params);
-	/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/ jExpressionOption = parseExpression_/*Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.*/(&(Main.this), maybeWithBraces);
-	/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ output1 = generateStatement_/*Undefined identifier: Main*/(&(Main), "return " + orElseGet_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/(&(jExpressionOption), ??? access ???)), ??? access ???)), lambda75));
-	/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]]', not an object.]*/ returnType1 = orElse_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/(&(jExpressionOption), ??? access ???)), new_Placeholder("???"));
-	return new_Tuple(defined, new_Tuple(returnType1, output1));
+	/*Not a functional type: Placeholder[input=Cannot access member 'defineAllExpressions' in 'Identifier[value=Environment]', not an object.]*/ defined = defineAllExpressions_Environment(&(env), params);
+	Tuple<JType, char*> jTypeStringTuple;
+	if (startsWith_String(&(maybeWithBraces), "{") && endsWith_String(&(maybeWithBraces), "}")) {
+		char* content = substring_String(&(maybeWithBraces), 1, length_String(&(maybeWithBraces)) - 1);
+		char* output1 = compileMethodsSegments_Main(&((*_this)), content, 1);
+		Placeholder returnType1 = new_Placeholder("???");
+		jTypeStringTuple = new_Tuple(returnType1, output1);
+	}
+	else {
+		/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/ jExpressionOption = parseExpression_/*Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.*/(&(Main.this), maybeWithBraces);
+		/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ output1 = generateStatement_/*Undefined identifier: Main*/(&(Main), "return " + orElseGet_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/(&(jExpressionOption), ??? access ???)), ??? access ???)), lambda75));
+		/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]]', not an object.]*/ returnType1 = orElse_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'parseExpression' in 'Placeholder[input=Cannot access member 'this' in 'Placeholder[input=Undefined identifier: Main]', not an object.]', not an object.]*/(&(jExpressionOption), ??? access ???)), new_Placeholder("???"));
+		jTypeStringTuple = new_Tuple(returnType1, output1);
+	}
+	return new_Tuple(defined, jTypeStringTuple);
 }
 Option<JExpression> compileLambda_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
@@ -4419,20 +4429,11 @@ Option<JExpression> compileLambda_Main(void* _ref, char* input){
 	if (!(??? instanceof ???)) 
 		return new_None();
 	/*Not a functional type: Placeholder[input=Cannot access member 'addFirst' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ paramList = addFirst_/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]]', not an object.]*/(&(toList_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Undefined identifier: params]', not an object.]*/(&(iter_/*Undefined identifier: params*/(&(params))), ??? access ???)))), new_CDeclaration(new_CPointerType(CPrimitiveType.Void), "_ref"));
-	char* output;
-	JType returnType;
-	if (startsWith_String(&(maybeWithBraces), "{") && endsWith_String(&(maybeWithBraces), "}")) {
-		char* content = substring_String(&(maybeWithBraces), 1, length_String(&(maybeWithBraces)) - 1);
-		output = compileMethodsSegments_Main(&((*_this)), content, 1);
-		returnType = new_Placeholder("???");
-	}
-	else {
-		/*Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]*/ within = within_/*Undefined identifier: environment*/(&(environment), lambda76);
-		environment = within.left;
-		/*Cannot access member 'right' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]]', not an object.*/ right = within.right;
-		returnType = right.left;
-		output = right.right;
-	}
+	/*Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]*/ within = within_/*Undefined identifier: environment*/(&(environment), lambda76);
+	environment = within.left;
+	/*Cannot access member 'right' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]]', not an object.*/ right = within.right;
+	/*Cannot access member 'left' in 'Placeholder[input=Cannot access member 'right' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]]', not an object.]', not an object.*/ returnType = right.left;
+	/*Cannot access member 'right' in 'Placeholder[input=Cannot access member 'right' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'within' in 'Placeholder[input=Undefined identifier: environment]', not an object.]]', not an object.]', not an object.*/ output = right.right;
 	char* generatedName = generateName_Main(&((*_this)));
 	CDeclaration definition = new_CDeclaration(transformType_Main(&((*_this)), returnType), generatedName);
 	CFunctionHeader header = new_CFunctionHeader(definition, paramList);

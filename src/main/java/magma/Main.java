@@ -1901,7 +1901,7 @@ public class Main {
 	}
 
 	private Tuple<List<String>, Map<String, List<String>>> getListMapTuple(Tuple<List<String>,
-																																						 Map<String, List<String>>> listMapTuple,
+			Map<String, List<String>>> listMapTuple,
 																																				 String cleanedDependencyMapKeyToRemove) {
 		final var left = listMapTuple.left;
 		final var right = listMapTuple.right;
@@ -2911,15 +2911,16 @@ public class Main {
 				.toList()
 				.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 
-		final String output;
-		JType returnType;
-		if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
-			final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
-			output = this.compileMethodsSegments(content, 1);
-			returnType = new Placeholder("???");
-		} else {
-			final var within = environment.within((Environment env) -> {
-				final var defined = env.defineAllExpressions(params);
+		final var within = environment.within((Environment env) -> {
+			final var defined = env.defineAllExpressions(params);
+
+			final Tuple<JType, String> jTypeStringTuple;
+			if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
+				final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
+				final var output1 = this.compileMethodsSegments(content, 1);
+				var returnType1 = new Placeholder("???");
+				jTypeStringTuple = new Tuple<JType, String>(returnType1, output1);
+			} else {
 				final var jExpressionOption = Main.this.parseExpression(maybeWithBraces);
 
 				var output1 = Main.generateStatement("return " + jExpressionOption
@@ -2928,15 +2929,16 @@ public class Main {
 						.orElseGet(() -> Placeholder.wrap(maybeWithBraces)));
 
 				var returnType1 = jExpressionOption.map(Main.this::resolveExpression).orElse(new Placeholder("???"));
-				return new Tuple<Environment, Tuple<JType, String>>(defined, new Tuple<JType, String>(returnType1, output1));
-			});
+				jTypeStringTuple = new Tuple<JType, String>(returnType1, output1);
+			}
 
-			environment = within.left;
+			return new Tuple<Environment, Tuple<JType, String>>(defined, jTypeStringTuple);
+		});
 
-			final var right = within.right;
-			returnType = right.left;
-			output = right.right;
-		}
+		environment = within.left;
+		final var right = within.right;
+		final var returnType = right.left;
+		final var output = right.right;
 
 		final var generatedName = this.generateName();
 		final var definition = new CDeclaration(this.transformType(returnType), generatedName);
