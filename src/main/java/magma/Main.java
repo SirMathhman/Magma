@@ -967,7 +967,7 @@ public class Main {
 	private record CField(CDefinable declaration) implements CStructMember {
 		@Override
 		public String generate() {
-			return Main.generateStatement(1, this.declaration.generate());
+			return generateStatement(1, this.declaration.generate());
 		}
 	}
 
@@ -1479,12 +1479,12 @@ public class Main {
 
 		// TODO: This return type needs to be a CFunction
 		private CFunction createConversionType(CType implementee, Environment environment) {
-			var joinedTypeParameters = Main.joinTypeParameters(this.typeParameters);
+			var joinedTypeParameters = joinTypeParameters(this.typeParameters);
 			// TODO: turn this into proper AST generation
 
 			final var implementeeName = implementee.toBaseName();
 			final var thisType = this.name + joinedTypeParameters;
-			final var thisPtr = Main.generateStatement(thisType + "* _this = (" + thisType + "*) _ref");
+			final var thisPtr = generateStatement(thisType + "* _this = (" + thisType + "*) _ref");
 
 			final var jObjectType = environment.resolveType(implementeeName).orElse(null);
 			assert jObjectType != null;
@@ -1497,11 +1497,11 @@ public class Main {
 				void *data = moveToHeap(*_this);
 				return Head<int>{ data, table };
 				 */
-			if (jObjectType.variants.isEmpty()) content = Main.generateStatement("return _impl");
+			if (jObjectType.variants.isEmpty()) content = generateStatement("return _impl");
 			else {
-				final var s1 = Main.generateStatement(implementeeName + "Data" + joinedTypeParameters + " data");
-				final var s2 = Main.generateStatement("data." + this.name + " = *_this");
-				final var s3 = Main.generateStatement("return { " + implementeeName + "Tag::" + this.name + "Variant, data }");
+				final var s1 = generateStatement(implementeeName + "Data" + joinedTypeParameters + " data");
+				final var s2 = generateStatement("data." + this.name + " = *_this");
+				final var s3 = generateStatement("return { " + implementeeName + "Tag::" + this.name + "Variant, data }");
 				content = s1 + s2 + s3;
 			}
 
@@ -1912,10 +1912,9 @@ public class Main {
 	}
 
 	private Option<IOError> run() {
-		final var source =
-				Paths.get(".").resolve("src").resolve("main").resolve("java").resolve("magma").resolve("Main.java");
-		final var target =
-				Paths.get(".").resolve("src").resolve("main").resolve("windows").resolve("magma").resolve("Main.cpp");
+		final var source = Paths.get(".").resolve("src").resolve("main").resolve("java").resolve("magma").resolve("java");
+		final var target = Paths.get(".").resolve("src").resolve("main").resolve("windows").resolve("magma").resolve(
+				"cpp");
 
 		final var input = source.readString().mapValue(this::compile);
 
@@ -2502,15 +2501,15 @@ public class Main {
 																	 List<String> structureVariants) {
 		if (methodDeclaration instanceof JConstructor) {
 			final var compiled = maybeContent.orElse("?");
-			return Main.generateStatement(structName + " _thisInstance") +
+			return generateStatement(structName + " _thisInstance") +
 						 generateStatement(structName + "* _this = &_thisInstance") + compiled +
-						 Main.generateStatement("return " + "_thisInstance");
+						 generateStatement("return " + "_thisInstance");
 		}
 
 		if (methodDeclaration instanceof JDeclaration declaration) {
-			final var joinedTypeParameters = Main.joinTypeParameters(typeParameters);
+			final var joinedTypeParameters = joinTypeParameters(typeParameters);
 
-			final var thisInitialization = Main.generateStatement(
+			final var thisInitialization = generateStatement(
 					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 
 			final var body = maybeContent.orElseGet(() -> {
@@ -2534,9 +2533,9 @@ public class Main {
 		if (variants.isEmpty()) {
 			final var joinedParameters = parameterNames.addFirst("_this->data").iter().collect(new Joiner(", "));
 
-			return Main.generateStatement("return _this->table." + name + "(" + joinedParameters + ")");
+			return generateStatement("return _this->table." + name + "(" + joinedParameters + ")");
 		} else {
-			final var returnValueDefinition = Main.generateStatement(type.generate() + " _ret");
+			final var returnValueDefinition = generateStatement(type.generate() + " _ret");
 
 			final var cases = variants
 					.iter()
@@ -2544,7 +2543,7 @@ public class Main {
 					.collect(new Joiner());
 
 			return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
-						 generateIndent(1) + "}" + Main.generateStatement("return _ret");
+						 generateIndent(1) + "}" + generateStatement("return _ret");
 		}
 	}
 
@@ -2843,7 +2842,7 @@ public class Main {
 	}
 
 	private JType cleanupType(JType type) {
-		if (type instanceof Identifier(String value)) {
+		if (type instanceof Identifier(var value)) {
 			final var maybeFound = environment.resolveType(value);
 			if (maybeFound instanceof Some<JObjectType>(var found)) return found;
 			else return new Placeholder("Identifier '" + value + "' has not been defined");
@@ -3004,15 +3003,14 @@ public class Main {
 				var returnType1 = new Identifier("todoLambda");
 				jTypeStringTuple = new Tuple<JType, String>(returnType1, output1);
 			} else {
-				final var jExpressionOption = Main.this.parseExpression(maybeWithBraces);
+				final var jExpressionOption = this.parseExpression(maybeWithBraces);
 
-				var output1 = Main.generateStatement("return " + jExpressionOption
-						.map(Main.this::transformExpression)
+				var output1 = generateStatement("return " + jExpressionOption
+						.map(this::transformExpression)
 						.map(CExpression::generate)
 						.orElseGet(() -> Placeholder.wrap(maybeWithBraces)));
 
-				var returnType1 =
-						jExpressionOption.map(Main.this::resolveExpression).orElseGet(() -> new Identifier("todoLambda"));
+				var returnType1 = jExpressionOption.map(this::resolveExpression).orElseGet(() -> new Identifier("todoLambda"));
 				jTypeStringTuple = new Tuple<JType, String>(returnType1, output1);
 			}
 
