@@ -1529,6 +1529,7 @@ public class Main {
 	private record JInstanceOf() implements JExpression {}
 
 	private record JQuantity(JExpression instance) implements JExpression {}
+
 	private static Environment environment = new Environment();
 	private final JType StringType;
 	private List<String> functionDeclarations;
@@ -1538,6 +1539,7 @@ public class Main {
 	private List<CFunction> functions;
 	private int counter;
 	private List<CEnum> enums;
+
 	public Main() {
 		this.structuresOrUnions = Lists.empty();
 
@@ -2719,7 +2721,10 @@ public class Main {
 			}
 		}
 
-		if (stripped.startsWith("'") && stripped.endsWith("'")) return new Some<JExpression>(new Char(stripped));
+		if (stripped.startsWith("'") && stripped.endsWith("'")) {
+			final var content = stripped.substring(1, stripped.length() - 1);
+			return new Some<JExpression>(new Char(content));
+		}
 
 		final var maybeLambda = this.compileLambda(stripped);
 		if (maybeLambda instanceof Some<JExpression>) return maybeLambda;
