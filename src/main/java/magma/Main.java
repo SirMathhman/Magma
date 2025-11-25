@@ -6,9 +6,6 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 public class Main {
@@ -71,6 +68,24 @@ public class Main {
 		public JType getType() {
 			return this.type;
 		}
+	}
+
+	private interface Map<K, V> {
+		Map<K, V> put(K key, V value);
+
+		boolean containsKey(K key);
+
+		Iter<Tuple<K, V>> iterEntries();
+
+		boolean isEmpty();
+
+		int size();
+
+		Map<K, V> mapValues(F1R<V, V> mapper);
+
+		Map<K, V> removeKey(K key);
+
+		Option<V> get(K key);
 	}
 
 	private interface Head<T> {
@@ -1481,16 +1496,68 @@ public class Main {
 		}
 	}
 
+	private record TupleMap<K, V>(List<Tuple<K, V>> entries) implements Map<K, V> {
+		public TupleMap() {
+			this(Lists.empty());
+		}
+
+		@Override
+		public Map<K, V> put(K key, V value) {
+			final TupleMap<K, V> removed;
+			if (this.containsKey(key)) removed = this.removeKey(key);
+			else removed = this;
+
+			return new TupleMap<K, V>(removed.entries.addLast(new Tuple<K, V>(key, value)));
+		}
+
+		@Override
+		public TupleMap<K, V> removeKey(K key) {
+			return new TupleMap<K, V>(this.entries.iter().filter(entry -> !entry.left.equals(key)).toList());
+		}
+
+		@Override
+		public Option<V> get(K key) {
+			return this.entries.iter().filter(entry -> entry.left.equals(key)).map(entry -> entry.right).next();
+		}
+
+		@Override
+		public boolean containsKey(K key) {
+			return this.entries.iter().collect(new AnyMatch<Tuple<K, V>>(entry -> entry.left.equals(key)));
+		}
+
+		@Override
+		public Iter<Tuple<K, V>> iterEntries() {
+			return this.entries.iter();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return this.entries.isEmpty();
+		}
+
+		@Override
+		public int size() {
+			return this.entries.size();
+		}
+
+		@Override
+		public Map<K, V> mapValues(F1R<V, V> mapper) {
+			final var collected =
+					this.entries.iter().map(entry -> new Tuple<K, V>(entry.left, mapper.apply(entry.right))).toList();
+
+			return new TupleMap<K, V>(collected);
+		}
+	}
+
 	private record MapCollector<K, V>() implements Collector<Tuple<K, V>, Map<K, V>> {
 		@Override
 		public Map<K, V> createInitial() {
-			return new HashMap<K, V>();
+			return new TupleMap<K, V>();
 		}
 
 		@Override
 		public Map<K, V> fold(Map<K, V> kvMap, Tuple<K, V> kvTuple) {
-			kvMap.put(kvTuple.left, kvTuple.right);
-			return kvMap;
+			return kvMap.put(kvTuple.left, kvTuple.right);
 		}
 	}
 
@@ -1708,8 +1775,8 @@ public class Main {
 																								jOperator.operator,
 																								this.transformExpression(jOperator.rightCompiled));
 			case StringNode stringNode -> stringNode;
-			case JMethodAccess access -> new Identifier("???");
-			case JInstanceOf instance -> new Identifier("???");
+			case JMethodAccess access -> new Identifier("??? access ???");
+			case JInstanceOf instance -> new Identifier("??? instanceof ???");
 			case JQuantity quantity -> new CQuantity(this.transformExpression(quantity.instance));
 			default -> throw new IllegalStateException("Unexpected value: " + expression);
 		};
@@ -1785,9 +1852,57 @@ public class Main {
 			return new Tuple<String, List<String>>(value.findName(), withoutDuplicates);
 		}).collect(new MapCollector<String, List<String>>());
 
-		for (var entry : dependencyMap.entrySet()) {
-			var newValues = entry.getValue().iter().filter(dependencyMap::containsKey).toList();
-			final var oldKey = entry.getKey();
+		var cleanedDependencyMap = dependencyMap.iterEntries().map(entry -> {
+			final var oldKey = entry.left;
+			final var newValues = this.trimDependencies(entry, dependencyMap, oldKey);
+			return new Tuple<String, List<String>>(oldKey, newValues);
+		}).collect(new MapCollector<String, List<String>>());
+
+		var dependencyOrder = Lists.<String>empty();
+		while (!cleanedDependencyMap.isEmpty()) {
+			var cleanedDependencyMapKeysToRemove =
+					cleanedDependencyMap.iterEntries().filter(entry -> entry.right.isEmpty()).map(Tuple::left).toList();
+
+			final var oldLength = cleanedDependencyMap.size();
+
+			final var fold = cleanedDependencyMapKeysToRemove
+					.iter()
+					.fold(new Tuple<List<String>, Map<String, List<String>>>(dependencyOrder, cleanedDependencyMap),
+								this::getListMapTuple);
+
+			dependencyOrder = fold.left;
+			cleanedDependencyMap = fold.right;
+
+			final var newLength = cleanedDependencyMap.size();
+			assert oldLength != newLength;
+		}
+
+		final var mapping = this.structuresOrUnions
+				.iter()
+				.map(rootSegment -> new Tuple<String, CStructureOrUnion>(rootSegment.findName(), rootSegment))
+				.collect(new MapCollector<String, CStructureOrUnion>());
+
+		return dependencyOrder.iter().map(mapping::get).flatMap(Option::iter).toList();
+	}
+
+	private Tuple<List<String>, Map<String, List<String>>> getListMapTuple(Tuple<List<String>,
+			Map<String, List<String>>> listMapTuple,
+																																				 String cleanedDependencyMapKeyToRemove) {
+		final var left = listMapTuple.left;
+		final var right = listMapTuple.right;
+
+		final var stringList = left.addLast(cleanedDependencyMapKeyToRemove);
+		final var stringListMap = right
+				.removeKey(cleanedDependencyMapKeyToRemove)
+				.mapValues(values -> values.removeElement(cleanedDependencyMapKeyToRemove));
+
+		return new Tuple<List<String>, Map<String, List<String>>>(stringList, stringListMap);
+	}
+
+	private List<String> trimDependencies(Tuple<String, List<String>> entry,
+																				Map<String, List<String>> dependencyMap,
+																				String oldKey) {
+		var newValues = entry.right.iter().filter(dependencyMap::containsKey).toList();
 
 			/*
 			This is to prevent circular dependencies with VTables.
@@ -1797,53 +1912,11 @@ public class Main {
 			and we can safely assume that any mention of List in ListTable is a pointer or in a function pointer.
 			Therefore, we remove it.
 			 */
-			if (oldKey.endsWith("Table")) {
-				final var keyWithoutTable = oldKey.substring(0, oldKey.length() - "Table".length());
-				if (newValues.contains(keyWithoutTable)) newValues = newValues.removeElement(keyWithoutTable);
-			}
-
-			dependencyMap.put(oldKey, newValues);
+		if (oldKey.endsWith("Table")) {
+			final var keyWithoutTable = oldKey.substring(0, oldKey.length() - "Table".length());
+			if (newValues.contains(keyWithoutTable)) newValues = newValues.removeElement(keyWithoutTable);
 		}
-
-		var dependencyOrder = Lists.<String>empty();
-		while (!dependencyMap.isEmpty()) {
-			var dependencyMapKeysToRemove =
-					dependencyMap.entrySet().stream().filter(entry -> entry.getValue().isEmpty()).map(Entry::getKey).toList();
-
-			final var oldLength = dependencyMap.size();
-			for (var dependencyMapKeyToRemove : dependencyMapKeysToRemove) {
-				dependencyMap.remove(dependencyMapKeyToRemove);
-				dependencyOrder = dependencyOrder.addLast(dependencyMapKeyToRemove);
-
-				this.removeKeyFromValues(dependencyMap, dependencyMapKeyToRemove);
-			}
-
-			final var newLength = dependencyMap.size();
-			assert oldLength != newLength;
-		}
-
-		final var mapping = this.structuresOrUnions
-				.iter()
-				.map(rootSegment -> new Tuple<String, CStructureOrUnion>(rootSegment.findName(), rootSegment))
-				.collect(new MapCollector<String, CStructureOrUnion>());
-
-		final List<CStructureOrUnion>[] toReturn = new List[]{Lists.<CStructureOrUnion>empty()};
-		dependencyOrder.iter().forEach(element -> {
-			final var cStructureOrUnion = mapping.get(element);
-			toReturn[0] = toReturn[0].addLast(cStructureOrUnion);
-		});
-
-		return toReturn[0];
-	}
-
-	private void removeKeyFromValues(Map<String, List<String>> dependencyMap, String dependencyMapKeyToRemove) {
-		for (var anyDependencyMapKey : dependencyMap.keySet()) {
-			final var values = dependencyMap.get(anyDependencyMapKey);
-			if (values.contains(dependencyMapKeyToRemove)) {
-				var newValues = values.removeElement(dependencyMapKeyToRemove);
-				dependencyMap.put(anyDependencyMapKey, newValues);
-			}
-		}
+		return newValues;
 	}
 
 	private List<String> removeDuplicates(List<String> list) {
