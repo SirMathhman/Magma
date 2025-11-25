@@ -2689,9 +2689,6 @@ public class Main {
 			}
 		}
 
-		final var maybeInvokable = this.parseInvokable(stripped);
-		if (maybeInvokable instanceof Some<JExpression>) return maybeInvokable;
-
 		final var maybeOperator = this
 				.compileOperator(stripped, Operator.Equals)
 				.or(() -> this.compileOperator(stripped, Operator.NotEquals))
@@ -2701,6 +2698,10 @@ public class Main {
 				.or(() -> this.compileOperator(stripped, Operator.And))
 				.or(() -> this.compileOperator(stripped, Operator.Or))
 				.or(() -> this.compileOperator(stripped, Operator.GreaterThanOrEquals));
+		if (maybeOperator instanceof Some<JExpression>) return maybeOperator;
+
+		final var maybeInvokable = this.parseInvokable(stripped);
+		if (maybeInvokable instanceof Some<JExpression>) return maybeInvokable;
 
 		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
@@ -2713,7 +2714,6 @@ public class Main {
 			}
 		}
 
-		if (maybeOperator instanceof Some<JExpression>) return maybeOperator;
 		if (Identifier.isIdentifier(stripped)) return new Some<JExpression>(new Identifier(stripped));
 
 		if (stripped.startsWith("!")) {
