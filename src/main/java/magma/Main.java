@@ -1235,7 +1235,7 @@ public class Main {
 		}
 
 		public Option<JObjectType> toStructureType() {
-			return this.maybeObject.map(obj -> new JObjectType(obj.name, this.definedExpressions));
+			return this.maybeObject.map(obj -> new JObjectType(obj.name, obj.variants, this.definedExpressions));
 		}
 
 		public Frame withObject(JObject name) {
@@ -1251,7 +1251,7 @@ public class Main {
 		}
 	}
 
-	private record JObjectType(String name, List<JDeclaration> members) implements JType {
+	private record JObjectType(String name, List<String> variants, List<JDeclaration> members) implements JType {
 		private Option<JType> resolve(String name) {
 			return this.members.iter().filter(member -> member.name.equals(name)).next().map(JDeclaration::type);
 		}
@@ -1354,34 +1354,53 @@ public class Main {
 			return this.recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList();
 		}
 
-		private List<CFunction> createConversionFunctions() {
-			return this.implementees().iter().map(this::createConversionType).toList();
+		private List<CFunction> createConversionFunctions(Environment environment1) {
+			return this
+					.implementees()
+					.iter()
+					.map(implementee -> this.createConversionType(implementee, environment1))
+					.toList();
 		}
 
 		// TODO: This return type needs to be a CFunction
-		private CFunction createConversionType(CType implementee) {
-			var joinedTypeParameters = Main.joinTypeParameters(this.typeParameters());
+		private CFunction createConversionType(CType implementee, Environment environment) {
+			var joinedTypeParameters = Main.joinTypeParameters(this.typeParameters);
 			// TODO: turn this into proper AST generation
 
-			final var identifier = implementee.toBaseName();
+			final String implementeeName = implementee.toBaseName();
 			final var thisType = this.name + joinedTypeParameters;
-			final var s = Main.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
-			final var s1 = Main.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
-			final var s2 = Main.generateStatement("data." + this.name + " = _this");
-			final var s3 = Main.generateStatement("return { " + identifier + "Tag::" + this.name + "Variant, data }");
-			final var content = s + s1 + s2 + s3;
+			final var thisPtr = Main.generateStatement(thisType + "* _this = (" + thisType + "*) _ref");
 
-			final var conversionFunctionName = "to" + identifier + "_" + this.name;
+			final var jObjectType = environment.resolveType(implementeeName).orElse(null);
+			assert jObjectType != null;
+
+			final String content;
+			/*
+				HeadTable<int> table = HeadTable<int>{
+					next_RangeHead,
+				};
+				void *data = moveToHeap(*_this);
+				return Head<int>{ data, table };
+				 */
+			if (jObjectType.variants.isEmpty()) content = Main.generateStatement("return _impl");
+			else {
+				final var s1 = Main.generateStatement(implementeeName + "Data" + joinedTypeParameters + " data");
+				final var s2 = Main.generateStatement("data." + this.name + " = *_this");
+				final var s3 = Main.generateStatement("return { " + implementeeName + "Tag::" + this.name + "Variant, data }");
+				content = s1 + s2 + s3;
+			}
+
+			final var conversionFunctionName = "to" + implementeeName + "_" + this.name;
 			final var parameters = Lists.of(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
 			final var header =
 					new CFunctionHeader(new CDeclaration(this.typeParameters, implementee, conversionFunctionName), parameters);
 
-			return new CFunction(header, content);
+			return new CFunction(header, thisPtr + content);
 		}
 
 		public JObjectType toType() {
 			final var memberDefinitions = this.children.iter().map(this::extractDefinition).flatMap(Option::iter).toList();
-			return new JObjectType(this.name, memberDefinitions);
+			return new JObjectType(this.name, this.variants, memberDefinitions);
 		}
 
 		private Option<JDeclaration> extractDefinition(JObjectMember child) {
@@ -1506,9 +1525,10 @@ public class Main {
 																 new JDeclaration("substring", new JFunctionalType(StringType)),
 																 new JDeclaration("replace", new JFunctionalType(StringType)));
 
-		return new JObjectType("String", methods);
+		return new JObjectType("String", Lists.empty(), methods);
 	});
-	private Environment environment = new Environment();
+
+	private static Environment environment = new Environment();
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structureForwardDeclarations;
@@ -1700,8 +1720,8 @@ public class Main {
 		final var joinedFunctions = this.functions.iter().map(CFunction::generate).collect(new Joiner());
 
 		final var joinedEnums = this.enums.iter().map(CEnum::generate).collect(new Joiner());
-		return joinedStructureForwardDeclarations + joinedEnums + joinedStructures + joinedFunctionDeclarations +
-					 joinedGlobals + joinedFunctions + all;
+		return "#include \"intrinsics.h\"" + System.lineSeparator() + joinedStructureForwardDeclarations + joinedEnums +
+					 joinedStructures + joinedFunctionDeclarations + joinedGlobals + joinedFunctions + all;
 	}
 
 	private List<CStructureOrUnion> createTopologicallySortedList() {
@@ -1972,16 +1992,16 @@ public class Main {
 	private Option<CStructMember> transformObject(JObject object) {
 		if (object.annotations.contains("Actual")) return new Some<CStructMember>(new EmptyStructMember());
 
-		this.functions = object.createConversionFunctions().iter().fold(this.functions, List::addLast);
-		final var within = this.environment.within(env -> {
-			this.environment = env.withObject(object);
+		this.functions = object.createConversionFunctions(environment).iter().fold(this.functions, List::addLast);
+		final var within = environment.within(env -> {
+			environment = env.withObject(object);
 
 			final var types = object.children.iter().map(Main::extractType).flatMap(Option::iter).toList();
 			final var declarations =
 					object.children.iter().map(this::extractField).flatMap(Option::iter).toList().addAllLast(object.recordFields);
 
-			this.environment = this.environment.defineAllTypes(types);
-			this.environment = this.environment.defineAllExpressions(declarations);
+			environment = environment.defineAllTypes(types);
+			environment = environment.defineAllExpressions(declarations);
 
 			final var members = object.children
 					.iter()
@@ -1989,10 +2009,10 @@ public class Main {
 					.flatMap(Option::iter)
 					.toList();
 
-			return new Tuple<Environment, List<CStructMember>>(this.environment, members);
+			return new Tuple<Environment, List<CStructMember>>(environment, members);
 		});
 
-		this.environment = within.left;
+		environment = within.left;
 		var members = within.right;
 
 		var fields = object.collectCFields();
@@ -2114,13 +2134,13 @@ public class Main {
 		if (jFunctionProto.content.startsWith("{") && jFunctionProto.content.endsWith("}")) {
 			final var inputContent = jFunctionProto.content.substring(1, jFunctionProto.content().length() - 1);
 
-			final var within = this.environment.within((env) -> {
+			final var within = environment.within((env) -> {
 				var self = env.defineAllExpressions(jFunctionProto.parameters());
 				return self.within(value -> new Tuple<Environment, String>(value,
 																																	 this.compileMethodsSegments(inputContent, 1)));
 			});
 
-			this.environment = within.left;
+			environment = within.left;
 			maybeCompiled = new Some<String>(within.right);
 		}
 
@@ -2179,7 +2199,7 @@ public class Main {
 			final var substring = stripped.substring(0, stripped.length() - 1);
 			final var maybeDeclaration = this.parseDeclaration(substring);
 			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) {
-				this.environment = this.environment.defineExpression(declaration);
+				environment = environment.defineExpression(declaration);
 				return new Some<JObjectMember>(new JField(declaration));
 			}
 		}
@@ -2522,7 +2542,7 @@ public class Main {
 			case JDeclaration local -> {
 				final var newType = this.resolveType(source, local.type);
 				final var jDeclaration = local.withType(newType);
-				this.environment = this.environment.defineExpression(jDeclaration);
+				environment = environment.defineExpression(jDeclaration);
 				yield jDeclaration.toCAssignable();
 			}
 
@@ -2570,22 +2590,22 @@ public class Main {
 	}
 
 	private JType resolveIdentifier(String value) {
-		if (value.equals("this")) return this.environment
+		if (value.equals("this")) return environment
 				.resolveCurrent()
 				.<JType>map(thisType -> thisType)
 				.orElseGet(() -> new Placeholder("Not within a struct"));
 
-		final var maybeFound = this.environment.resolveExpression(value).map(JDeclaration::type);
+		final var maybeFound = environment.resolveExpression(value).map(JDeclaration::type);
 		if (maybeFound instanceof Some<JType>(var found)) return found;
 
-		if (this.environment.resolveType(value) instanceof Some<JObjectType>(var resolved)) return resolved;
+		if (environment.resolveType(value) instanceof Some<JObjectType>(var resolved)) return resolved;
 
 		return new Placeholder("Undefined identifier: " + value);
 	}
 
 	private JType cleanupType(JType found) {
 		if (found instanceof JGenericType genericType) {
-			final var resolved = this.environment.resolveType(genericType.base);
+			final var resolved = environment.resolveType(genericType.base);
 			if (resolved instanceof Some<JObjectType>(var objType)) return objType;
 			else return new Placeholder("Generic type '" + genericType.base + "' has not been defined");
 		}
