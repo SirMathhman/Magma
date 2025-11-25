@@ -119,6 +119,8 @@ struct StringNode;
 struct JMethodAccess;
 struct JInstanceOf;
 struct JQuantity;
+template <typename T>
+struct AllMatch;
 struct Main;
 enum class OptionTag {
 	NoneVariant,
@@ -396,6 +398,10 @@ struct Operator {
 };
 struct CQuantity {
 	CExpression expression;
+};
+template <typename T>
+struct AllMatch {
+	F1R<T, int> predicate;
 };
 struct CReference {
 	CExpression instance;
@@ -949,6 +955,12 @@ char* generate_CReference(void* _ref);
 char* generate_Char(void* _ref);
 char* generate_COperator(void* _ref);
 char* generate_StringNode(void* _ref);
+template <typename T>
+AllMatch<T> new_AllMatch(F1R<T, int> predicate);
+template <typename T>
+int createInitial_AllMatch(void* _ref);
+template <typename T>
+int fold_AllMatch(void* _ref, int aBoolean, T t);
 new Environment_Main(void* _ref);
 Main new_Main();
 int isLetter_Main(void* _ref, char c);
@@ -1864,7 +1876,7 @@ int isIdentifier_Identifier(void* _ref, char* input){
 	char* stripped = strip_String(&(input));
 	if (isEmpty_String(&(stripped)) || equals_String(&(stripped), "return")) 
 		return false;
-	return allMatch_/*Not a functional type: Placeholder[input=Cannot access member 'range' in 'Placeholder[input=Undefined identifier: IntStream]', not an object.]*/(&(range_/*Undefined identifier: IntStream*/(&(IntStream), 0, length_String(&(stripped)))), lambda5);
+	return new_/*Iter<Integer>(new RangeHead(stripped.length())).collect*/(new_AllMatch(lambda5));
 }
 char* generate_Identifier(void* _ref){
 	Identifier* _this = (Identifier*) _ref;
@@ -2884,7 +2896,7 @@ CFunction createConversionType_JObject(void* _ref, CType implementee, Environmen
 	JObject* _this = (JObject*) _ref;
 	/*Not a functional type: Placeholder[input=Cannot access member 'joinTypeParameters' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ joinedTypeParameters = joinTypeParameters_/*Undefined identifier: Main*/(&(Main), _this->typeParameters);
 	// TODO: turn this into proper AST generation
-	char* implementeeName = toBaseName_CType(&(implementee));
+	/*Not a functional type: Placeholder[input=Cannot access member 'toBaseName' in 'Identifier[value=CType]', not an object.]*/ implementeeName = toBaseName_CType(&(implementee));
 	int thisType = _this->name + joinedTypeParameters;
 	/*Not a functional type: Placeholder[input=Cannot access member 'generateStatement' in 'Placeholder[input=Undefined identifier: Main]', not an object.]*/ thisPtr = generateStatement_/*Undefined identifier: Main*/(&(Main), thisType + "* _this = (" + thisType + "*) _ref");
 	/*Not a functional type: Placeholder[input=Cannot access member 'orElse' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'resolveType' in 'Identifier[value=Environment]', not an object.]]', not an object.]*/ jObjectType = orElse_/*Not a functional type: Placeholder[input=Cannot access member 'resolveType' in 'Identifier[value=Environment]', not an object.]*/(&(resolveType_Environment(&(environment), implementeeName)), null);
@@ -3180,6 +3192,28 @@ JQuantity new_JQuantity(JExpression instance){
 	JQuantity* _this = &_thisInstance;
 	_this->instance = instance;
 	return _thisInstance;
+}
+template <typename T>
+Collector<T, int> toCollector_AllMatch(void* _ref){
+	AllMatch<T>* _this = (AllMatch<T>*) _ref;
+	return _impl;
+}
+template <typename T>
+AllMatch<T> new_AllMatch(F1R<T, int> predicate){
+	AllMatch _thisInstance;
+	AllMatch* _this = &_thisInstance;
+	_this->predicate = predicate;
+	return _thisInstance;
+}
+template <typename T>
+int createInitial_AllMatch(void* _ref){
+	AllMatch<T>* _this = (AllMatch<T>*) _ref;
+	return true;
+}
+template <typename T>
+int fold_AllMatch(void* _ref, int aBoolean, T t){
+	AllMatch<T>* _this = (AllMatch<T>*) _ref;
+	return aBoolean && apply_F1R(&(_this->predicate), t);
 }
 new Environment_Main(void* _ref){
 	Main* _this = (Main*) _ref;
@@ -3764,7 +3798,7 @@ Option<CDefinable> retainDefinables_Main(void* _ref, CStructMember member){
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@4cb2c100']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
+	/*Not a functional type: Placeholder[input=Member 'split' not defined in 'magma.Main$JRecursiveType@26ba2a48']*/ segments = split_String(&(input), quote_/*Undefined identifier: Pattern*/(&(Pattern), ","));
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ list = toList_/*Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]]', not an object.]*/(&(filter_/*Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]]', not an object.]*/(&(map_/*Not a functional type: Placeholder[input=Cannot access member 'stream' in 'Placeholder[input=Undefined identifier: Arrays]', not an object.]*/(&(stream_/*Undefined identifier: Arrays*/(&(Arrays), segments)), ???)), lambda46)));
 	return new_JavaList(list);
 }
@@ -4308,7 +4342,9 @@ int isNumber_Main(void* _ref, char* input){
 }
 int allDigits_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return allMatch_/*Not a functional type: Placeholder[input=Cannot access member 'mapToObj' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'range' in 'Placeholder[input=Undefined identifier: IntStream]', not an object.]]', not an object.]*/(&(mapToObj_/*Not a functional type: Placeholder[input=Cannot access member 'range' in 'Placeholder[input=Undefined identifier: IntStream]', not an object.]*/(&(range_/*Undefined identifier: IntStream*/(&(IntStream), 0, length_String(&(input)))), ???)), ???);
+	return new_/*Iter<Integer>(new RangeHead(input.length()))
+				.map(input::charAt)
+				.collect*/(new_AllMatch(???));
 }
 Option<JCaller> parseCaller_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;

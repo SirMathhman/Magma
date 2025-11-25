@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 public class Main {
 	private enum CPrimitiveType implements CType {
@@ -313,6 +312,7 @@ public class Main {
 				else break;
 			}
 		}
+
 	}
 
 	private static final class RangeHead implements Head<Integer> {
@@ -601,10 +601,10 @@ public class Main {
 			final var stripped = input.strip();
 			if (stripped.isEmpty() || stripped.equals("return")) return false;
 
-			return IntStream.range(0, stripped.length()).allMatch(i -> {
+			return new Iter<Integer>(new RangeHead(stripped.length())).collect(new AllMatch<Integer>(i -> {
 				final var c = stripped.charAt(i);
 				return c == '_' || isLetter(c) || (i != 0 && isDigit(c));
-			});
+			}));
 		}
 
 		@Override
@@ -1375,7 +1375,7 @@ public class Main {
 			var joinedTypeParameters = Main.joinTypeParameters(this.typeParameters);
 			// TODO: turn this into proper AST generation
 
-			final String implementeeName = implementee.toBaseName();
+			final var implementeeName = implementee.toBaseName();
 			final var thisType = this.name + joinedTypeParameters;
 			final var thisPtr = Main.generateStatement(thisType + "* _this = (" + thisType + "*) _ref");
 
@@ -1530,6 +1530,22 @@ public class Main {
 
 	private record JQuantity(JExpression instance) implements JExpression {}
 
+	private static class AllMatch<T> implements Collector<T, Boolean> {
+		private final F1R<T, Boolean> predicate;
+
+		public AllMatch(F1R<T, Boolean> predicate) {this.predicate = predicate;}
+
+		@Override
+		public Boolean createInitial() {
+			return true;
+		}
+
+		@Override
+		public Boolean fold(Boolean aBoolean, T t) {
+			return aBoolean && this.predicate.apply(t);
+		}
+	}
+
 	private static Environment environment = new Environment();
 	private final JType StringType;
 	private List<String> functionDeclarations;
@@ -1623,7 +1639,7 @@ public class Main {
 		return c >= '0' && c <= '9';
 	}
 
-	public CDeclaration toCDeclaration(JDeclaration declaration) {
+	private CDeclaration toCDeclaration(JDeclaration declaration) {
 		return new CDeclaration(declaration.typeParameters, this.transformType(declaration.type), declaration.name);
 	}
 
@@ -2906,7 +2922,9 @@ public class Main {
 	}
 
 	private boolean allDigits(String input) {
-		return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isDigit);
+		return new Iter<Integer>(new RangeHead(input.length()))
+				.map(input::charAt)
+				.collect(new AllMatch<Character>(Main::isDigit));
 	}
 
 	private Option<JCaller> parseCaller(String input) {
