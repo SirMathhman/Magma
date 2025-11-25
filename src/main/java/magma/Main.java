@@ -6,7 +6,6 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 public class Main {
@@ -161,7 +160,7 @@ public class Main {
 
 		Tuple<Boolean, T> toTuple(FR<T> other);
 
-		<R> Option<Tuple<T, R>> and(Supplier<Option<R>> other);
+		<R> Option<Tuple<T, R>> and(FR<Option<R>> other);
 	}
 
 	private interface F1R<T0, R> {
@@ -902,8 +901,8 @@ public class Main {
 		}
 
 		@Override
-		public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
-			return other.get().map((R otherValue) -> new Tuple<T, R>(this.value, otherValue));
+		public <R> Option<Tuple<T, R>> and(FR<Option<R>> other) {
+			return other.apply().map((R otherValue) -> new Tuple<T, R>(this.value, otherValue));
 		}
 	}
 
@@ -944,7 +943,7 @@ public class Main {
 		}
 
 		@Override
-		public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
+		public <R> Option<Tuple<T, R>> and(FR<Option<R>> other) {
 			return new None<Tuple<T, R>>();
 		}
 	}
@@ -1249,9 +1248,9 @@ public class Main {
 			return this.frames.iter().map((Frame frame) -> frame.resolveExpression(identifier)).flatMap(Option::iter).next();
 		}
 
-		public <T> Tuple<Environment, T> within(F1R<Environment, Tuple<Environment, T>> supplier) {
+		public <T> Tuple<Environment, T> within(F1R<Environment, Tuple<Environment, T>> FR) {
 			final var withLastEnv = this.enter();
-			final var result = supplier.apply(withLastEnv);
+			final var result = FR.apply(withLastEnv);
 			var exited = result.left.exit();
 			return new Tuple<Environment, T>(exited, result.right);
 		}
@@ -1993,7 +1992,7 @@ public class Main {
 	}
 
 	private Tuple<List<String>, Map<String, List<String>>> getListMapTuple(Tuple<List<String>,
-																																						 Map<String, List<String>>> listMapTuple,
+			Map<String, List<String>>> listMapTuple,
 																																				 String cleanedDependencyMapKeyToRemove) {
 		final var left = listMapTuple.left;
 		final var right = listMapTuple.right;
