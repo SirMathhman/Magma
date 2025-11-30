@@ -4,6 +4,9 @@
     <ClCompile Include="C:\Users\mathm\IdeaProjects\Magma\src\main\windows\magma\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\mathm\IdeaProjects\Magma\src\main\windows\magma\intrinsics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\mathm\IdeaProjects\Magma\CMakeLists.txt" />

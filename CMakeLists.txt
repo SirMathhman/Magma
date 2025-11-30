@@ -27,9 +27,7 @@ else()
 endif()
 
 # Source files
-set(MAGMA_SOURCES
-    src/main/windows/magma/Main.cpp
-)
+file(GLOB_RECURSE MAGMA_SOURCES "src/main/windows/magma/*.cpp")
 
 # Executable target
 add_executable(magma ${MAGMA_SOURCES})

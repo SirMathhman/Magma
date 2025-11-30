@@ -9,10 +9,12 @@ T *moveToHeap(T value)
 	return pointer;
 }
 
-int length_String(char** this) {
- return strlen(*this);
+int length_String(char **_this)
+{
+	return strlen(*_this);
 }
 
-char charAt_String(char** this, int index) {
- return (*this)[index];
+char charAt_String(char **_this, int index)
+{
+	return (*_this)[index];
 }
